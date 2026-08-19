@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Quản Lý  - Hệ Thống  TASAGO-TNT</title>
-  <meta name="description" content="Hệ thống quản lý TASAGO-TNT" />
+  <title>Quản Lý - Hệ Thống TASAGO</title>
+  <meta name="description" content="Hệ thống quản lý, trạm trộn TSG_TNT" />
 
   <!-- Google Fonts: Plus Jakarta Sans & JetBrains Mono -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -39,6 +39,9 @@
 
   <!-- SheetJS (XLSX) CDN for in-browser Excel reading/writing -->
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+
+  <!-- html2canvas CDN for high-res table screenshots -->
+  <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
 
   <!-- Lucide Icons CDN -->
   <script src="https://unpkg.com/lucide@latest"></script>
@@ -155,7 +158,7 @@
           HỆ THỐNG QUẢN LÝ DỮ LIỆU TSG-TNT
         </h2>
         <p class="text-xs text-slate-400 font-medium max-w-xs mx-auto">
-          DỮ LIỆU CHUYẾN, KHỐI LƯỢNG
+          Bê tông của mọi công trình
         </p>
       </div>
 
@@ -246,7 +249,7 @@
       <!-- Card Footer Note -->
       <div class="mt-6 pt-5 border-t border-slate-800 text-center flex items-center justify-center gap-2 text-[11px] text-slate-500">
         <i data-lucide="shield-check" class="w-3.5 h-3.5 text-emerald-400"></i>
-        <span>Mã hóa SSL 256-bit • Quản Lý Hệ Thống Bê Tông Tasago @ 2026</span>
+        <span>Mã hóa SSL 256-bit • Quản Lý Hệ Thống Tasago @ 2026</span>
       </div>
     </div>
   </div>
@@ -269,19 +272,34 @@
                 QUẢN LÝ DỮ LIỆU BÊ TÔNG TSG-TNT
               </h1>
               <span id="header-records-badge" class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-blue-50 text-blue-700 border border-blue-200/60">
-                24 bản ghi
+                Xin chào!
               </span>
             </div>
-            <p class="text-xs font-medium text-slate-500 flex items-center gap-2 mt-0.5">
-              <span>Dữ liệu chuyến khối lượng</span>
+            <p class="text-xs font-medium text-slate-500 flex flex-wrap items-center gap-2 mt-0.5">
+              <span>Dữ liệu chuyến, khối lượng</span>
               <span class="text-slate-300">•</span>
-              <span id="header-updated-time" class="text-slate-400">Cập nhật: 18/08/2026 19:20</span>
+              <span class="inline-flex items-center gap-1.5 text-slate-700 bg-slate-100/90 px-2 py-0.5 rounded-md border border-slate-200 text-[11px] font-mono shadow-2xs">
+                <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                <span id="header-updated-time">Cập nhật: --/--/---- --:--:--</span>
+              </span>
             </p>
           </div>
         </div>
 
         <!-- Header Action Buttons -->
         <div class="flex flex-wrap items-center gap-2">
+          <!-- Screenshot Table Button (PC Capture) -->
+          <button
+            type="button"
+            id="btn-screenshot-table"
+            onclick="captureTableScreenshot()"
+            class="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-bold text-slate-800 bg-white hover:bg-slate-100 border border-slate-300 rounded-lg shadow-xs hover:shadow transition-all duration-150 active:scale-[0.98] cursor-pointer"
+            title="Chụp ảnh rõ nét toàn bộ Bảng dữ liệu chuyến tài xế (Chuẩn PC HD)"
+          >
+            <i data-lucide="camera" class="w-3.5 h-3.5 text-blue-600"></i>
+            <span>Chụp ảnh bảng (PC)</span>
+          </button>
+
           <!-- Primary Image OCR Button -->
           <button
             type="button"
@@ -714,7 +732,7 @@
   <!-- ==================== FOOTER ==================== -->
   <footer class="mt-auto py-4 border-t border-slate-200 bg-white text-center text-xs text-slate-500">
     <div class="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-2">
-      <span>Hệ thống Quản lý và Phân tích Dữ liệu trạm trộn Tasago-TNT © 2026</span>
+      <span>Hệ thống Quản lý và Phân tích Dữ liệu Trạm trộn Tasago © 2026</span>
       <span class="text-slate-400">Sản phẩm thuộc quyền LVT - Hotline 0942320923</span>
     </div>
   </footer>
@@ -1206,6 +1224,98 @@
     </div>
   </div>
 
+  <!-- ==================== SCREENSHOT PREVIEW MODAL ==================== -->
+  <div id="screenshot-modal" class="hidden fixed inset-0 z-50 overflow-y-auto bg-slate-900/75 backdrop-blur-xs flex items-center justify-center p-3 sm:p-5">
+    <div class="bg-white rounded-2xl shadow-2xl border border-slate-200 w-full max-w-6xl max-h-[94vh] flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-150">
+      
+      <!-- Modal Header -->
+      <div class="bg-gradient-to-r from-[#003B73] via-[#004B93] to-[#00529B] text-white px-6 py-4 flex items-center justify-between">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center text-white border border-white/20">
+            <i data-lucide="camera" class="w-5 h-5"></i>
+          </div>
+          <div>
+            <h3 class="text-base font-bold tracking-tight">Ảnh Chụp Bảng Dữ Liệu Chuyến Tài Xế (PC HD)</h3>
+            <p class="text-xs text-blue-100/80">Hình ảnh độ phân giải cao, hiển thị sắc nét toàn bộ cột, dòng và tổng cộng</p>
+          </div>
+        </div>
+        <button type="button" onclick="closeScreenshotModal()" class="p-1.5 text-white/80 hover:text-white hover:bg-white/10 rounded-lg cursor-pointer">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <!-- Modal Body (Preview Canvas / Image) -->
+      <div class="p-4 sm:p-6 overflow-y-auto flex-1 space-y-4 custom-scrollbar bg-slate-100/60">
+        
+        <!-- Controls Bar -->
+        <div class="flex flex-wrap items-center justify-between gap-3 bg-white p-3.5 rounded-xl border border-slate-200/90 shadow-xs">
+          <div class="flex items-center gap-3 text-xs">
+            <span class="font-bold text-slate-800 flex items-center gap-1.5">
+              <i data-lucide="image" class="w-4 h-4 text-blue-600"></i>
+              <span>Phạm vi chụp:</span>
+            </span>
+            <label class="flex items-center gap-1.5 cursor-pointer font-semibold text-slate-700">
+              <input type="radio" name="screenshot-scope" value="all" checked onchange="regenerateScreenshot()" class="text-blue-600 focus:ring-blue-500" />
+              <span>Toàn bộ danh sách (<span id="screenshot-scope-count">24</span> tài xế)</span>
+            </label>
+            <label class="flex items-center gap-1.5 cursor-pointer font-semibold text-slate-700">
+              <input type="radio" name="screenshot-scope" value="current-page" onchange="regenerateScreenshot()" class="text-blue-600 focus:ring-blue-500" />
+              <span>Trang hiện tại</span>
+            </label>
+          </div>
+
+          <div class="flex items-center gap-2">
+            <span class="text-xs text-slate-500 font-medium font-mono" id="screenshot-resolution-info">Độ phân giải: Đang xử lý...</span>
+          </div>
+        </div>
+
+        <!-- Image Container with Scroll -->
+        <div class="bg-white rounded-xl border border-slate-300 p-2 sm:p-4 overflow-auto max-h-[60vh] shadow-inner text-center custom-scrollbar flex items-center justify-center min-h-[260px]" id="screenshot-image-wrapper">
+          <div id="screenshot-loading-spinner" class="py-12 flex flex-col items-center justify-center gap-3 text-slate-500">
+            <div class="w-10 h-10 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+            <p class="text-xs font-bold text-slate-700">Đang khởi tạo và chụp ảnh toàn bộ bảng dữ liệu HD...</p>
+          </div>
+          <img id="screenshot-result-img" class="hidden max-w-full h-auto rounded-lg shadow-md border border-slate-200 mx-auto" alt="Screenshot Result" />
+        </div>
+      </div>
+
+      <!-- Modal Footer Action Buttons -->
+      <div class="bg-slate-50 border-t border-slate-200 px-6 py-3.5 flex flex-wrap items-center justify-between gap-3">
+        <button type="button" onclick="closeScreenshotModal()" class="px-4 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-200/70 rounded-lg cursor-pointer">
+          Đóng
+        </button>
+
+        <div class="flex items-center gap-2.5">
+          <!-- Copy to Clipboard Button -->
+          <button
+            type="button"
+            id="btn-copy-screenshot"
+            onclick="copyCapturedImageToClipboard()"
+            class="inline-flex items-center gap-2 px-4 py-2 text-xs font-bold text-slate-800 bg-white hover:bg-slate-100 active:bg-slate-200 border border-slate-300 rounded-lg shadow-xs transition-all cursor-pointer"
+            title="Sao chép ảnh vào bộ nhớ đệm để dán (Ctrl+V) trực tiếp vào Zalo, Messenger, Excel..."
+          >
+            <i data-lucide="copy" class="w-4 h-4 text-blue-600"></i>
+            <span>Sao chép ảnh (Copy)</span>
+          </button>
+
+          <!-- Download PNG Button -->
+          <button
+            type="button"
+            id="btn-download-screenshot"
+            onclick="downloadCapturedImage()"
+            class="inline-flex items-center gap-2 px-5 py-2 text-xs font-bold text-white bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 rounded-lg shadow-sm hover:shadow transition-all active:scale-95 cursor-pointer"
+          >
+            <i data-lucide="download" class="w-4 h-4 text-blue-100"></i>
+            <span>Tải ảnh PNG (HD)</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Offscreen Container for Clean Screenshot Generation -->
+  <div id="screenshot-render-sandbox" class="fixed -left-[99999px] top-0 pointer-events-none opacity-0 overflow-hidden" style="width: 1200px;"></div>
+
   <!-- ==================== TOAST NOTIFICATION ==================== -->
   <div id="toast-container" class="fixed top-4 right-4 z-50 pointer-events-none"></div>
 
@@ -1470,6 +1580,7 @@
     // INITIALIZATION ON LOAD
     window.addEventListener('DOMContentLoaded', () => {
       checkAuthAndInit();
+      startLiveClock();
     });
 
     // STRING & NUMBER NORMALIZATION
@@ -3352,7 +3463,366 @@
       closeImageOcrModal();
       currentPage = 1;
       resetAllFilters();
+      recordDataUpdateTime('Cập nhật từ ảnh AI');
       showToast(`Đã cập nhật thành công ${ocrExtractedDrivers.length} dòng dữ liệu từ ảnh vào hệ thống!`, 'success');
+    }
+
+    // ==================== REAL-TIME LIVE CLOCK & FORMATTING ====================
+    let lastDataActionTimestamp = null;
+
+    function formatVietDateTime(d = new Date(), withSeconds = true) {
+      const date = d instanceof Date ? d : new Date(d);
+      if (isNaN(date.getTime())) return '';
+      const day = String(date.getDate()).padStart(2, '0');
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const year = date.getFullYear();
+      const hours = String(date.getHours()).padStart(2, '0');
+      const minutes = String(date.getMinutes()).padStart(2, '0');
+      const seconds = String(date.getSeconds()).padStart(2, '0');
+      
+      if (withSeconds) {
+        return `${day}/${month}/${year} ${hours}:${minutes}:${seconds}`;
+      }
+      return `${day}/${month}/${year} ${hours}:${minutes}`;
+    }
+
+    function startLiveClock() {
+      function updateClockUI() {
+        const timeEl = document.getElementById('header-updated-time');
+        if (!timeEl) return;
+        
+        const now = new Date();
+        const liveStr = formatVietDateTime(now, true);
+        
+        if (lastDataActionTimestamp) {
+          timeEl.textContent = `Dữ liệu: ${lastDataActionTimestamp} • Hiện tại: ${liveStr}`;
+        } else {
+          timeEl.textContent = `Thời gian HT: ${liveStr}`;
+        }
+      }
+      
+      updateClockUI();
+      setInterval(updateClockUI, 1000);
+    }
+
+    function recordDataUpdateTime(actionNote = '') {
+      const now = new Date();
+      lastDataActionTimestamp = formatVietDateTime(now, true);
+      const timeEl = document.getElementById('header-updated-time');
+      if (timeEl) {
+        timeEl.textContent = `${actionNote ? actionNote + ': ' : 'Cập nhật: '}${lastDataActionTimestamp}`;
+      }
+    }
+
+    // ==================== HIGH-DEFINITION PC TABLE SCREENSHOT ENGINE ====================
+    let currentScreenshotCanvas = null;
+    let currentScreenshotDataUrl = '';
+    let currentScreenshotBlob = null;
+    let currentScreenshotScope = 'all';
+
+    async function captureTableScreenshot(scope = 'all') {
+      if (!allRecords.length) {
+        showToast('Chưa có dữ liệu bảng để chụp ảnh!', 'warning');
+        return;
+      }
+
+      currentScreenshotScope = scope;
+      
+      // Update radio if open
+      const radios = document.querySelectorAll('input[name="screenshot-scope"]');
+      radios.forEach(r => {
+        if (r.value === scope) r.checked = true;
+      });
+
+      // Update count badge
+      const countBadge = document.getElementById('screenshot-scope-count');
+      if (countBadge) countBadge.textContent = filteredRecords.length;
+
+      // Open Modal in loading state
+      const modal = document.getElementById('screenshot-modal');
+      const spinner = document.getElementById('screenshot-loading-spinner');
+      const resultImg = document.getElementById('screenshot-result-img');
+      const resInfo = document.getElementById('screenshot-resolution-info');
+
+      modal.classList.remove('hidden');
+      spinner.classList.remove('hidden');
+      resultImg.classList.add('hidden');
+      if (resInfo) resInfo.textContent = 'Đang xử lý tạo ảnh HD...';
+      if (window.lucide) lucide.createIcons();
+
+      // Defer rendering so modal animation starts smoothly
+      setTimeout(async () => {
+        try {
+          // Determine rows to render in report
+          const recordsToRender = scope === 'current-page'
+            ? filteredRecords.slice((currentPage - 1) * pageSize, currentPage * pageSize)
+            : filteredRecords;
+
+          if (!recordsToRender.length) {
+            throw new Error('Không có dòng dữ liệu nào để chụp');
+          }
+
+          // Calculate sums
+          let sumVol = 0, sumLarge = 0, sumSmall = 0, sumKm = 0, sumTrips = 0, sumWater = 0;
+          recordsToRender.forEach(r => {
+            sumVol += Number(r.stationVolume) || 0;
+            sumLarge += Number(r.largeTrips) || 0;
+            sumSmall += Number(r.smallTrips) || 0;
+            sumKm += Number(r.totalKm) || 0;
+            sumTrips += Number(r.totalTrips) || 0;
+            sumWater += Number(r.waterVehicles) || 0;
+          });
+
+          const now = new Date();
+          const exportTimeStr = formatVietDateTime(now, true);
+
+          // Build clean, standalone printable report container
+          const sandbox = document.getElementById('screenshot-render-sandbox');
+          sandbox.innerHTML = `
+            <div id="screenshot-capture-node" style="width: 1280px; background-color: #ffffff; padding: 28px; font-family: 'Plus Jakarta Sans', Arial, sans-serif; color: #0f172a; box-sizing: border-box;">
+              
+              <!-- Report Header Banner -->
+              <div style="display: flex; align-items: center; justify-content: space-between; border-bottom: 2px solid #004b93; padding-bottom: 16px; margin-bottom: 20px;">
+                <div style="display: flex; align-items: center; gap: 14px;">
+                  <div style="width: 52px; height: 52px; border-radius: 14px; background: linear-gradient(135deg, #003B73 0%, #00529B 50%, #0066CC 100%); display: flex; align-items: center; justify-content: center; color: #ffffff; font-size: 26px; font-weight: bold; box-shadow: 0 4px 10px rgba(0,82,155,0.25);">
+                    🚚
+                  </div>
+                  <div>
+                    <h2 style="margin: 0; font-size: 20px; font-weight: 900; color: #003b73; letter-spacing: -0.5px; text-transform: uppercase;">
+                      BẢNG BÁO CÁO VẬN HÀNH CHUYẾN &amp; KHỐI LƯỢNG TÀI XẾ
+                    </h2>
+                    <p style="margin: 3px 0 0 0; font-size: 13px; font-weight: 600; color: #475569;">
+                      HỆ THỐNG QUẢN LÝ BÊ TÔNG TASAGO-TNT
+                    </p>
+                  </div>
+                </div>
+
+                <div style="text-align: right;">
+                  <div style="display: inline-block; background-color: #f0f7ff; border: 1px solid #bae6fd; color: #0369a1; font-size: 12px; font-weight: 700; padding: 4px 10px; border-radius: 8px; margin-bottom: 4px;">
+                    ${scope === 'current-page' ? `Trang ${currentPage} (${recordsToRender.length} tài xế)` : `Toàn bộ ${recordsToRender.length} tài xế`}
+                  </div>
+                  <p style="margin: 0; font-size: 11px; font-weight: 500; color: #64748b;">
+                    Thời gian chụp: <strong style="color: #1e293b;">${exportTimeStr}</strong>
+                  </p>
+                </div>
+              </div>
+
+              <!-- Quick Metrics Grid -->
+              <div style="display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px; margin-bottom: 20px;">
+                <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 12px; text-align: center;">
+                  <span style="font-size: 10px; font-weight: 700; color: #64748b; text-transform: uppercase; display: block;">TỔNG TÀI XẾ</span>
+                  <span style="font-size: 20px; font-weight: 900; color: #003b73; margin-top: 2px; display: block;">${recordsToRender.length} <small style="font-size: 11px; font-weight: 600; color: #94a3b8;">xe</small></span>
+                </div>
+                <div style="background: #faf5ff; border: 1px solid #f3e8ff; border-radius: 12px; padding: 12px; text-align: center;">
+                  <span style="font-size: 10px; font-weight: 700; color: #7e22ce; text-transform: uppercase; display: block;">TỔNG KL TRẠM TN</span>
+                  <span style="font-size: 20px; font-weight: 900; color: #581c87; margin-top: 2px; display: block;">${sumVol.toLocaleString('vi-VN', { minimumFractionDigits: 1, maximumFractionDigits: 1 })} <small style="font-size: 11px; font-weight: 600; color: #a855f7;">m³</small></span>
+                </div>
+                <div style="background: #fffbeb; border: 1px solid #fef3c7; border-radius: 12px; padding: 12px; text-align: center;">
+                  <span style="font-size: 10px; font-weight: 700; color: #b45309; text-transform: uppercase; display: block;">TỔNG CHUYẾN</span>
+                  <span style="font-size: 20px; font-weight: 900; color: #78350f; margin-top: 2px; display: block;">${sumTrips.toLocaleString('vi-VN')} <small style="font-size: 11px; font-weight: 600; color: #f59e0b;">(${sumLarge}L / ${sumSmall}N)</small></span>
+                </div>
+                <div style="background: #f0fdf4; border: 1px solid #dcfce7; border-radius: 12px; padding: 12px; text-align: center;">
+                  <span style="font-size: 10px; font-weight: 700; color: #15803d; text-transform: uppercase; display: block;">TỔNG KM</span>
+                  <span style="font-size: 20px; font-weight: 900; color: #14532d; font-family: 'JetBrains Mono', monospace; margin-top: 2px; display: block;">${sumKm.toLocaleString('vi-VN')} <small style="font-size: 11px; font-weight: 600; color: #22c55e;">km</small></span>
+                </div>
+                <div style="background: #f0f9ff; border: 1px solid #e0f2fe; border-radius: 12px; padding: 12px; text-align: center;">
+                  <span style="font-size: 10px; font-weight: 700; color: #0369a1; text-transform: uppercase; display: block;">XE NƯỚC HỖ TRỢ</span>
+                  <span style="font-size: 20px; font-weight: 900; color: #075985; margin-top: 2px; display: block;">${sumWater.toLocaleString('vi-VN')} <small style="font-size: 11px; font-weight: 600; color: #38bdf8;">chuyến</small></span>
+                </div>
+              </div>
+
+              <!-- Main Full Table -->
+              <table style="width: 100%; border-collapse: collapse; font-size: 12px; text-align: left; border: 1px solid #cbd5e1; border-radius: 8px; overflow: hidden;">
+                <thead>
+                  <tr style="background: linear-gradient(90deg, #003B73 0%, #004B93 50%, #00529B 100%); color: #ffffff; font-weight: 800; text-transform: uppercase; font-size: 11px; letter-spacing: 0.5px;">
+                    <th style="padding: 10px 8px; text-align: center; width: 48px; border-right: 1px solid rgba(255,255,255,0.2);">STT</th>
+                    <th style="padding: 10px 14px; min-width: 200px; border-right: 1px solid rgba(255,255,255,0.2);">TÊN TÀI XẾ</th>
+                    <th style="padding: 10px 12px; width: 130px; border-right: 1px solid rgba(255,255,255,0.2);">SỐ XE</th>
+                    <th style="padding: 10px 10px; text-align: center; width: 130px; border-right: 1px solid rgba(255,255,255,0.2);">KL TRẠM TN (m³)</th>
+                    <th style="padding: 10px 8px; text-align: center; width: 100px; border-right: 1px solid rgba(255,255,255,0.2); background: rgba(0,35,70,0.3);">CHUYẾN LỚN</th>
+                    <th style="padding: 10px 8px; text-align: center; width: 100px; border-right: 1px solid rgba(255,255,255,0.2); background: rgba(0,35,70,0.3);">CHUYẾN NHỎ</th>
+                    <th style="padding: 10px 10px; text-align: center; width: 110px; border-right: 1px solid rgba(255,255,255,0.2);">TỔNG KM</th>
+                    <th style="padding: 10px 10px; text-align: center; width: 110px; border-right: 1px solid rgba(255,255,255,0.2);">TỔNG CHUYẾN</th>
+                    <th style="padding: 10px 10px; text-align: center; width: 100px;">XE NƯỚC</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  ${recordsToRender.map((r, i) => {
+                    const bg = i % 2 === 0 ? '#ffffff' : '#f8fafc';
+                    const isWarning = r.hasWarning || (r.driverName && r.driverName.endsWith('.'));
+                    return `
+                      <tr style="background-color: ${bg}; border-bottom: 1px solid #e2e8f0;">
+                        <td style="padding: 8px 6px; text-align: center; border-right: 1px solid #e2e8f0; font-weight: 700; color: #00529b;">
+                          ${i + 1 < 10 ? '0' + (i + 1) : (i + 1)}
+                        </td>
+                        <td style="padding: 8px 14px; border-right: 1px solid #e2e8f0; font-weight: 700; color: #0f172a;">
+                          ${r.driverName || '—'}
+                          ${isWarning ? '<span style="color: #f59e0b; margin-left: 4px;">⚠️</span>' : ''}
+                        </td>
+                        <td style="padding: 8px 12px; border-right: 1px solid #e2e8f0; font-family: 'JetBrains Mono', monospace; font-weight: 800; color: #1e293b;">
+                          ${r.vehicleNumber || '—'}
+                        </td>
+                        <td style="padding: 8px 10px; text-align: center; border-right: 1px solid #e2e8f0; font-weight: 800; color: #6b21a8; background-color: #faf5ff;">
+                          ${Number(r.stationVolume || 0).toFixed(1)}
+                        </td>
+                        <td style="padding: 8px 8px; text-align: center; border-right: 1px solid #e2e8f0; font-weight: 700; color: #d97706; background-color: #fffbeb;">
+                          ${r.largeTrips || 0}
+                        </td>
+                        <td style="padding: 8px 8px; text-align: center; border-right: 1px solid #e2e8f0; font-weight: 700; color: #b45309; background-color: #fffdf5;">
+                          ${r.smallTrips || 0}
+                        </td>
+                        <td style="padding: 8px 10px; text-align: center; border-right: 1px solid #e2e8f0; font-weight: 800; color: #047857; font-family: 'JetBrains Mono', monospace; background-color: #f0fdf4;">
+                          ${(Number(r.totalKm) || 0).toLocaleString('vi-VN')}
+                        </td>
+                        <td style="padding: 8px 10px; text-align: center; border-right: 1px solid #e2e8f0; font-weight: 900; color: #dc2626; background-color: #fef2f2;">
+                          ${r.totalTrips || 0}
+                        </td>
+                        <td style="padding: 8px 10px; text-align: center; font-weight: 700; color: #0284c7; background-color: #f0f9ff;">
+                          ${r.waterVehicles || 0}
+                        </td>
+                      </tr>
+                    `;
+                  }).join('')}
+                </tbody>
+                <tfoot>
+                  <tr style="background-color: #e2e8f0; border-top: 2px solid #003b73; font-weight: 900; font-size: 12px; color: #0f172a;">
+                    <td colspan="3" style="padding: 10px 14px; text-align: left; border-right: 1px solid #cbd5e1; text-transform: uppercase; color: #003b73;">
+                      TỔNG CỘNG (${recordsToRender.length} TÀI XẾ)
+                    </td>
+                    <td style="padding: 10px 10px; text-align: center; border-right: 1px solid #cbd5e1; color: #581c87; font-size: 13px;">
+                      ${sumVol.toLocaleString('vi-VN', { minimumFractionDigits: 1, maximumFractionDigits: 1 })}
+                    </td>
+                    <td style="padding: 10px 8px; text-align: center; border-right: 1px solid #cbd5e1; color: #b45309; font-size: 13px;">
+                      ${sumLarge.toLocaleString('vi-VN')}
+                    </td>
+                    <td style="padding: 10px 8px; text-align: center; border-right: 1px solid #cbd5e1; color: #92400e; font-size: 13px;">
+                      ${sumSmall.toLocaleString('vi-VN')}
+                    </td>
+                    <td style="padding: 10px 10px; text-align: center; border-right: 1px solid #cbd5e1; color: #065f46; font-family: 'JetBrains Mono', monospace; font-size: 13px;">
+                      ${sumKm.toLocaleString('vi-VN')}
+                    </td>
+                    <td style="padding: 10px 10px; text-align: center; border-right: 1px solid #cbd5e1; color: #b91c1c; font-size: 13px;">
+                      ${sumTrips.toLocaleString('vi-VN')}
+                    </td>
+                    <td style="padding: 10px 10px; text-align: center; color: #0369a1; font-size: 13px;">
+                      ${sumWater.toLocaleString('vi-VN')}
+                    </td>
+                  </tr>
+                </tfoot>
+              </table>
+
+              <!-- Report Footer Note -->
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 18px; padding-top: 12px; border-top: 1px solid #e2e8f0; font-size: 11px; color: #64748b;">
+                <span>Hệ thống Quản lý và Phân tích Dữ liệu trạm trộn Tasago-TNT © 2026</span>
+                <span>Sản phẩm thuộc quyền LVT • Hotline 0942320923</span>
+              </div>
+            </div>
+          `;
+
+          const node = document.getElementById('screenshot-capture-node');
+          if (!node || typeof html2canvas !== 'function') {
+            throw new Error('Thư viện chụp ảnh html2canvas chưa sẵn sàng');
+          }
+
+          // Use html2canvas with scale 2 for ultra crispness
+          const canvas = await html2canvas(node, {
+            scale: 2,
+            useCORS: true,
+            allowTaint: true,
+            backgroundColor: '#ffffff',
+            logging: false,
+            windowWidth: 1280
+          });
+
+          currentScreenshotCanvas = canvas;
+          currentScreenshotDataUrl = canvas.toDataURL('image/png', 1.0);
+
+          // Get blob for clipboard copying
+          canvas.toBlob((blob) => {
+            currentScreenshotBlob = blob;
+          }, 'image/png');
+
+          // Render into preview modal
+          resultImg.src = currentScreenshotDataUrl;
+          resultImg.classList.remove('hidden');
+          spinner.classList.add('hidden');
+
+          if (resInfo) {
+            resInfo.textContent = `Độ phân giải HD: ${canvas.width} x ${canvas.height} px`;
+          }
+
+          showToast(`Đã tạo ảnh chụp Bảng dữ liệu (${recordsToRender.length} tài xế) thành công!`, 'success');
+        } catch (err) {
+          console.error('Screenshot capture error:', err);
+          spinner.classList.add('hidden');
+          if (resInfo) resInfo.textContent = 'Lỗi chụp ảnh';
+          showToast('Không thể tạo ảnh chụp bảng: ' + (err.message || err), 'error');
+        }
+      }, 150);
+    }
+
+    function regenerateScreenshot() {
+      const scopeRadio = document.querySelector('input[name="screenshot-scope"]:checked');
+      const scope = scopeRadio ? scopeRadio.value : 'all';
+      captureTableScreenshot(scope);
+    }
+
+    function downloadCapturedImage() {
+      if (!currentScreenshotDataUrl) {
+        showToast('Chưa có ảnh chụp để tải về!', 'warning');
+        return;
+      }
+
+      const now = new Date();
+      const pad = (n) => String(n).padStart(2, '0');
+      const dateStr = `${now.getFullYear()}${pad(now.getMonth()+1)}${pad(now.getDate())}_${pad(now.getHours())}${pad(now.getMinutes())}${pad(now.getSeconds())}`;
+      const fileName = `BaoCao_ChuyenTaiXe_TSG_${dateStr}.png`;
+
+      const link = document.createElement('a');
+      link.href = currentScreenshotDataUrl;
+      link.download = fileName;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+
+      showToast(`Đã tải xuống ảnh: "${fileName}"`, 'success');
+    }
+
+    async function copyCapturedImageToClipboard() {
+      if (!currentScreenshotBlob) {
+        if (currentScreenshotCanvas) {
+          currentScreenshotCanvas.toBlob(async (blob) => {
+            currentScreenshotBlob = blob;
+            await doCopyBlob(blob);
+          }, 'image/png');
+        } else {
+          showToast('Chưa có ảnh để sao chép!', 'warning');
+        }
+        return;
+      }
+
+      await doCopyBlob(currentScreenshotBlob);
+    }
+
+    async function doCopyBlob(blob) {
+      try {
+        if (navigator.clipboard && navigator.clipboard.write && typeof ClipboardItem !== 'undefined') {
+          await navigator.clipboard.write([
+            new ClipboardItem({ 'image/png': blob })
+          ]);
+          showToast('Đã sao chép ảnh vào Clipboard! Bạn có thể dán (Ctrl+V) vào Zalo, Messenger, Word...', 'success');
+        } else {
+          showToast('Trình duyệt chưa hỗ trợ sao chép trực tiếp, vui lòng nhấn "Tải ảnh PNG"!', 'info');
+        }
+      } catch (err) {
+        console.warn('Clipboard write error:', err);
+        showToast('Không thể sao chép tự động. Bạn có thể chuột phải vào ảnh > "Sao chép hình ảnh" hoặc nhấn "Tải ảnh PNG"!', 'info');
+      }
+    }
+
+    function closeScreenshotModal() {
+      const modal = document.getElementById('screenshot-modal');
+      if (modal) modal.classList.add('hidden');
     }
   </script>
 </body>

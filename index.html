@@ -3216,7 +3216,8 @@ Hãy trả về duy nhất định dạng JSON thuần túy (không markdown) v�
         userText += ` Tập trung vào vùng khoanh chọn x=${Math.round(region.x)}%, y=${Math.round(region.y)}%, w=${Math.round(region.width)}%, h=${Math.round(region.height)}%.`;
       }
 
-      const candidateModels = ['gemini-2.5-flash', 'gemini-1.5-flash', 'gemini-2.0-flash'];
+      // Danh sách các model chính thức đang hoạt động trên Google Gemini API
+      const candidateModels = ['gemini-2.5-flash', 'gemini-1.5-flash', 'gemini-1.5-pro'];
       let lastError = null;
 
       for (const model of candidateModels) {
@@ -3242,7 +3243,8 @@ Hãy trả về duy nhất định dạng JSON thuần túy (không markdown) v�
 
           if (!response.ok) {
             const errData = await response.json().catch(() => ({}));
-            throw new Error(errData?.error?.message || `Lỗi Gemini API (${response.status})`);
+            const errMsg = errData?.error?.message || `Lỗi Gemini API (${response.status})`;
+            throw new Error(errMsg);
           }
 
           const result = await response.json();
@@ -3259,7 +3261,7 @@ Hãy trả về duy nhất định dạng JSON thuần túy (không markdown) v�
           return JSON.parse(cleanJson);
         } catch (err) {
           lastError = err;
-          console.warn(`Model ${model} không phản hồi, thử tiếp...`, err);
+          console.warn(`Model ${model} thất bại, thử tiếp model tiếp theo...`, err);
         }
       }
       throw lastError || new Error('Không thể kết nối với Gemini AI.');

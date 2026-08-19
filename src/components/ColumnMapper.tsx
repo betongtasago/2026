@@ -1,8 +1,7 @@
-
 import React from 'react';
 import { ColumnMappingItem, ColumnKey } from '../types';
 import { COLUMN_DEFINITIONS } from '../utils/excelParser';
-import { CheckCircle2, AlertTriangle, XCircle, ArrowRight } from 'lucide-react';
+import { CheckCircle, AlertTriangle, XCircle, ArrowRight } from 'lucide-react';
 
 interface ColumnMapperProps {
   excelHeaders: string[];
@@ -67,7 +66,7 @@ export const ColumnMapper: React.FC<ColumnMapperProps> = ({
                   {/* Excel Column Selector */}
                   <td className="py-2.5 px-3.5">
                     <select
-                      value={mapping && mapping.isMapped ? mapping.excelColIndex : -1}
+                      value={mapping && mapping.isMapped ? String(mapping.excelColIndex) : '-1'}
                       onChange={(e) => onChangeMapping(def.key, Number(e.target.value))}
                       className={`w-full py-1.5 px-2.5 rounded-lg border text-xs font-medium focus:outline-none focus:ring-2 focus:ring-blue-500/20 ${
                         isMapped
@@ -77,10 +76,10 @@ export const ColumnMapper: React.FC<ColumnMapperProps> = ({
                           : 'bg-slate-50 border-slate-300 text-slate-600'
                       }`}
                     >
-                      <option value={-1}>-- Chưa ánh xạ (Bỏ qua cột này) --</option>
+                      <option value="-1">-- Chưa ánh xạ (Bỏ qua cột này) --</option>
                       {excelHeaders.map((header, colIdx) => (
-                        <option key={colIdx} value={colIdx}>
-                          Cột {colIdx + 1}: {header || `[Không có tiêu đề #col ${colIdx + 1}]`}
+                        <option key={colIdx} value={String(colIdx)}>
+                          Cột {colIdx + 1}: {header || `[Không có tiêu đề cột ${colIdx + 1}]`}
                         </option>
                       ))}
                     </select>
@@ -90,7 +89,7 @@ export const ColumnMapper: React.FC<ColumnMapperProps> = ({
                   <td className="py-2.5 px-3.5 text-right">
                     {isMapped ? (
                       <span className="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200">
-                        <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+                        <CheckCircle className="w-3.5 h-3.5 text-emerald-600" />
                         Đã nhận diện
                       </span>
                     ) : isRequired ? (
@@ -114,3 +113,5 @@ export const ColumnMapper: React.FC<ColumnMapperProps> = ({
     </div>
   );
 };
+
+export default ColumnMapper;

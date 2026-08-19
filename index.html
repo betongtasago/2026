@@ -1277,7 +1277,7 @@
       { id: '9', stt: 9, driverName: 'Nguyễn Thanh Phong.', vehicleNumber: '51E 33146', stationVolume: 115.0, largeTrips: 15, smallTrips: 4, totalKm: 626, totalTrips: 19, waterVehicles: 2, hasWarning: true },
       { id: '10', stt: 10, driverName: 'Nguyễn Thanh Tùng', vehicleNumber: '51E 33146', stationVolume: 216.5, largeTrips: 30, smallTrips: 1, totalKm: 711, totalTrips: 31, waterVehicles: 1 },
       { id: '11', stt: 11, driverName: 'Nguyễn Hữu Hòa', vehicleNumber: '51L 92546', stationVolume: 240.8, largeTrips: 28, smallTrips: 3, totalKm: 1004, totalTrips: 31, waterVehicles: 1 },
-      { id: '12', stt: 12, driverName: 'Võ Chí Linh.', vehicleNumber: '51L 92546', stationVolume: 98.5, largeTrips: 11, smallTrips: 2, totalKm: 433, totalTrips: 13, waterVehicles: 0, hasWarning: true },
+      { id: '12', stt: 12, driverName: 'Võ Chí Linh.', vehicleNumber: '51L 92546', stationVolume: 98.5, adventurous: true, largeTrips: 11, smallTrips: 2, totalKm: 433, totalTrips: 13, waterVehicles: 0, hasWarning: true },
       { id: '13', stt: 13, driverName: 'Nguyễn Văn Nghĩa', vehicleNumber: '51N 04357', stationVolume: 273.5, largeTrips: 30, smallTrips: 3, totalKm: 925, totalTrips: 33, waterVehicles: 1 },
       { id: '14', stt: 14, driverName: 'Nguyễn Đức Giang', vehicleNumber: '51L 73164', stationVolume: 304.8, largeTrips: 43, smallTrips: 1, totalKm: 1414, totalTrips: 44, waterVehicles: 1 },
       { id: '15', stt: 15, driverName: 'Nguyễn Hoàng Vũ', vehicleNumber: '51N 04264', stationVolume: 225.5, largeTrips: 25, smallTrips: 2, totalKm: 646, totalTrips: 27, waterVehicles: 1 },
@@ -3183,7 +3183,36 @@
       showToast('Đã nạp ảnh mẫu bảng dữ liệu tài xế!', 'info');
     }
 
-    // Direct Gemini Vision API Caller for Browser / Static hosting
+    // Tự động tìm kiếm các model hỗ trợ trên API Key của người dùng
+    async function getAvailableGeminiModels(apiKey) {
+      try {
+        const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models?key=${apiKey}`);
+        if (res.ok) {
+          const data = await res.json();
+          if (data.models && Array.isArray(data.models)) {
+            const valid = data.models
+              .filter(m => m.supportedGenerationMethods && m.supportedGenerationMethods.includes('generateContent'))
+              .map(m => m.name.replace(/^models\//, ''))
+              .filter(name => !name.includes('embedding') && !name.includes('aqa') && !name.includes('imagen') && !name.includes('tts'));
+
+            if (valid.length > 0) {
+              // Ưu tiên các model flash
+              valid.sort((a, b) => {
+                const aScore = (a.includes('flash') ? 10 : 0) + (a.includes('1.5') ? 5 : 0) + (a.includes('2.0') ? 8 : 0);
+                const bScore = (b.includes('flash') ? 10 : 0) + (b.includes('1.5') ? 5 : 0) + (b.includes('2.0') ? 8 : 0);
+                return bScore - aScore;
+              });
+              return valid;
+            }
+          }
+        }
+      } catch (e) {
+        console.warn('Không thể lấy danh sách models tự động:', e);
+      }
+      return ['gemini-1.5-flash', 'gemini-1.5-flash-latest', 'gemini-2.0-flash', 'gemini-1.5-flash-8b', 'gemini-1.5-pro-latest'];
+    }
+
+    // Gọi trực tiếp Gemini Vision API với chuẩn REST JSON (inlineData & mimeType)
     async function callGeminiVisionDirect(base64Image, mimeType, apiKey, region) {
       let cleanBase64 = base64Image;
       if (cleanBase64.includes('base64,')) {
@@ -3193,7 +3222,7 @@
 
       const systemPrompt = `Bạn là chuyên gia AI Vision OCR bóc tách dữ liệu vận tải và đội xe chuyên nghiệp tại Việt Nam.
 Nhiệm vụ của bạn là nhận diện, bóc tách chính xác toàn bộ bảng danh sách tài xế vận hành từ hình ảnh.
-Hãy trả về duy nhất định dạng JSON thuần túy (không markdown) với cấu trúc:
+Hãy trả về duy nhất định dạng JSON thuần túy (không thêm giải thích, không markdown) với cấu trúc sau:
 {
   "detectedRegionDescription": "Mô tả bảng",
   "drivers": [
@@ -3216,9 +3245,29 @@ Hãy trả về duy nhất định dạng JSON thuần túy (không markdown) v�
         userText += ` Tập trung vào vùng khoanh chọn x=${Math.round(region.x)}%, y=${Math.round(region.y)}%, w=${Math.round(region.width)}%, h=${Math.round(region.height)}%.`;
       }
 
-      // Danh sách các model chính thức đang hoạt động trên Google Gemini API
-      const candidateModels = ['gemini-2.5-flash', 'gemini-1.5-flash', 'gemini-1.5-pro'];
+      // Lấy danh sách các model khả dụng cho API key
+      const candidateModels = await getAvailableGeminiModels(apiKey);
       let lastError = null;
+
+      // Chuẩn JSON REST API của Google Generative Language: inlineData (camelCase), mimeType (camelCase)
+      const payload = {
+        contents: [
+          {
+            parts: [
+              { text: systemPrompt + '\n' + userText },
+              {
+                inlineData: {
+                  mimeType: mimeType || 'image/jpeg',
+                  data: cleanBase64
+                }
+              }
+            ]
+          }
+        ],
+        generationConfig: {
+          responseMimeType: "application/json"
+        }
+      };
 
       for (const model of candidateModels) {
         try {
@@ -3226,19 +3275,7 @@ Hãy trả về duy nhất định dạng JSON thuần túy (không markdown) v�
           const response = await fetch(endpoint, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              contents: [
-                {
-                  parts: [
-                    { inline_data: { mime_type: mimeType || 'image/jpeg', data: cleanBase64 } },
-                    { text: systemPrompt + '\n' + userText }
-                  ]
-                }
-              ],
-              generationConfig: {
-                responseMimeType: "application/json"
-              }
-            })
+            body: JSON.stringify(payload)
           });
 
           if (!response.ok) {
@@ -3249,7 +3286,7 @@ Hãy trả về duy nhất định dạng JSON thuần túy (không markdown) v�
 
           const result = await response.json();
           const text = result?.candidates?.[0]?.content?.parts?.[0]?.text;
-          if (!text) throw new Error('Không nhận được nội dung từ AI.');
+          if (!text) throw new Error('Không nhận được nội dung phản hồi từ AI.');
           
           let cleanJson = text.trim();
           if (cleanJson.startsWith('```json')) {
@@ -3261,7 +3298,7 @@ Hãy trả về duy nhất định dạng JSON thuần túy (không markdown) v�
           return JSON.parse(cleanJson);
         } catch (err) {
           lastError = err;
-          console.warn(`Model ${model} thất bại, thử tiếp model tiếp theo...`, err);
+          console.warn(`Model ${model} thất bại, thử tiếp...`, err);
         }
       }
       throw lastError || new Error('Không thể kết nối với Gemini AI.');
@@ -3301,7 +3338,7 @@ Hãy trả về duy nhất định dạng JSON thuần túy (không markdown) v�
           // Bỏ qua nếu chạy thuần static
         }
 
-        // 2. Nếu Backend không phản hồi -> Dùng client-side Gemini Vision
+        // 2. Nếu Backend không phản hồi -> Dùng client-side Gemini Vision với Auto Model Discovery
         if (!data || !data.drivers) {
           let apiKey = getGeminiApiKey();
           if (!apiKey) {

@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Quản Lý Dữ Liệu Tài Xế Bê Tông Tasago</title>
-  <meta name="description" content="Hệ thống quản lý, lưu trữ dữ liệu bê tông Tasago" />
+  <title>Quản Lý Hệ Thống TasagoTNT</title>
+  <meta name="description" content="Hệ thống quản lý dữ liệu chuyến TasagoTNT" />
 
   <!-- Google Fonts: Plus Jakarta Sans & JetBrains Mono -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -80,16 +80,16 @@
           <div>
             <div class="flex items-center gap-2.5">
               <h1 class="text-xl font-bold tracking-tight text-slate-900">
-                QUẢN LÝ TÀI XẾ
+                BÊ TÔNG TASAGO-TNT
               </h1>
               <span id="header-records-badge" class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-blue-50 text-blue-700 border border-blue-200/60">
                 24 bản ghi
               </span>
             </div>
             <p class="text-xs font-medium text-slate-500 flex items-center gap-2 mt-0.5">
-              <span>Dữ liệu vận hành đội xe</span>
+              <span>Dữ liệu chuyến tài xế TSG-TNT</span>
               <span class="text-slate-300">•</span>
-              <span id="header-updated-time" class="text-slate-400">Cập nhật: 18/08/2026 19:20</span>
+              <span id="header-updated-time" class="text-slate-400">Thiết kế bởi LVT</span>
             </p>
           </div>
         </div>
@@ -617,28 +617,61 @@
       <div id="image-ocr-body" class="p-5 sm:p-6 overflow-y-auto flex-1 space-y-4 custom-scrollbar">
         <!-- Step 1: Upload / Dropzone (Shown initially) -->
         <div id="ocr-step-upload" class="space-y-4">
+          <input type="file" id="ocr-file-input" accept="image/*,.png,.jpg,.jpeg,.webp,.bmp" class="hidden" onchange="handleOcrFileSelect(event)" onclick="event.stopPropagation();" />
+          <input type="file" id="ocr-camera-input" accept="image/*" capture="environment" class="hidden" onchange="handleOcrFileSelect(event)" onclick="event.stopPropagation();" />
+
           <div
             id="ocr-dropzone"
             ondragover="handleOcrDragOver(event)"
+            ondragleave="handleOcrDragLeave(event)"
             ondrop="handleOcrDrop(event)"
-            onclick="document.getElementById('ocr-file-input').click()"
+            onclick="triggerOcrFileInput()"
             class="border-2 border-dashed border-violet-300 hover:border-violet-500 bg-violet-50/40 hover:bg-violet-50/70 rounded-2xl p-8 sm:p-10 text-center cursor-pointer transition-all duration-150 flex flex-col items-center justify-center group"
           >
-            <input type="file" id="ocr-file-input" accept="image/png,image/jpeg,image/jpg,image/webp" class="hidden" onchange="handleOcrFileSelect(event)" />
             <div class="w-16 h-16 rounded-2xl bg-gradient-to-tr from-violet-600 to-indigo-600 text-white flex items-center justify-center shadow-lg shadow-violet-500/25 group-hover:scale-105 transition-transform mb-3">
               <i data-lucide="image-up" class="w-8 h-8"></i>
             </div>
             <h4 class="text-base font-bold text-slate-800 mb-1">Kéo thả ảnh vào đây, hoặc click để chọn ảnh</h4>
             <p class="text-xs text-slate-500 max-w-md mb-4">
-              Hỗ trợ định dạng <strong>PNG, JPG, JPEG, WEBP</strong>. Bạn cũng có thể nhấn <strong>Ctrl + V</strong> ở bất kỳ đâu để dán ảnh chụp màn hình!
+              Hỗ trợ định dạng <strong>PNG, JPG, JPEG, WEBP, BMP</strong>. Tự động nén và tối ưu độ nét. Bạn cũng có thể nhấn <strong>Ctrl + V</strong> ở bất kỳ đâu để dán ảnh!
             </p>
-            <div class="flex flex-wrap items-center justify-center gap-2">
-              <button type="button" class="px-4 py-2 text-xs font-bold text-white bg-violet-600 hover:bg-violet-700 rounded-lg shadow-sm">
+            <div class="flex flex-wrap items-center justify-center gap-2.5">
+              <button type="button" onclick="event.stopPropagation(); triggerOcrFileInput();" class="px-4 py-2 text-xs font-bold text-white bg-violet-600 hover:bg-violet-700 active:bg-violet-800 rounded-lg shadow-sm flex items-center gap-1.5 cursor-pointer">
+                <i data-lucide="folder-open" class="w-4 h-4"></i>
                 📁 Chọn ảnh từ thiết bị
               </button>
-              <button type="button" onclick="event.stopPropagation(); loadSampleOcrImage();" class="px-3.5 py-2 text-xs font-bold text-violet-700 bg-white hover:bg-violet-100 border border-violet-300 rounded-lg shadow-xs">
+              <button type="button" onclick="event.stopPropagation(); triggerOcrCameraInput();" class="px-4 py-2 text-xs font-bold text-slate-700 bg-white hover:bg-slate-100 active:bg-slate-200 border border-slate-300 rounded-lg shadow-xs flex items-center gap-1.5 cursor-pointer">
+                <i data-lucide="camera" class="w-4 h-4 text-violet-600"></i>
+                📸 Chụp từ camera
+              </button>
+              <button type="button" onclick="event.stopPropagation(); loadSampleOcrImage();" class="px-3.5 py-2 text-xs font-bold text-violet-700 bg-violet-100/60 hover:bg-violet-100 border border-violet-300 rounded-lg shadow-xs flex items-center gap-1.5 cursor-pointer">
+                <i data-lucide="sparkles" class="w-4 h-4 text-violet-600"></i>
                 🖼️ Thử ảnh mẫu bảng dữ liệu
               </button>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs text-slate-600">
+            <div class="flex items-start gap-2.5 p-3 rounded-xl bg-slate-50 border border-slate-200">
+              <div class="w-7 h-7 rounded-lg bg-blue-100 text-blue-700 flex items-center justify-center shrink-0 font-bold">1</div>
+              <div>
+                <p class="font-bold text-slate-800">Tải ảnh hoặc chụp</p>
+                <p class="text-[11px] text-slate-500">Ảnh bảng chấm công, bảng Excel in hoặc ảnh màn hình</p>
+              </div>
+            </div>
+            <div class="flex items-start gap-2.5 p-3 rounded-xl bg-slate-50 border border-slate-200">
+              <div class="w-7 h-7 rounded-lg bg-violet-100 text-violet-700 flex items-center justify-center shrink-0 font-bold">2</div>
+              <div>
+                <p class="font-bold text-slate-800">Khoanh vùng bảng</p>
+                <p class="text-[11px] text-slate-500">Kéo khung chọn chính xác vùng chứa bảng dữ liệu tài xế</p>
+              </div>
+            </div>
+            <div class="flex items-start gap-2.5 p-3 rounded-xl bg-slate-50 border border-slate-200">
+              <div class="w-7 h-7 rounded-lg bg-emerald-100 text-emerald-700 flex items-center justify-center shrink-0 font-bold">3</div>
+              <div>
+                <p class="font-bold text-slate-800">Kiểm tra & Áp dụng</p>
+                <p class="text-[11px] text-slate-500">Xem trước kết quả bóc tách, chỉnh sửa số liệu và cập nhật</p>
+              </div>
             </div>
           </div>
         </div>
@@ -2040,23 +2073,67 @@
     function resetImageOcrDialog() {
       ocrImageBase64 = '';
       ocrExtractedDrivers = [];
+      ocrRegion = { x: 5, y: 10, width: 90, height: 80 };
       document.getElementById('ocr-step-upload').classList.remove('hidden');
       document.getElementById('ocr-step-crop').classList.add('hidden');
       document.getElementById('ocr-step-loading').classList.add('hidden');
       document.getElementById('ocr-step-results').classList.add('hidden');
       document.getElementById('btn-apply-ocr-data').disabled = true;
-      document.getElementById('ocr-file-input').value = '';
+
+      const fileInput = document.getElementById('ocr-file-input');
+      if (fileInput) fileInput.value = '';
+      const cameraInput = document.getElementById('ocr-camera-input');
+      if (cameraInput) cameraInput.value = '';
+
+      const dropzone = document.getElementById('ocr-dropzone');
+      if (dropzone) {
+        dropzone.classList.remove('border-violet-600', 'bg-violet-100/70');
+      }
+
       if (window.lucide) lucide.createIcons();
+    }
+
+    function triggerOcrFileInput() {
+      const input = document.getElementById('ocr-file-input');
+      if (input) {
+        input.value = '';
+        input.click();
+      }
+    }
+
+    function triggerOcrCameraInput() {
+      const input = document.getElementById('ocr-camera-input');
+      if (input) {
+        input.value = '';
+        input.click();
+      }
     }
 
     function handleOcrDragOver(e) {
       e.preventDefault();
       e.stopPropagation();
+      const dropzone = document.getElementById('ocr-dropzone');
+      if (dropzone) {
+        dropzone.classList.add('border-violet-600', 'bg-violet-100/70');
+      }
+    }
+
+    function handleOcrDragLeave(e) {
+      e.preventDefault();
+      e.stopPropagation();
+      const dropzone = document.getElementById('ocr-dropzone');
+      if (dropzone) {
+        dropzone.classList.remove('border-violet-600', 'bg-violet-100/70');
+      }
     }
 
     function handleOcrDrop(e) {
       e.preventDefault();
       e.stopPropagation();
+      const dropzone = document.getElementById('ocr-dropzone');
+      if (dropzone) {
+        dropzone.classList.remove('border-violet-600', 'bg-violet-100/70');
+      }
       const files = e.dataTransfer?.files;
       if (files && files.length > 0) {
         loadOcrImageFile(files[0]);
@@ -2070,22 +2147,92 @@
       }
     }
 
-    function loadOcrImageFile(file) {
-      if (!file || !file.type.startsWith('image/')) {
-        showToast('Vui lòng chọn một file hình ảnh (PNG, JPG, JPEG, WEBP)', 'warning');
-        return;
-      }
-      ocrImageMime = file.type || 'image/jpeg';
-      const reader = new FileReader();
-      reader.onload = (evt) => {
-        ocrImageBase64 = evt.target.result;
+    // Helper: Asynchronously loads, auto-downscales high-res photos to <=1920px, and optimizes as JPEG/PNG
+    function preprocessImageFile(file) {
+      return new Promise((resolve, reject) => {
+        if (!file) {
+          reject(new Error('Vui lòng chọn một file ảnh'));
+          return;
+        }
+
+        const isImg = (file.type && file.type.startsWith('image/')) ||
+                      /\.(jpe?g|png|webp|gif|bmp|tiff|heic|svg)$/i.test(file.name || '');
+
+        if (!isImg && file.type && !file.type.startsWith('image/')) {
+          reject(new Error('File không phải là định dạng hình ảnh hợp lệ (PNG, JPG, JPEG, WEBP, BMP)'));
+          return;
+        }
+
+        const reader = new FileReader();
+        reader.onerror = () => reject(new Error('Không thể đọc dữ liệu file từ thiết bị'));
+        reader.onload = (evt) => {
+          const rawDataUrl = evt.target.result;
+          const img = new Image();
+          img.onerror = () => reject(new Error('Không thể giải mã hình ảnh. Vui lòng thử ảnh khác'));
+          img.onload = () => {
+            try {
+              // Scale down ultra high-res camera photos to max 1920px to optimize OCR precision and payload
+              const maxDim = 1920;
+              let targetWidth = img.width;
+              let targetHeight = img.height;
+
+              if (targetWidth > maxDim || targetHeight > maxDim) {
+                if (targetWidth > targetHeight) {
+                  targetHeight = Math.round((targetHeight * maxDim) / targetWidth);
+                  targetWidth = maxDim;
+                } else {
+                  targetWidth = Math.round((targetWidth * maxDim) / targetHeight);
+                  targetHeight = maxDim;
+                }
+              }
+
+              const canvas = document.createElement('canvas');
+              canvas.width = targetWidth;
+              canvas.height = targetHeight;
+              const ctx = canvas.getContext('2d');
+              ctx.fillStyle = '#ffffff';
+              ctx.fillRect(0, 0, targetWidth, targetHeight);
+              ctx.drawImage(img, 0, 0, targetWidth, targetHeight);
+
+              const compressedBase64 = canvas.toDataURL('image/jpeg', 0.90);
+              resolve({
+                base64: compressedBase64,
+                mime: 'image/jpeg',
+                width: targetWidth,
+                height: targetHeight
+              });
+            } catch (err) {
+              // Fallback to raw data url if canvas security or memory issue
+              resolve({
+                base64: rawDataUrl,
+                mime: file.type || 'image/jpeg',
+                width: img.width,
+                height: img.height
+              });
+            }
+          };
+          img.src = rawDataUrl;
+        };
+        reader.readAsDataURL(file);
+      });
+    }
+
+    async function loadOcrImageFile(file) {
+      try {
+        showToast('Đang xử lý và tải ảnh lên...', 'info');
+        const processed = await preprocessImageFile(file);
+        ocrImageBase64 = processed.base64;
+        ocrImageMime = processed.mime;
         displayOcrCropStage(ocrImageBase64);
-      };
-      reader.readAsDataURL(file);
+        showToast('Đã tải ảnh lên thành công! Hãy khoanh vùng dữ liệu cần bóc tách.', 'success');
+      } catch (err) {
+        console.error('Image load error:', err);
+        showToast(err.message || 'Lỗi khi tải ảnh. Vui lòng thử lại!', 'warning');
+      }
     }
 
     // Global Paste Listener for Ctrl+V
-    window.addEventListener('paste', (e) => {
+    window.addEventListener('paste', async (e) => {
       const items = e.clipboardData?.items;
       if (!items) return;
       for (let i = 0; i < items.length; i++) {
@@ -2093,7 +2240,7 @@
           const blob = items[i].getAsFile();
           if (blob) {
             openImageOcrModal();
-            loadOcrImageFile(blob);
+            await loadOcrImageFile(blob);
             showToast('Đã nhận hình ảnh từ clipboard (Ctrl + V)!', 'info');
             break;
           }
@@ -2137,7 +2284,48 @@
 
       const text = document.getElementById('ocr-region-coords-text');
       if (text) {
-        text.textContent = `X: ${Math.round(ocrRegion.x)}%, Y: ${Math.round(ocrRegion.y)}% | Rộng: ${Math.round(ocrRegion.width)}%, Cao: ${Math.round(ocrRegion.height)}%`;
+        if (ocrRegion.width >= 98 && ocrRegion.height >= 98) {
+          text.textContent = 'Toàn bộ ảnh (100%)';
+        } else {
+          text.textContent = `X: ${Math.round(ocrRegion.x)}%, Y: ${Math.round(ocrRegion.y)}% | Rộng: ${Math.round(ocrRegion.width)}%, Cao: ${Math.round(ocrRegion.height)}%`;
+        }
+      }
+    }
+
+    // Helper: Extracts the cropped sub-image from canvas so Gemini receives pristine cropped pixels
+    function getCroppedSubImageBase64() {
+      const img = document.getElementById('ocr-preview-img');
+      if (!img || !ocrImageBase64) return ocrImageBase64;
+
+      // If user selected full region (>=95%), send the full image
+      if (ocrRegion.width >= 95 && ocrRegion.height >= 95 && ocrRegion.x <= 3 && ocrRegion.y <= 3) {
+        return ocrImageBase64;
+      }
+
+      try {
+        const naturalW = img.naturalWidth || img.width;
+        const naturalH = img.naturalHeight || img.height;
+        if (!naturalW || !naturalH) return ocrImageBase64;
+
+        const cropX = Math.max(0, Math.round((ocrRegion.x / 100) * naturalW));
+        const cropY = Math.max(0, Math.round((ocrRegion.y / 100) * naturalH));
+        const cropW = Math.min(naturalW - cropX, Math.round((ocrRegion.width / 100) * naturalW));
+        const cropH = Math.min(naturalH - cropY, Math.round((ocrRegion.height / 100) * naturalH));
+
+        if (cropW < 20 || cropH < 20) return ocrImageBase64;
+
+        const canvas = document.createElement('canvas');
+        canvas.width = cropW;
+        canvas.height = cropH;
+        const ctx = canvas.getContext('2d');
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(0, 0, cropW, cropH);
+        ctx.drawImage(img, cropX, cropY, cropW, cropH, 0, 0, cropW, cropH);
+
+        return canvas.toDataURL('image/jpeg', 0.92);
+      } catch (err) {
+        console.warn('Sub-image crop fallback:', err);
+        return ocrImageBase64;
       }
     }
 
@@ -2313,7 +2501,10 @@
     }
 
     async function startImageOcrRecognition() {
-      if (!ocrImageBase64) return;
+      if (!ocrImageBase64) {
+        showToast('Vui lòng chọn hoặc chụp một bức ảnh trước khi nhận dạng!', 'warning');
+        return;
+      }
 
       // Show Loading & Laser
       document.getElementById('ocr-step-crop').classList.add('hidden');
@@ -2322,12 +2513,15 @@
       if (window.lucide) lucide.createIcons();
 
       try {
+        // Crop the exact sub-image canvas to send to Gemini
+        const subImageBase64 = getCroppedSubImageBase64();
+
         const response = await fetch('/api/recognize-image', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            image: ocrImageBase64,
-            mimeType: ocrImageMime,
+            image: subImageBase64,
+            mimeType: 'image/jpeg',
             region: ocrRegion
           })
         });

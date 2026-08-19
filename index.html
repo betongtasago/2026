@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Quản Lý - Hệ Thống TASAGO</title>
-  <meta name="description" content="Hệ thống quản lý, trạm trộn TSG_TNT" />
+  <title>Quản Lý Dữ Liệu Bê Tông - TASAGO TNT</title>
+  <meta name="description" content="Hệ thống quản lý dữ liệu trạm trộn và đội xe TASAGO TNT" />
 
   <!-- Google Fonts: Plus Jakarta Sans & JetBrains Mono -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -114,17 +114,11 @@
         linear-gradient(to bottom, rgba(255, 255, 255, 0.04) 1px, transparent 1px);
     }
 
-    /* Floating Scroll & View Mode Action Dock */
     .floating-fab {
       box-shadow: 0 10px 25px -5px rgba(0, 59, 115, 0.25), 0 8px 10px -6px rgba(0, 59, 115, 0.2);
     }
     .floating-fab:hover {
       box-shadow: 0 20px 30px -10px rgba(0, 59, 115, 0.35), 0 10px 15px -5px rgba(0, 59, 115, 0.25);
-    }
-    .scroll-progress-ring {
-      stroke-dasharray: 100;
-      stroke-dashoffset: 100;
-      transition: stroke-dashoffset 0.15s ease-out;
     }
   </style>
 </head>
@@ -132,18 +126,14 @@
 
   <!-- ==================== MODERN LOGIN SCREEN ==================== -->
   <div id="login-screen" class="fixed inset-0 z-50 flex items-center justify-center p-4 min-h-screen bg-[#070d18] overflow-y-auto select-none">
-    <!-- Ambient Background Lighting Orbs & Tech Grid -->
     <div class="absolute inset-0 bg-tech-grid pointer-events-none opacity-50"></div>
     <div class="absolute top-1/4 left-1/4 w-96 h-96 bg-blue-600/20 rounded-full blur-3xl animate-orb-1 pointer-events-none"></div>
     <div class="absolute bottom-1/4 right-1/4 w-96 h-96 bg-indigo-600/20 rounded-full blur-3xl animate-orb-2 pointer-events-none"></div>
     <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[520px] h-[520px] bg-cyan-500/10 rounded-full blur-3xl pointer-events-none"></div>
 
-    <!-- Login Container Card -->
     <div id="login-card" class="relative w-full max-w-md bg-slate-900/90 backdrop-blur-2xl border border-slate-700/80 rounded-3xl shadow-[0_25px_70px_rgba(0,0,0,0.65)] p-6 sm:p-9 text-white animate-login-card transition-all duration-300">
       
-      <!-- Top Branding -->
       <div class="text-center space-y-2.5 mb-6">
-        <!-- Logo Icon with glowing border -->
         <div class="inline-flex relative mb-1">
           <div class="w-16 h-16 rounded-2xl bg-gradient-to-tr from-blue-600 via-indigo-600 to-cyan-500 flex items-center justify-center shadow-lg shadow-blue-500/30 ring-4 ring-blue-500/20">
             <i data-lucide="truck" class="w-8 h-8 text-white"></i>
@@ -162,16 +152,12 @@
         </p>
       </div>
 
-      <!-- Login Form -->
       <form onsubmit="handleLoginSubmit(event)" class="space-y-4" novalidate>
-        
-        <!-- Error Alert Box -->
         <div id="login-error-box" class="hidden p-3 rounded-xl bg-red-950/90 border border-red-500/50 text-red-200 text-xs flex items-center gap-2.5 animate-shake">
           <i data-lucide="alert-circle" class="w-4 h-4 text-red-400 shrink-0"></i>
           <span id="login-error-text">Tài khoản hoặc mật khẩu không chính xác!</span>
         </div>
 
-        <!-- Username Input -->
         <div class="space-y-1.5 text-left">
           <label for="login-username" class="block text-xs font-bold text-slate-300 tracking-wide uppercase">
             Tài khoản đăng nhập
@@ -185,13 +171,12 @@
               id="login-username"
               required
               autocomplete="username"
-              placeholder="Nhập tên tài khoản"
+              placeholder="admin"
               class="w-full pl-10 pr-4 py-2.5 text-sm bg-slate-800/90 border border-slate-700 rounded-xl text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500/40 focus:border-blue-500 transition-all font-medium"
             />
           </div>
         </div>
 
-        <!-- Password Input with Toggle Eye -->
         <div class="space-y-1.5 text-left">
           <label for="login-password" class="block text-xs font-bold text-slate-300 tracking-wide uppercase">
             Mật khẩu
@@ -205,7 +190,7 @@
               id="login-password"
               required
               autocomplete="current-password"
-              placeholder="Nhập mật khẩu truy cập"
+              placeholder="Tsg2026@"
               class="w-full pl-10 pr-10 py-2.5 text-sm bg-slate-800/90 border border-slate-700 rounded-xl text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500/40 focus:border-blue-500 transition-all font-medium"
             />
             <button
@@ -220,7 +205,6 @@
           </div>
         </div>
 
-        <!-- Remember Me Checkbox -->
         <div class="flex items-center justify-between pt-1">
           <label class="flex items-center gap-2 cursor-pointer text-xs text-slate-300 select-none">
             <input
@@ -234,7 +218,6 @@
           <span class="text-[11px] text-cyan-400/90 font-medium">Bảo mật cấp cao</span>
         </div>
 
-        <!-- Submit Button -->
         <button
           type="submit"
           id="btn-login-submit"
@@ -243,10 +226,8 @@
           <i data-lucide="log-in" class="w-4 h-4" id="login-btn-icon"></i>
           <span id="login-btn-text">Đăng Nhập Hệ Thống</span>
         </button>
-
       </form>
 
-      <!-- Card Footer Note -->
       <div class="mt-6 pt-5 border-t border-slate-800 text-center flex items-center justify-center gap-2 text-[11px] text-slate-500">
         <i data-lucide="shield-check" class="w-3.5 h-3.5 text-emerald-400"></i>
         <span>Mã hóa SSL 256-bit • Quản Lý Hệ Thống Tasago @ 2026</span>
@@ -257,530 +238,487 @@
   <!-- ==================== MAIN DASHBOARD APP WRAPPER ==================== -->
   <div id="dashboard-app" class="hidden min-h-screen flex flex-col bg-[#f1f5f9] text-[#0f172a] antialiased selection:bg-blue-600 selection:text-white">
 
-  <!-- ==================== HEADER ==================== -->
-  <header class="bg-white border-b border-slate-200 sticky top-0 z-30 shadow-xs">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3.5">
-      <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-        <!-- Logo & Title -->
-        <div class="flex items-center space-x-3.5">
-          <div class="w-11 h-11 rounded-xl bg-gradient-to-br from-[#003B73] via-[#00529B] to-[#0066CC] flex items-center justify-center text-white shadow-md shadow-blue-500/20">
-            <i data-lucide="truck" class="w-6 h-6"></i>
-          </div>
-          <div>
-            <div class="flex items-center gap-2.5">
-              <h1 class="text-xl font-bold tracking-tight text-slate-900">
-                QUẢN LÝ DỮ LIỆU BÊ TÔNG TSG-TNT
-              </h1>
-              <span id="header-records-badge" class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-blue-50 text-blue-700 border border-blue-200/60">
-                Xin chào
-              </span>
+    <!-- Header -->
+    <header class="bg-white border-b border-slate-200 sticky top-0 z-30 shadow-xs">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3.5">
+        <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+          <!-- Logo & Title -->
+          <div class="flex items-center space-x-3.5">
+            <div class="w-11 h-11 rounded-xl bg-gradient-to-br from-[#003B73] via-[#00529B] to-[#0066CC] flex items-center justify-center text-white shadow-md shadow-blue-500/20">
+              <i data-lucide="truck" class="w-6 h-6"></i>
             </div>
-            <p class="text-xs font-medium text-slate-500 flex flex-wrap items-center gap-2 mt-0.5">
-              <span>Dữ liệu chuyến, khối lượng</span>
-              <span class="text-slate-300">•</span>
-              <span class="inline-flex items-center gap-1.5 text-slate-700 bg-slate-100/90 px-2 py-0.5 rounded-md border border-slate-200 text-[11px] font-mono shadow-2xs">
-                <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
-                <span id="header-updated-time">Cập nhật: --/--/---- --:--:--</span>
-              </span>
-            </p>
-          </div>
-        </div>
-
-        <!-- Header Action Buttons -->
-        <div class="flex flex-wrap items-center gap-2">
-          <!-- Screenshot Table Button (PC Capture) -->
-          <button
-            type="button"
-            id="btn-screenshot-table"
-            onclick="captureTableScreenshot()"
-            class="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-bold text-slate-800 bg-white hover:bg-slate-100 border border-slate-300 rounded-lg shadow-xs hover:shadow transition-all duration-150 active:scale-[0.98] cursor-pointer"
-            title="Chụp ảnh rõ nét toàn bộ Bảng dữ liệu chuyến tài xế (Chuẩn PC HD)"
-          >
-            <i data-lucide="camera" class="w-3.5 h-3.5 text-blue-600"></i>
-            <span>Chụp ảnh bảng (PC)</span>
-          </button>
-
-          <!-- Primary Image OCR Button -->
-          <button
-            type="button"
-            id="btn-open-image-ocr"
-            onclick="openImageOcrModal()"
-            class="inline-flex items-center gap-2 px-3.5 py-2 text-sm font-bold text-white bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-700 hover:to-indigo-700 rounded-lg shadow-sm hover:shadow transition-all duration-150 active:scale-[0.98] cursor-pointer"
-            title="Tải ảnh bảng dữ liệu hoặc chụp ảnh để AI tự động nhận dạng vùng số liệu"
-          >
-            <i data-lucide="scan-line" class="w-4 h-4 text-violet-200"></i>
-            <span>Quét ảnh AI</span>
-          </button>
-
-          <!-- Primary Upload Button -->
-          <button
-            type="button"
-            id="btn-open-upload"
-            onclick="openUploadModal()"
-            class="inline-flex items-center gap-2 px-3.5 py-2 text-sm font-bold text-white bg-gradient-to-r from-[#00529B] to-[#0066CC] hover:from-[#003B73] hover:to-[#00529B] rounded-lg shadow-sm hover:shadow transition-all duration-150 active:scale-[0.98] cursor-pointer"
-          >
-            <i data-lucide="upload" class="w-4 h-4"></i>
-            <span>Tải Excel lên</span>
-          </button>
-
-          <!-- Download Sample Template -->
-          <button
-            type="button"
-            onclick="downloadSampleTemplate()"
-            title="Tải file Excel mẫu chuẩn 24 dòng để thử nghiệm"
-            class="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-medium text-slate-700 bg-slate-100 hover:bg-slate-200 border border-slate-300/80 rounded-lg transition-colors cursor-pointer"
-          >
-            <i data-lucide="file-spreadsheet" class="w-3.5 h-3.5 text-emerald-600"></i>
-            <span class="hidden sm:inline">File mẫu</span>
-          </button>
-
-          <!-- Export Excel -->
-          <button
-            type="button"
-            onclick="exportToExcel()"
-            class="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-medium text-emerald-800 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 rounded-lg transition-colors cursor-pointer"
-          >
-            <i data-lucide="download" class="w-3.5 h-3.5 text-emerald-600"></i>
-            <span>Xuất Excel</span>
-          </button>
-
-          <!-- Export CSV -->
-          <button
-            type="button"
-            onclick="exportToCSV()"
-            class="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-medium text-slate-700 bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-lg transition-colors cursor-pointer"
-          >
-            <i data-lucide="file-text" class="w-3.5 h-3.5 text-slate-500"></i>
-            <span>Xuất CSV</span>
-          </button>
-
-          <!-- Add Driver Row -->
-          <button
-            type="button"
-            onclick="openEditModal()"
-            class="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-medium text-blue-700 bg-blue-50 hover:bg-blue-100 border border-blue-200 rounded-lg transition-colors cursor-pointer"
-          >
-            <i data-lucide="plus-circle" class="w-3.5 h-3.5 text-blue-600"></i>
-            <span class="hidden sm:inline">Thêm tài xế</span>
-          </button>
-
-          <!-- Quick Actions: Reset Demo & Clear -->
-          <div class="flex items-center gap-1 pl-1 border-l border-slate-200">
-            <button
-              type="button"
-              onclick="resetToDemo()"
-              title="Khôi phục lại 24 dòng dữ liệu mẫu ban đầu"
-              class="p-2 text-slate-500 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors cursor-pointer"
-            >
-              <i data-lucide="rotate-ccw" class="w-4 h-4"></i>
-            </button>
-            <button
-              type="button"
-              onclick="openClearConfirm()"
-              title="Xóa toàn bộ dữ liệu bảng"
-              class="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors cursor-pointer"
-            >
-              <i data-lucide="trash-2" class="w-4 h-4"></i>
-            </button>
-          </div>
-
-          <!-- View Mode Selector (Auto / PC / Mobile) -->
-          <div class="flex items-center p-1 bg-slate-100/90 border border-slate-200/90 rounded-xl text-xs font-semibold select-none shadow-2xs">
-            <button
-              type="button"
-              id="view-mode-auto-btn"
-              onclick="setViewMode('auto')"
-              class="px-2.5 py-1 rounded-lg flex items-center gap-1.5 transition-all text-slate-600 hover:text-slate-900 cursor-pointer"
-              title="Chế độ Tự động: Tự chuyển Bảng trên PC, Thẻ trên Điện thoại"
-            >
-              <i data-lucide="sparkles" class="w-3.5 h-3.5 text-amber-500"></i>
-              <span class="hidden xl:inline">Tự động</span>
-            </button>
-            <button
-              type="button"
-              id="view-mode-pc-btn"
-              onclick="setViewMode('pc')"
-              class="px-2.5 py-1 rounded-lg flex items-center gap-1.5 transition-all text-slate-600 hover:text-slate-900 cursor-pointer"
-              title="Chế độ PC: Bảng dữ liệu chi tiết đa cột chuẩn ERP"
-            >
-              <i data-lucide="monitor" class="w-3.5 h-3.5 text-blue-600"></i>
-              <span>PC</span>
-            </button>
-            <button
-              type="button"
-              id="view-mode-mobile-btn"
-              onclick="setViewMode('mobile')"
-              class="px-2.5 py-1 rounded-lg flex items-center gap-1.5 transition-all text-slate-600 hover:text-slate-900 cursor-pointer"
-              title="Chế độ Mobile: Thẻ tài xế trực quan tối ưu cho điện thoại"
-            >
-              <i data-lucide="smartphone" class="w-3.5 h-3.5 text-emerald-600"></i>
-              <span>Mobile</span>
-            </button>
-          </div>
-
-          <!-- Logged User & Logout Button -->
-          <div class="flex items-center gap-2 pl-2 border-l border-slate-200">
-            <div class="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-blue-50 border border-blue-200 text-xs">
-              <div class="w-5 h-5 rounded-full bg-blue-700 text-white font-bold flex items-center justify-center text-[10px]">
-                AD
+            <div>
+              <div class="flex items-center gap-2.5">
+                <h1 class="text-xl font-bold tracking-tight text-slate-900">
+                  QUẢN LÝ DỮ LIỆU BÊ TÔNG TSG-TNT
+                </h1>
+                <span id="header-records-badge" class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-blue-50 text-blue-700 border border-blue-200/60">
+                  Xin chào
+                </span>
               </div>
-              <span class="font-bold text-blue-900">Admin</span>
+              <p class="text-xs font-medium text-slate-500 flex flex-wrap items-center gap-2 mt-0.5">
+                <span>Dữ liệu chuyến, khối lượng</span>
+                <span class="text-slate-300">•</span>
+                <span class="inline-flex items-center gap-1.5 text-slate-700 bg-slate-100/90 px-2 py-0.5 rounded-md border border-slate-200 text-[11px] font-mono shadow-2xs">
+                  <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                  <span id="header-updated-time">Cập nhật: --/--/---- --:--:--</span>
+                </span>
+              </p>
             </div>
+          </div>
+
+          <!-- Header Action Buttons -->
+          <div class="flex flex-wrap items-center gap-2">
+            <!-- Screenshot Table Button (PC Capture) -->
             <button
               type="button"
-              onclick="handleAppLogout()"
-              title="Đăng xuất khỏi hệ thống"
-              class="inline-flex items-center gap-1 px-2.5 py-1.5 text-xs font-bold text-red-700 bg-red-50 hover:bg-red-100 active:bg-red-200 border border-red-200 rounded-lg transition-colors cursor-pointer"
+              id="btn-screenshot-table"
+              onclick="captureTableScreenshot()"
+              class="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-bold text-slate-800 bg-white hover:bg-slate-100 border border-slate-300 rounded-lg shadow-xs hover:shadow transition-all duration-150 active:scale-[0.98] cursor-pointer"
+              title="Chụp ảnh rõ nét toàn bộ Bảng dữ liệu chuyến tài xế (Chuẩn PC HD)"
             >
-              <i data-lucide="log-out" class="w-3.5 h-3.5 text-red-600"></i>
-              <span class="hidden lg:inline">Đăng xuất</span>
+              <i data-lucide="camera" class="w-3.5 h-3.5 text-blue-600"></i>
+              <span>Chụp ảnh bảng (PC)</span>
+            </button>
+
+            <!-- Primary Image OCR Button -->
+            <button
+              type="button"
+              id="btn-open-image-ocr"
+              onclick="openImageOcrModal()"
+              class="inline-flex items-center gap-2 px-3.5 py-2 text-sm font-bold text-white bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-700 hover:to-indigo-700 rounded-lg shadow-sm hover:shadow transition-all duration-150 active:scale-[0.98] cursor-pointer"
+              title="Tải ảnh bảng dữ liệu hoặc chụp ảnh để AI tự động nhận dạng vùng số liệu"
+            >
+              <i data-lucide="scan-line" class="w-4 h-4 text-violet-200"></i>
+              <span>Quét ảnh AI</span>
+            </button>
+
+            <!-- Primary Upload Button -->
+            <button
+              type="button"
+              id="btn-open-upload"
+              onclick="openUploadModal()"
+              class="inline-flex items-center gap-2 px-3.5 py-2 text-sm font-bold text-white bg-gradient-to-r from-[#00529B] to-[#0066CC] hover:from-[#003B73] hover:to-[#00529B] rounded-lg shadow-sm hover:shadow transition-all duration-150 active:scale-[0.98] cursor-pointer"
+            >
+              <i data-lucide="upload" class="w-4 h-4"></i>
+              <span>Tải Excel lên</span>
+            </button>
+
+            <!-- Download Sample Template -->
+            <button
+              type="button"
+              onclick="downloadSampleTemplate()"
+              title="Tải file Excel mẫu chuẩn 24 dòng để thử nghiệm"
+              class="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-medium text-slate-700 bg-slate-100 hover:bg-slate-200 border border-slate-300/80 rounded-lg transition-colors cursor-pointer"
+            >
+              <i data-lucide="file-spreadsheet" class="w-3.5 h-3.5 text-emerald-600"></i>
+              <span class="hidden sm:inline">File mẫu</span>
+            </button>
+
+            <!-- Export Excel -->
+            <button
+              type="button"
+              onclick="exportToExcel()"
+              class="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-medium text-emerald-800 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 rounded-lg transition-colors cursor-pointer"
+            >
+              <i data-lucide="download" class="w-3.5 h-3.5 text-emerald-600"></i>
+              <span>Xuất Excel</span>
+            </button>
+
+            <!-- Export CSV -->
+            <button
+              type="button"
+              onclick="exportToCSV()"
+              class="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-medium text-slate-700 bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-lg transition-colors cursor-pointer"
+            >
+              <i data-lucide="file-text" class="w-3.5 h-3.5 text-slate-500"></i>
+              <span>Xuất CSV</span>
+            </button>
+
+            <!-- Add Driver Row -->
+            <button
+              type="button"
+              onclick="openEditModal()"
+              class="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-medium text-blue-700 bg-blue-50 hover:bg-blue-100 border border-blue-200 rounded-lg transition-colors cursor-pointer"
+            >
+              <i data-lucide="plus-circle" class="w-3.5 h-3.5 text-blue-600"></i>
+              <span class="hidden sm:inline">Thêm tài xế</span>
+            </button>
+
+            <!-- Quick Actions: Reset Demo & Clear -->
+            <div class="flex items-center gap-1 pl-1 border-l border-slate-200">
+              <button
+                type="button"
+                onclick="resetToDemo()"
+                title="Khôi phục lại 24 dòng dữ liệu mẫu ban đầu"
+                class="p-2 text-slate-500 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors cursor-pointer"
+              >
+                <i data-lucide="rotate-ccw" class="w-4 h-4"></i>
+              </button>
+              <button
+                type="button"
+                onclick="openClearConfirm()"
+                title="Xóa toàn bộ dữ liệu bảng"
+                class="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors cursor-pointer"
+              >
+                <i data-lucide="trash-2" class="w-4 h-4"></i>
+              </button>
+              <button
+                type="button"
+                onclick="openApiKeyModal()"
+                title="Cài đặt API Key Gemini AI"
+                class="p-2 text-violet-600 hover:text-violet-800 hover:bg-violet-50 rounded-lg transition-colors cursor-pointer"
+              >
+                <i data-lucide="key" class="w-4 h-4"></i>
+              </button>
+            </div>
+
+            <!-- View Mode Selector (Auto / PC / Mobile) -->
+            <div class="flex items-center p-1 bg-slate-100/90 border border-slate-200/90 rounded-xl text-xs font-semibold select-none shadow-2xs">
+              <button
+                type="button"
+                id="view-mode-auto-btn"
+                onclick="setViewMode('auto')"
+                class="px-2.5 py-1 rounded-lg flex items-center gap-1.5 transition-all text-slate-600 hover:text-slate-900 cursor-pointer"
+                title="Chế độ Tự động: Tự chuyển Bảng trên PC, Thẻ trên Điện thoại"
+              >
+                <i data-lucide="sparkles" class="w-3.5 h-3.5 text-amber-500"></i>
+                <span class="hidden xl:inline">Tự động</span>
+              </button>
+              <button
+                type="button"
+                id="view-mode-pc-btn"
+                onclick="setViewMode('pc')"
+                class="px-2.5 py-1 rounded-lg flex items-center gap-1.5 transition-all text-slate-600 hover:text-slate-900 cursor-pointer"
+                title="Chế độ PC: Bảng dữ liệu chi tiết đa cột chuẩn ERP"
+              >
+                <i data-lucide="monitor" class="w-3.5 h-3.5 text-blue-600"></i>
+                <span>PC</span>
+              </button>
+              <button
+                type="button"
+                id="view-mode-mobile-btn"
+                onclick="setViewMode('mobile')"
+                class="px-2.5 py-1 rounded-lg flex items-center gap-1.5 transition-all text-slate-600 hover:text-slate-900 cursor-pointer"
+                title="Chế độ Mobile: Thẻ tài xế trực quan tối ưu cho điện thoại"
+              >
+                <i data-lucide="smartphone" class="w-3.5 h-3.5 text-emerald-600"></i>
+                <span>Mobile</span>
+              </button>
+            </div>
+
+            <!-- Logged User & Logout Button -->
+            <div class="flex items-center gap-2 pl-2 border-l border-slate-200">
+              <div class="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-blue-50 border border-blue-200 text-xs">
+                <div class="w-5 h-5 rounded-full bg-blue-700 text-white font-bold flex items-center justify-center text-[10px]">
+                  AD
+                </div>
+                <span class="font-bold text-blue-900">Admin</span>
+              </div>
+              <button
+                type="button"
+                onclick="handleAppLogout()"
+                title="Đăng xuất khỏi hệ thống"
+                class="inline-flex items-center gap-1 px-2.5 py-1.5 text-xs font-bold text-red-700 bg-red-50 hover:bg-red-100 active:bg-red-200 border border-red-200 rounded-lg transition-colors cursor-pointer"
+              >
+                <i data-lucide="log-out" class="w-3.5 h-3.5 text-red-600"></i>
+                <span class="hidden lg:inline">Đăng xuất</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-5 space-y-4">
+
+      <!-- Summary Cards -->
+      <div id="summary-cards-container" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3.5 sm:gap-4"></div>
+
+      <!-- Search & Filters Bar -->
+      <div id="filter-bar" class="bg-white rounded-xl border border-slate-200/90 shadow-xs p-3.5 sm:p-4 space-y-3">
+        <div class="flex flex-col md:flex-row gap-3 items-stretch md:items-center justify-between">
+          <div class="relative flex-1">
+            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
+              <i data-lucide="search" class="w-4 h-4"></i>
+            </div>
+            <input
+              type="text"
+              id="search-input"
+              oninput="handleSearchInput(this.value)"
+              placeholder="Tìm tài xế hoặc số xe..."
+              class="w-full pl-9 pr-9 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600 transition-colors"
+            />
+            <button
+              id="btn-clear-search"
+              type="button"
+              onclick="clearSearch()"
+              class="hidden absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-600"
+            >
+              <i data-lucide="x" class="w-4 h-4"></i>
+            </button>
+          </div>
+
+          <div class="w-full md:w-56">
+            <select
+              id="filter-driver-select"
+              onchange="handleFilterChange('driverName', this.value)"
+              class="w-full py-2 px-3 text-sm bg-slate-50 border border-slate-200 rounded-lg text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600"
+            >
+              <option value="">Tất cả tài xế</option>
+            </select>
+          </div>
+
+          <div class="w-full md:w-48">
+            <select
+              id="filter-vehicle-select"
+              onchange="handleFilterChange('vehicleNumber', this.value)"
+              class="w-full py-2 px-3 text-sm bg-slate-50 border border-slate-200 rounded-lg text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600"
+            >
+              <option value="">Tất cả số xe</option>
+            </select>
+          </div>
+
+          <div class="flex items-center gap-2">
+            <button
+              type="button"
+              id="btn-toggle-advanced"
+              onclick="toggleAdvancedFilters()"
+              class="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-semibold rounded-lg border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 transition-colors cursor-pointer"
+            >
+              <i data-lucide="sliders-horizontal" class="w-3.5 h-3.5"></i>
+              <span id="advanced-filter-text">Bộ lọc</span>
+              <i data-lucide="chevron-down" id="advanced-chevron" class="w-3.5 h-3.5"></i>
+            </button>
+
+            <button
+              type="button"
+              id="btn-reset-filters"
+              onclick="resetAllFilters()"
+              class="hidden inline-flex items-center gap-1 px-3 py-2 text-xs font-medium text-red-600 bg-red-50 hover:bg-red-100 border border-red-200 rounded-lg transition-colors cursor-pointer"
+            >
+              <i data-lucide="rotate-ccw" class="w-3.5 h-3.5"></i>
+              <span>Xóa bộ lọc</span>
             </button>
           </div>
         </div>
-      </div>
-    </div>
-  </header>
 
-  <!-- ==================== MAIN CONTENT ==================== -->
-  <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-5 space-y-4">
-
-    <!-- SUMMARY CARDS -->
-    <div id="summary-cards-container" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3.5 sm:gap-4">
-      <!-- Generated via JS -->
-    </div>
-
-    <!-- SEARCH & FILTERS BAR -->
-    <div id="filter-bar" class="bg-white rounded-xl border border-slate-200/90 shadow-xs p-3.5 sm:p-4 space-y-3">
-      <div class="flex flex-col md:flex-row gap-3 items-stretch md:items-center justify-between">
-        <!-- Search Input -->
-        <div class="relative flex-1">
-          <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
-            <i data-lucide="search" class="w-4 h-4"></i>
+        <!-- Advanced Filters Panel -->
+        <div id="advanced-filters-panel" class="hidden pt-3 border-t border-slate-100 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3.5 text-xs">
+          <div>
+            <label class="block text-[11px] font-semibold text-slate-600 mb-1">KHỐI LƯỢNG (m³)</label>
+            <div class="flex items-center gap-1.5">
+              <input type="number" id="filter-min-vol" placeholder="Từ" oninput="handleFilterChange('minStationVolume', this.value)" class="w-full px-2.5 py-1.5 bg-slate-50 border border-slate-200 rounded text-slate-800" />
+              <span class="text-slate-400">-</span>
+              <input type="number" id="filter-max-vol" placeholder="Đến" oninput="handleFilterChange('maxStationVolume', this.value)" class="w-full px-2.5 py-1.5 bg-slate-50 border border-slate-200 rounded text-slate-800" />
+            </div>
           </div>
-          <input
-            type="text"
-            id="search-input"
-            oninput="handleSearchInput(this.value)"
-            placeholder="Tìm tài xế hoặc số xe..."
-            class="w-full pl-9 pr-9 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600 transition-colors"
-          />
-          <button
-            id="btn-clear-search"
-            type="button"
-            onclick="clearSearch()"
-            class="hidden absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-600"
-          >
-            <i data-lucide="x" class="w-4 h-4"></i>
-          </button>
-        </div>
 
-        <!-- Filter: Driver Name -->
-        <div class="w-full md:w-56">
-          <select
-            id="filter-driver-select"
-            onchange="handleFilterChange('driverName', this.value)"
-            class="w-full py-2 px-3 text-sm bg-slate-50 border border-slate-200 rounded-lg text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600"
-          >
-            <option value="">Tất cả tài xế</option>
-          </select>
-        </div>
+          <div>
+            <label class="block text-[11px] font-semibold text-slate-600 mb-1">TỔNG KM</label>
+            <div class="flex items-center gap-1.5">
+              <input type="number" id="filter-min-km" placeholder="Min" oninput="handleFilterChange('minTotalKm', this.value)" class="w-full px-2.5 py-1.5 bg-slate-50 border border-slate-200 rounded text-slate-800" />
+              <span class="text-slate-400">-</span>
+              <input type="number" id="filter-max-km" placeholder="Max" oninput="handleFilterChange('maxTotalKm', this.value)" class="w-full px-2.5 py-1.5 bg-slate-50 border border-slate-200 rounded text-slate-800" />
+            </div>
+          </div>
 
-        <!-- Filter: Vehicle Number -->
-        <div class="w-full md:w-48">
-          <select
-            id="filter-vehicle-select"
-            onchange="handleFilterChange('vehicleNumber', this.value)"
-            class="w-full py-2 px-3 text-sm bg-slate-50 border border-slate-200 rounded-lg text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600"
-          >
-            <option value="">Tất cả số xe</option>
-          </select>
-        </div>
+          <div>
+            <label class="block text-[11px] font-semibold text-slate-600 mb-1">CHUYẾN LỚN</label>
+            <div class="flex items-center gap-1.5">
+              <input type="number" id="filter-min-large" placeholder="Từ" oninput="handleFilterChange('minLargeTrips', this.value)" class="w-full px-2.5 py-1.5 bg-slate-50 border border-slate-200 rounded text-slate-800" />
+              <span class="text-slate-400">-</span>
+              <input type="number" id="filter-max-large" placeholder="Đến" oninput="handleFilterChange('maxLargeTrips', this.value)" class="w-full px-2.5 py-1.5 bg-slate-50 border border-slate-200 rounded text-slate-800" />
+            </div>
+          </div>
 
-        <!-- Advanced Toggle & Reset -->
-        <div class="flex items-center gap-2">
-          <button
-            type="button"
-            id="btn-toggle-advanced"
-            onclick="toggleAdvancedFilters()"
-            class="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-semibold rounded-lg border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 transition-colors cursor-pointer"
-          >
-            <i data-lucide="sliders-horizontal" class="w-3.5 h-3.5"></i>
-            <span id="advanced-filter-text">Bộ lọc</span>
-            <i data-lucide="chevron-down" id="advanced-chevron" class="w-3.5 h-3.5"></i>
-          </button>
+          <div>
+            <label class="block text-[11px] font-semibold text-slate-600 mb-1">CHUYẾN NHỎ</label>
+            <div class="flex items-center gap-1.5">
+              <input type="number" id="filter-min-small" placeholder="Từ" oninput="handleFilterChange('minSmallTrips', this.value)" class="w-full px-2.5 py-1.5 bg-slate-50 border border-slate-200 rounded text-slate-800" />
+              <span class="text-slate-400">-</span>
+              <input type="number" id="filter-max-small" placeholder="Đến" oninput="handleFilterChange('maxSmallTrips', this.value)" class="w-full px-2.5 py-1.5 bg-slate-50 border border-slate-200 rounded text-slate-800" />
+            </div>
+          </div>
 
-          <button
-            type="button"
-            id="btn-reset-filters"
-            onclick="resetAllFilters()"
-            class="hidden inline-flex items-center gap-1 px-3 py-2 text-xs font-medium text-red-600 bg-red-50 hover:bg-red-100 border border-red-200 rounded-lg transition-colors cursor-pointer"
-          >
-            <i data-lucide="rotate-ccw" class="w-3.5 h-3.5"></i>
-            <span>Xóa bộ lọc</span>
-          </button>
+          <div>
+            <label class="block text-[11px] font-semibold text-slate-600 mb-1">XE NƯỚC</label>
+            <select id="filter-water" onchange="handleFilterChange('waterVehicles', this.value)" class="w-full px-2.5 py-1.5 bg-slate-50 border border-slate-200 rounded text-slate-800">
+              <option value="all">Tất cả</option>
+              <option value="0">0 chuyến</option>
+              <option value="1">1 chuyến</option>
+              <option value="2">2 chuyến</option>
+              <option value="3">3 chuyến</option>
+              <option value="gt0">&gt; 0 chuyến</option>
+            </select>
+          </div>
         </div>
       </div>
 
-      <!-- Advanced Filters Drawer -->
-      <div id="advanced-filters-panel" class="hidden pt-3 border-t border-slate-100 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3.5 text-xs">
-        <div>
-          <label class="block text-[11px] font-semibold text-slate-600 mb-1">KHỐI LƯỢNG (m³)</label>
-          <div class="flex items-center gap-1.5">
-            <input type="number" id="filter-min-vol" placeholder="Từ" oninput="handleFilterChange('minStationVolume', this.value)" class="w-full px-2.5 py-1.5 bg-slate-50 border border-slate-200 rounded text-slate-800" />
-            <span class="text-slate-400">-</span>
-            <input type="number" id="filter-max-vol" placeholder="Đến" oninput="handleFilterChange('maxStationVolume', this.value)" class="w-full px-2.5 py-1.5 bg-slate-50 border border-slate-200 rounded text-slate-800" />
-          </div>
-        </div>
-
-        <div>
-          <label class="block text-[11px] font-semibold text-slate-600 mb-1">TỔNG KM</label>
-          <div class="flex items-center gap-1.5">
-            <input type="number" id="filter-min-km" placeholder="Min" oninput="handleFilterChange('minTotalKm', this.value)" class="w-full px-2.5 py-1.5 bg-slate-50 border border-slate-200 rounded text-slate-800" />
-            <span class="text-slate-400">-</span>
-            <input type="number" id="filter-max-km" placeholder="Max" oninput="handleFilterChange('maxTotalKm', this.value)" class="w-full px-2.5 py-1.5 bg-slate-50 border border-slate-200 rounded text-slate-800" />
-          </div>
-        </div>
-
-        <div>
-          <label class="block text-[11px] font-semibold text-slate-600 mb-1">CHUYẾN LỚN</label>
-          <div class="flex items-center gap-1.5">
-            <input type="number" id="filter-min-large" placeholder="Từ" oninput="handleFilterChange('minLargeTrips', this.value)" class="w-full px-2.5 py-1.5 bg-slate-50 border border-slate-200 rounded text-slate-800" />
-            <span class="text-slate-400">-</span>
-            <input type="number" id="filter-max-large" placeholder="Đến" oninput="handleFilterChange('maxLargeTrips', this.value)" class="w-full px-2.5 py-1.5 bg-slate-50 border border-slate-200 rounded text-slate-800" />
-          </div>
-        </div>
-
-        <div>
-          <label class="block text-[11px] font-semibold text-slate-600 mb-1">CHUYẾN NHỎ</label>
-          <div class="flex items-center gap-1.5">
-            <input type="number" id="filter-min-small" placeholder="Từ" oninput="handleFilterChange('minSmallTrips', this.value)" class="w-full px-2.5 py-1.5 bg-slate-50 border border-slate-200 rounded text-slate-800" />
-            <span class="text-slate-400">-</span>
-            <input type="number" id="filter-max-small" placeholder="Đến" oninput="handleFilterChange('maxSmallTrips', this.value)" class="w-full px-2.5 py-1.5 bg-slate-50 border border-slate-200 rounded text-slate-800" />
-          </div>
-        </div>
-
-        <div>
-          <label class="block text-[11px] font-semibold text-slate-600 mb-1">XE NƯỚC</label>
-          <select id="filter-water" onchange="handleFilterChange('waterVehicles', this.value)" class="w-full px-2.5 py-1.5 bg-slate-50 border border-slate-200 rounded text-slate-800">
-            <option value="all">Tất cả</option>
-            <option value="0">0 chuyến</option>
-            <option value="1">1 chuyến</option>
-            <option value="2">2 chuyến</option>
-            <option value="3">3 chuyến</option>
-            <option value="gt0">&gt; 0 chuyến</option>
-          </select>
-        </div>
-      </div>
-    </div>
-
-    <!-- DATA TABLE & MOBILE CARDS CONTAINER -->
-    <div id="table-wrapper" class="space-y-3">
-      
-      <!-- 1. DESKTOP ERP TABLE VIEW -->
-      <div id="desktop-table-container" class="bg-white rounded-xl shadow-xs border border-slate-200/90 overflow-hidden transition-all">
-        <div class="overflow-x-auto min-h-[380px] custom-scrollbar">
-          <table class="w-full text-left border-collapse min-w-[960px]">
-            <!-- Table Header -->
-            <thead>
-              <tr class="bg-gradient-to-r from-[#003B73] via-[#004B93] to-[#00529B] text-white text-xs font-bold uppercase tracking-wider select-none">
-                <!-- STT -->
-                <th rowspan="2" class="py-3 px-3 w-16 text-center border-r border-blue-600/40 first:rounded-tl-lg">
-                  <div class="flex items-center justify-center gap-1">
-                    <i data-lucide="list-ordered" class="w-4 h-4 text-blue-200"></i>
-                    <span>STT</span>
-                  </div>
-                </th>
-
-                <!-- TÊN TÀI XẾ -->
-                <th rowspan="2" onclick="handleSort('driverName')" class="py-3 px-4 min-w-[200px] border-r border-blue-600/40 cursor-pointer hover:bg-blue-800/40 transition-colors group">
-                  <div class="flex items-center justify-between gap-2">
-                    <div class="flex items-center gap-2">
-                      <div class="w-5 h-5 rounded-full bg-blue-500/40 flex items-center justify-center text-blue-100">
-                        <i data-lucide="user" class="w-3.5 h-3.5"></i>
+      <!-- Data Table & Mobile Cards Wrapper -->
+      <div id="table-wrapper" class="space-y-3">
+        <!-- Desktop Table View -->
+        <div id="desktop-table-container" class="bg-white rounded-xl shadow-xs border border-slate-200/90 overflow-hidden transition-all">
+          <div class="overflow-x-auto min-h-[380px] custom-scrollbar">
+            <table class="w-full text-left border-collapse min-w-[960px]">
+              <thead>
+                <tr class="bg-gradient-to-r from-[#003B73] via-[#004B93] to-[#00529B] text-white text-xs font-bold uppercase tracking-wider select-none">
+                  <th rowspan="2" class="py-3 px-3 w-16 text-center border-r border-blue-600/40 first:rounded-tl-lg">
+                    <div class="flex items-center justify-center gap-1">
+                      <i data-lucide="list-ordered" class="w-4 h-4 text-blue-200"></i>
+                      <span>STT</span>
+                    </div>
+                  </th>
+                  <th rowspan="2" onclick="handleSort('driverName')" class="py-3 px-4 min-w-[200px] border-r border-blue-600/40 cursor-pointer hover:bg-blue-800/40 transition-colors group">
+                    <div class="flex items-center justify-between gap-2">
+                      <div class="flex items-center gap-2">
+                        <div class="w-5 h-5 rounded-full bg-blue-500/40 flex items-center justify-center text-blue-100">
+                          <i data-lucide="user" class="w-3.5 h-3.5"></i>
+                        </div>
+                        <span>TÊN TÀI XẾ</span>
                       </div>
-                      <span>TÊN TÀI XẾ</span>
+                      <span id="sort-icon-driverName"><i data-lucide="arrow-up-down" class="w-3.5 h-3.5 opacity-40"></i></span>
                     </div>
-                    <span id="sort-icon-driverName"><i data-lucide="arrow-up-down" class="w-3.5 h-3.5 opacity-40"></i></span>
-                  </div>
-                </th>
-
-                <!-- SỐ XE -->
-                <th rowspan="2" onclick="handleSort('vehicleNumber')" class="py-3 px-3.5 min-w-[130px] border-r border-blue-600/40 cursor-pointer hover:bg-blue-800/40 transition-colors group">
-                  <div class="flex items-center justify-between gap-2">
-                    <div class="flex items-center gap-2">
-                      <div class="w-5 h-5 rounded-full bg-blue-500/40 flex items-center justify-center text-blue-100">
-                        <i data-lucide="car" class="w-3.5 h-3.5"></i>
+                  </th>
+                  <th rowspan="2" onclick="handleSort('vehicleNumber')" class="py-3 px-3.5 min-w-[130px] border-r border-blue-600/40 cursor-pointer hover:bg-blue-800/40 transition-colors group">
+                    <div class="flex items-center justify-between gap-2">
+                      <div class="flex items-center gap-2">
+                        <div class="w-5 h-5 rounded-full bg-blue-500/40 flex items-center justify-center text-blue-100">
+                          <i data-lucide="car" class="w-3.5 h-3.5"></i>
+                        </div>
+                        <span>SỐ XE</span>
                       </div>
-                      <span>SỐ XE</span>
+                      <span id="sort-icon-vehicleNumber"><i data-lucide="arrow-up-down" class="w-3.5 h-3.5 opacity-40"></i></span>
                     </div>
-                    <span id="sort-icon-vehicleNumber"><i data-lucide="arrow-up-down" class="w-3.5 h-3.5 opacity-40"></i></span>
-                  </div>
-                </th>
-
-                <!-- KL TRẠM TN -->
-                <th rowspan="2" onclick="handleSort('stationVolume')" class="py-3 px-3.5 min-w-[140px] text-center border-r border-blue-600/40 cursor-pointer hover:bg-blue-800/40 transition-colors group">
-                  <div class="flex items-center justify-center gap-1.5">
-                    <div class="w-5 h-5 rounded-full bg-purple-400/40 flex items-center justify-center text-purple-200">
-                      <i data-lucide="droplet" class="w-3.5 h-3.5"></i>
+                  </th>
+                  <th rowspan="2" onclick="handleSort('stationVolume')" class="py-3 px-3.5 min-w-[140px] text-center border-r border-blue-600/40 cursor-pointer hover:bg-blue-800/40 transition-colors group">
+                    <div class="flex items-center justify-center gap-1.5">
+                      <div class="w-5 h-5 rounded-full bg-purple-400/40 flex items-center justify-center text-purple-200">
+                        <i data-lucide="droplet" class="w-3.5 h-3.5"></i>
+                      </div>
+                      <span>KHỐI LƯỢNG (m³)</span>
+                      <span id="sort-icon-stationVolume"><i data-lucide="arrow-up-down" class="w-3.5 h-3.5 opacity-40"></i></span>
                     </div>
-                    <span>KHỐI LƯỢNG (m³)</span>
-                    <span id="sort-icon-stationVolume"><i data-lucide="arrow-up-down" class="w-3.5 h-3.5 opacity-40"></i></span>
-                  </div>
-                </th>
-
-                <!-- GROUPED HEADER: CHUYẾN -->
-                <th colspan="2" class="py-2 px-3 text-center border-r border-b border-blue-600/40 bg-blue-900/40">
-                  <span class="text-[11px] font-black tracking-widest text-blue-100">CHUYẾN</span>
-                </th>
-
-                <!-- TỔNG KM -->
-                <th rowspan="2" onclick="handleSort('totalKm')" class="py-3 px-3.5 min-w-[120px] text-center border-r border-blue-600/40 cursor-pointer hover:bg-blue-800/40 transition-colors group">
-                  <div class="flex items-center justify-center gap-1.5">
-                    <div class="w-5 h-5 rounded-full bg-emerald-400/40 flex items-center justify-center text-emerald-200">
-                      <i data-lucide="map-pin" class="w-3.5 h-3.5"></i>
+                  </th>
+                  <th colspan="2" class="py-2 px-3 text-center border-r border-b border-blue-600/40 bg-blue-900/40">
+                    <span class="text-[11px] font-black tracking-widest text-blue-100">CHUYẾN</span>
+                  </th>
+                  <th rowspan="2" onclick="handleSort('totalKm')" class="py-3 px-3.5 min-w-[120px] text-center border-r border-blue-600/40 cursor-pointer hover:bg-blue-800/40 transition-colors group">
+                    <div class="flex items-center justify-center gap-1.5">
+                      <div class="w-5 h-5 rounded-full bg-emerald-400/40 flex items-center justify-center text-emerald-200">
+                        <i data-lucide="map-pin" class="w-3.5 h-3.5"></i>
+                      </div>
+                      <span>TỔNG KM</span>
+                      <span id="sort-icon-totalKm"><i data-lucide="arrow-up-down" class="w-3.5 h-3.5 opacity-40"></i></span>
                     </div>
-                    <span>TỔNG KM</span>
-                    <span id="sort-icon-totalKm"><i data-lucide="arrow-up-down" class="w-3.5 h-3.5 opacity-40"></i></span>
-                  </div>
-                </th>
-
-                <!-- TỔNG CHUYẾN -->
-                <th rowspan="2" onclick="handleSort('totalTrips')" class="py-3 px-3.5 min-w-[125px] text-center border-r border-blue-600/40 cursor-pointer hover:bg-blue-800/40 transition-colors group">
-                  <div class="flex items-center justify-center gap-1.5">
-                    <div class="w-5 h-5 rounded-full bg-rose-400/40 flex items-center justify-center text-rose-200">
-                      <i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i>
+                  </th>
+                  <th rowspan="2" onclick="handleSort('totalTrips')" class="py-3 px-3.5 min-w-[125px] text-center border-r border-blue-600/40 cursor-pointer hover:bg-blue-800/40 transition-colors group">
+                    <div class="flex items-center justify-center gap-1.5">
+                      <div class="w-5 h-5 rounded-full bg-rose-400/40 flex items-center justify-center text-rose-200">
+                        <i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i>
+                      </div>
+                      <span>TỔNG CHUYẾN</span>
+                      <span id="sort-icon-totalTrips"><i data-lucide="arrow-up-down" class="w-3.5 h-3.5 opacity-40"></i></span>
                     </div>
-                    <span>TỔNG CHUYẾN</span>
-                    <span id="sort-icon-totalTrips"><i data-lucide="arrow-up-down" class="w-3.5 h-3.5 opacity-40"></i></span>
-                  </div>
-                </th>
-
-                <!-- XE NƯỚC -->
-                <th rowspan="2" onclick="handleSort('waterVehicles')" class="py-3 px-3.5 min-w-[110px] text-center last:rounded-tr-lg cursor-pointer hover:bg-blue-800/40 transition-colors group">
-                  <div class="flex items-center justify-center gap-1.5">
-                    <div class="w-5 h-5 rounded-full bg-sky-400/40 flex items-center justify-center text-sky-200">
-                      <i data-lucide="droplet" class="w-3.5 h-3.5"></i>
+                  </th>
+                  <th rowspan="2" onclick="handleSort('waterVehicles')" class="py-3 px-3.5 min-w-[110px] text-center last:rounded-tr-lg cursor-pointer hover:bg-blue-800/40 transition-colors group">
+                    <div class="flex items-center justify-center gap-1.5">
+                      <div class="w-5 h-5 rounded-full bg-sky-400/40 flex items-center justify-center text-sky-200">
+                        <i data-lucide="droplet" class="w-3.5 h-3.5"></i>
+                      </div>
+                      <span>XE NƯỚC</span>
+                      <span id="sort-icon-waterVehicles"><i data-lucide="arrow-up-down" class="w-3.5 h-3.5 opacity-40"></i></span>
                     </div>
-                    <span>XE NƯỚC</span>
-                    <span id="sort-icon-waterVehicles"><i data-lucide="arrow-up-down" class="w-3.5 h-3.5 opacity-40"></i></span>
-                  </div>
-                </th>
-
-                <!-- ACTIONS -->
-                <th rowspan="2" class="py-3 px-2 w-16 text-center">
-                  <span class="text-[10px] opacity-75">TÁC VỤ</span>
-                </th>
-              </tr>
-
-              <!-- Sub-header for CHUYẾN LỚN / CHUYẾN NHỎ -->
-              <tr class="bg-[#004B93] text-white text-[11px] font-bold uppercase select-none border-b border-blue-600/40">
-                <th onclick="handleSort('largeTrips')" class="py-1.5 px-3 min-w-[105px] text-center border-r border-blue-600/40 cursor-pointer hover:bg-blue-800/40 transition-colors group">
-                  <div class="flex items-center justify-center gap-1">
-                    <span>🚚</span>
-                    <span>CHUYẾN LỚN</span>
-                    <span id="sort-icon-largeTrips"><i data-lucide="arrow-up-down" class="w-3 h-3 opacity-40"></i></span>
-                  </div>
-                </th>
-                <th onclick="handleSort('smallTrips')" class="py-1.5 px-3 min-w-[105px] text-center border-r border-blue-600/40 cursor-pointer hover:bg-blue-800/40 transition-colors group">
-                  <div class="flex items-center justify-center gap-1">
-                    <span>🚛</span>
-                    <span>CHUYẾN NHỎ</span>
-                    <span id="sort-icon-smallTrips"><i data-lucide="arrow-up-down" class="w-3 h-3 opacity-40"></i></span>
-                  </div>
-                </th>
-              </tr>
-            </thead>
-
-            <!-- Table Body -->
-            <tbody id="driver-tbody" class="divide-y divide-slate-100 text-sm font-medium">
-              <!-- Rendered via JS -->
-            </tbody>
-
-            <!-- Table Footer Totals -->
-            <tfoot id="driver-tfoot" class="bg-slate-100 border-t-2 border-slate-300 text-xs font-bold text-slate-800">
-              <!-- Rendered via JS -->
-            </tfoot>
-          </table>
-        </div>
-      </div>
-
-      <!-- 2. MOBILE DRIVER CARDS VIEW -->
-      <div id="mobile-cards-container" class="space-y-3.5 hidden">
-        <!-- Cards List Grid -->
-        <div id="driver-cards-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5">
-          <!-- Rendered via JS -->
+                  </th>
+                  <th rowspan="2" class="py-3 px-2 w-16 text-center">
+                    <span class="text-[10px] opacity-75">TÁC VỤ</span>
+                  </th>
+                </tr>
+                <tr class="bg-[#004B93] text-white text-[11px] font-bold uppercase select-none border-b border-blue-600/40">
+                  <th onclick="handleSort('largeTrips')" class="py-1.5 px-3 min-w-[105px] text-center border-r border-blue-600/40 cursor-pointer hover:bg-blue-800/40 transition-colors group">
+                    <div class="flex items-center justify-center gap-1">
+                      <span>🚚</span>
+                      <span>CHUYẾN LỚN</span>
+                      <span id="sort-icon-largeTrips"><i data-lucide="arrow-up-down" class="w-3 h-3 opacity-40"></i></span>
+                    </div>
+                  </th>
+                  <th onclick="handleSort('smallTrips')" class="py-1.5 px-3 min-w-[105px] text-center border-r border-blue-600/40 cursor-pointer hover:bg-blue-800/40 transition-colors group">
+                    <div class="flex items-center justify-center gap-1">
+                      <span>🚛</span>
+                      <span>CHUYẾN NHỎ</span>
+                      <span id="sort-icon-smallTrips"><i data-lucide="arrow-up-down" class="w-3 h-3 opacity-40"></i></span>
+                    </div>
+                  </th>
+                </tr>
+              </thead>
+              <tbody id="driver-tbody" class="divide-y divide-slate-100 text-sm font-medium"></tbody>
+              <tfoot id="driver-tfoot" class="bg-slate-100 border-t-2 border-slate-300 text-xs font-bold text-slate-800"></tfoot>
+            </table>
+          </div>
         </div>
 
-        <!-- Mobile Totals Summary Card -->
-        <div id="driver-cards-totals" class="bg-gradient-to-br from-[#003B73] via-[#004B93] to-[#00529B] text-white rounded-2xl p-4 shadow-md space-y-3 border border-blue-700/50">
-          <!-- Rendered via JS -->
+        <!-- Mobile Driver Cards View -->
+        <div id="mobile-cards-container" class="space-y-3.5 hidden">
+          <div id="driver-cards-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5"></div>
+          <div id="driver-cards-totals" class="bg-gradient-to-br from-[#003B73] via-[#004B93] to-[#00529B] text-white rounded-2xl p-4 shadow-md space-y-3 border border-blue-700/50"></div>
         </div>
+
+        <!-- Pagination Bar -->
+        <div id="pagination-bar" class="bg-white rounded-xl border border-slate-200/80 shadow-xs px-4 py-3 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-600"></div>
       </div>
 
-      <!-- Pagination -->
-      <div id="pagination-bar" class="bg-white rounded-xl border border-slate-200/80 shadow-xs px-4 py-3 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-600">
-        <!-- Rendered via JS -->
+      <!-- Empty State -->
+      <div id="empty-state-container" class="hidden bg-white rounded-2xl border border-slate-200/90 shadow-xs p-12 text-center max-w-lg mx-auto my-8 space-y-4"></div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="mt-auto py-4 border-t border-slate-200 bg-white text-center text-xs text-slate-500">
+      <div class="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-2">
+        <span>Hệ thống Quản lý và Phân tích Dữ liệu Trạm trộn Tasago © 2026</span>
+        <span class="text-slate-400">Sản phẩm thuộc quyền LVT - Hotline 0942320923</span>
       </div>
+    </footer>
+
+    <!-- Floating Navigation & Scroll Dock -->
+    <div id="floating-nav-dock" class="fixed bottom-5 right-4 sm:right-6 z-40 flex flex-col items-center gap-2 select-none">
+      <button
+        id="btn-scroll-top"
+        type="button"
+        onclick="scrollToTop()"
+        class="w-10 h-10 sm:w-11 sm:h-11 rounded-2xl bg-white/95 hover:bg-white text-slate-700 hover:text-blue-600 border border-slate-200 shadow-md floating-fab backdrop-blur-md flex items-center justify-center transition-all duration-200 hover:scale-110 active:scale-95 cursor-pointer group"
+        title="Lên đầu trang"
+      >
+        <i data-lucide="chevron-up" class="w-5 h-5 transition-transform group-hover:-translate-y-0.5 text-slate-600 group-hover:text-blue-600"></i>
+      </button>
+
+      <button
+        id="btn-floating-view-toggle"
+        type="button"
+        onclick="cycleViewMode()"
+        class="w-10 h-10 sm:w-11 sm:h-11 rounded-2xl bg-gradient-to-br from-[#003B73] to-[#0066CC] hover:from-[#002d59] hover:to-[#00529B] text-white shadow-md floating-fab flex flex-col items-center justify-center transition-all duration-200 hover:scale-110 active:scale-95 cursor-pointer relative group"
+        title="Chuyển chế độ xem PC / Mobile"
+      >
+        <i id="floating-view-icon" data-lucide="monitor" class="w-4 h-4"></i>
+        <span id="floating-view-text" class="text-[9px] font-black uppercase tracking-tighter mt-0.5 leading-none">Auto</span>
+      </button>
+
+      <button
+        id="btn-scroll-bottom"
+        type="button"
+        onclick="scrollToBottom()"
+        class="w-10 h-10 sm:w-11 sm:h-11 rounded-2xl bg-white/95 hover:bg-white text-slate-700 hover:text-blue-600 border border-slate-200 shadow-md floating-fab backdrop-blur-md flex items-center justify-center transition-all duration-200 hover:scale-110 active:scale-95 cursor-pointer group"
+        title="Xuống cuối trang"
+      >
+        <i data-lucide="chevron-down" class="w-5 h-5 transition-transform group-hover:translate-y-0.5 text-slate-600 group-hover:text-blue-600"></i>
+      </button>
     </div>
-
-    <!-- Empty State Container (Shown if no data) -->
-    <div id="empty-state-container" class="hidden bg-white rounded-2xl border border-slate-200/90 shadow-xs p-12 text-center max-w-lg mx-auto my-8 space-y-4">
-      <!-- Rendered via JS -->
-    </div>
-  </main>
-
-  <!-- ==================== FOOTER ==================== -->
-  <footer class="mt-auto py-4 border-t border-slate-200 bg-white text-center text-xs text-slate-500">
-    <div class="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-2">
-      <span>Hệ thống Quản lý và Phân tích Dữ liệu Trạm trộn Tasago © 2026</span>
-      <span class="text-slate-400">Sản phẩm thuộc quyền LVT - Hotline 0942320923</span>
-    </div>
-  </footer>
-
-  <!-- ==================== FLOATING NAVIGATION & SCROLL DOCK ==================== -->
-  <div id="floating-nav-dock" class="fixed bottom-5 right-4 sm:right-6 z-40 flex flex-col items-center gap-2 select-none">
-    
-    <!-- Button Scroll To Top -->
-    <button
-      id="btn-scroll-top"
-      type="button"
-      onclick="scrollToTop()"
-      class="w-10 h-10 sm:w-11 sm:h-11 rounded-2xl bg-white/95 hover:bg-white text-slate-700 hover:text-blue-600 border border-slate-200 shadow-md floating-fab backdrop-blur-md flex items-center justify-center transition-all duration-200 hover:scale-110 active:scale-95 cursor-pointer group"
-      title="Lên đầu trang"
-    >
-      <i data-lucide="chevron-up" class="w-5 h-5 transition-transform group-hover:-translate-y-0.5 text-slate-600 group-hover:text-blue-600"></i>
-    </button>
-
-    <!-- Floating Quick Mode Switcher -->
-    <button
-      id="btn-floating-view-toggle"
-      type="button"
-      onclick="cycleViewMode()"
-      class="w-10 h-10 sm:w-11 sm:h-11 rounded-2xl bg-gradient-to-br from-[#003B73] to-[#0066CC] hover:from-[#002d59] hover:to-[#00529B] text-white shadow-md floating-fab flex flex-col items-center justify-center transition-all duration-200 hover:scale-110 active:scale-95 cursor-pointer relative group"
-      title="Chuyển chế độ xem PC / Mobile"
-    >
-      <i id="floating-view-icon" data-lucide="monitor" class="w-4 h-4"></i>
-      <span id="floating-view-text" class="text-[9px] font-black uppercase tracking-tighter mt-0.5 leading-none">Auto</span>
-    </button>
-
-    <!-- Button Scroll To Bottom -->
-    <button
-      id="btn-scroll-bottom"
-      type="button"
-      onclick="scrollToBottom()"
-      class="w-10 h-10 sm:w-11 sm:h-11 rounded-2xl bg-white/95 hover:bg-white text-slate-700 hover:text-blue-600 border border-slate-200 shadow-md floating-fab backdrop-blur-md flex items-center justify-center transition-all duration-200 hover:scale-110 active:scale-95 cursor-pointer group"
-      title="Xuống cuối trang"
-    >
-      <i data-lucide="chevron-down" class="w-5 h-5 transition-transform group-hover:translate-y-0.5 text-slate-600 group-hover:text-blue-600"></i>
-    </button>
-  </div>
 
   </div> <!-- End #dashboard-app -->
 
   <!-- ==================== UPLOAD EXCEL MODAL ==================== -->
   <div id="upload-modal" class="hidden fixed inset-0 z-50 overflow-y-auto bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
     <div class="bg-white rounded-2xl shadow-2xl border border-slate-200 w-full max-w-4xl max-h-[90vh] flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-150">
-      <!-- Modal Header -->
       <div class="bg-gradient-to-r from-[#003B73] via-[#004B93] to-[#00529B] text-white px-6 py-4 flex items-center justify-between">
         <div class="flex items-center gap-3">
           <div class="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center text-white border border-white/20">
@@ -796,9 +734,7 @@
         </button>
       </div>
 
-      <!-- Modal Body -->
       <div id="upload-modal-body" class="p-6 overflow-y-auto flex-1 space-y-5 custom-scrollbar">
-        <!-- Dropzone / File Picker -->
         <div
           id="upload-dropzone"
           ondragover="handleUploadDragOver(event)"
@@ -819,9 +755,7 @@
           </button>
         </div>
 
-        <!-- Uploading / Parsed Workspace -->
         <div id="upload-workspace" class="hidden space-y-4">
-          <!-- File info bar -->
           <div class="bg-slate-50 border border-slate-200 rounded-xl p-3.5 flex flex-wrap items-center justify-between gap-3">
             <div class="flex items-center gap-3">
               <div class="w-9 h-9 rounded-lg bg-emerald-100 text-emerald-700 flex items-center justify-center">
@@ -833,7 +767,6 @@
               </div>
             </div>
 
-            <!-- Sheet selector -->
             <div class="flex items-center gap-2">
               <span class="text-xs font-medium text-slate-700">Sheet:</span>
               <select id="upload-sheet-select" onchange="onUploadSheetChanged(this.value)" class="py-1.5 px-3 text-xs bg-white border border-slate-300 rounded-lg font-bold text-blue-900"></select>
@@ -841,7 +774,6 @@
             </div>
           </div>
 
-          <!-- Tabs Switcher -->
           <div class="flex items-center justify-between gap-2 p-3 bg-blue-50/70 border border-blue-200/80 rounded-xl text-xs">
             <div id="upload-summary-badge" class="flex items-center gap-2 text-blue-900 font-medium"></div>
             <div class="flex items-center bg-white p-0.5 rounded-lg border border-blue-200">
@@ -850,7 +782,6 @@
             </div>
           </div>
 
-          <!-- Tab Content: Preview -->
           <div id="upload-tab-preview" class="space-y-3">
             <div class="border border-slate-200 rounded-xl overflow-x-auto max-h-64 shadow-xs custom-scrollbar">
               <table class="w-full text-left text-xs border-collapse">
@@ -873,7 +804,6 @@
             <p id="upload-preview-footnote" class="text-[11px] text-slate-500 text-center"></p>
           </div>
 
-          <!-- Tab Content: Column Mapper -->
           <div id="upload-tab-mapper" class="hidden space-y-3">
             <div class="bg-slate-50 rounded-xl border border-slate-200 overflow-hidden">
               <table class="w-full text-left text-xs">
@@ -892,7 +822,6 @@
         </div>
       </div>
 
-      <!-- Modal Footer -->
       <div class="bg-slate-50 border-t border-slate-200 px-6 py-3.5 flex items-center justify-between">
         <button type="button" onclick="closeUploadModal()" class="px-4 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-200/70 rounded-lg cursor-pointer">Hủy bỏ</button>
         <button type="button" id="btn-confirm-import-data" onclick="confirmExcelImport()" disabled class="inline-flex items-center gap-2 px-5 py-2.5 text-xs font-bold text-white bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 disabled:opacity-40 disabled:cursor-not-allowed rounded-lg shadow-sm cursor-pointer">
@@ -906,6 +835,7 @@
   <!-- ==================== IMAGE OCR & REGION RECOGNITION MODAL ==================== -->
   <div id="image-ocr-modal" class="hidden fixed inset-0 z-50 overflow-y-auto bg-slate-900/70 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4">
     <div class="bg-white rounded-2xl shadow-2xl border border-slate-200 w-full max-w-5xl max-h-[92vh] flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-150">
+      
       <!-- Modal Header -->
       <div class="bg-gradient-to-r from-slate-900 via-indigo-950 to-blue-950 text-white px-6 py-4 flex items-center justify-between">
         <div class="flex items-center gap-3">
@@ -927,7 +857,8 @@
 
       <!-- Modal Body -->
       <div id="image-ocr-body" class="p-5 sm:p-6 overflow-y-auto flex-1 space-y-4 custom-scrollbar">
-        <!-- Step 1: Upload / Dropzone (Shown initially) -->
+        
+        <!-- Step 1: Upload / Dropzone -->
         <div id="ocr-step-upload" class="space-y-4">
           <input type="file" id="ocr-file-input" accept="image/*,.png,.jpg,.jpeg,.webp,.bmp" class="hidden" onchange="handleOcrFileSelect(event)" onclick="event.stopPropagation();" />
           <input type="file" id="ocr-camera-input" accept="image/*" capture="environment" class="hidden" onchange="handleOcrFileSelect(event)" onclick="event.stopPropagation();" />
@@ -945,7 +876,7 @@
             </div>
             <h4 class="text-base font-bold text-slate-800 mb-1">Kéo thả ảnh vào đây, hoặc click để chọn ảnh</h4>
             <p class="text-xs text-slate-500 max-w-md mb-4">
-              Hỗ trợ định dạng <strong>PNG, JPG, JPEG, WEBP, BMP</strong>. Tự động nén và tối ưu độ nét. Bạn cũng có thể nhấn <strong>Ctrl + V</strong> ở bất kỳ đâu để dán ảnh!
+              Hỗ trợ định dạng <strong>PNG, JPG, JPEG, WEBP, BMP</strong>. Tự động tối ưu độ nét. Bạn cũng có thể nhấn <strong>Ctrl + V</strong> để dán ảnh trực tiếp!
             </p>
             <div class="flex flex-wrap items-center justify-center gap-2.5">
               <button type="button" onclick="event.stopPropagation(); triggerOcrFileInput();" class="px-4 py-2 text-xs font-bold text-white bg-violet-600 hover:bg-violet-700 active:bg-violet-800 rounded-lg shadow-sm flex items-center gap-1.5 cursor-pointer">
@@ -990,7 +921,6 @@
 
         <!-- Step 2: Interactive Region Selection Stage -->
         <div id="ocr-step-crop" class="hidden space-y-4">
-          <!-- Toolbar -->
           <div class="flex flex-wrap items-center justify-between gap-3 bg-slate-50 border border-slate-200 rounded-xl p-3">
             <div class="flex items-center gap-2 text-xs font-medium text-slate-700">
               <span class="font-bold text-violet-800 flex items-center gap-1">
@@ -1013,34 +943,27 @@
             </div>
           </div>
 
-          <!-- Interactive Image & Bounding Box Workspace -->
           <div class="relative bg-slate-900 rounded-2xl overflow-hidden shadow-inner flex items-center justify-center min-h-[340px] max-h-[500px] select-none border border-slate-300" id="ocr-canvas-wrapper">
             <img id="ocr-preview-img" src="" alt="OCR Preview" class="max-w-full max-h-[500px] object-contain block mx-auto pointer-events-none" />
 
-            <!-- Draggable & Resizable Crop Overlay -->
             <div id="ocr-crop-overlay" class="absolute border-2 border-violet-500 bg-violet-500/15 cursor-move shadow-[0_0_0_9999px_rgba(15,23,42,0.65)]" style="top: 10%; left: 5%; width: 90%; height: 80%;">
-              <!-- Crop Handles -->
               <div class="absolute -top-1.5 -left-1.5 w-3 h-3 bg-violet-600 border-2 border-white rounded-full cursor-nwse-resize" data-handle="nw"></div>
               <div class="absolute -top-1.5 -right-1.5 w-3 h-3 bg-violet-600 border-2 border-white rounded-full cursor-nesw-resize" data-handle="ne"></div>
               <div class="absolute -bottom-1.5 -left-1.5 w-3 h-3 bg-violet-600 border-2 border-white rounded-full cursor-nesw-resize" data-handle="sw"></div>
               <div class="absolute -bottom-1.5 -right-1.5 w-3 h-3 bg-violet-600 border-2 border-white rounded-full cursor-nwse-resize" data-handle="se"></div>
-              <!-- Edge Handles -->
               <div class="absolute top-1/2 -left-1.5 -translate-y-1/2 w-3 h-3 bg-violet-600 border-2 border-white rounded-full cursor-ew-resize" data-handle="w"></div>
               <div class="absolute top-1/2 -right-1.5 -translate-y-1/2 w-3 h-3 bg-violet-600 border-2 border-white rounded-full cursor-ew-resize" data-handle="e"></div>
               <div class="absolute -top-1.5 left-1/2 -translate-x-1/2 w-3 h-3 bg-violet-600 border-2 border-white rounded-full cursor-ns-resize" data-handle="n"></div>
               <div class="absolute -bottom-1.5 left-1/2 -translate-x-1/2 w-3 h-3 bg-violet-600 border-2 border-white rounded-full cursor-ns-resize" data-handle="s"></div>
 
-              <!-- Region Tag -->
               <div class="absolute top-2 left-2 px-2 py-0.5 rounded bg-violet-700 text-white text-[10px] font-bold shadow-xs pointer-events-none flex items-center gap-1">
                 <span>VÙNG NHẬN DẠNG</span>
               </div>
             </div>
 
-            <!-- Scanning Laser Animation (Shown during recognition) -->
             <div id="ocr-scanning-laser" class="hidden absolute inset-x-0 h-1 bg-gradient-to-r from-transparent via-cyan-400 to-transparent shadow-[0_0_15px_#22d3ee] animate-pulse"></div>
           </div>
 
-          <!-- Quick instructions & Action -->
           <div class="flex flex-col sm:flex-row items-center justify-between gap-3 bg-violet-50 border border-violet-200 rounded-xl p-3.5 text-xs text-slate-700">
             <p class="flex items-center gap-2">
               <span class="text-violet-600 font-bold">💡 Mẹo:</span>
@@ -1074,7 +997,6 @@
 
         <!-- Step 4: Results & Verification Table -->
         <div id="ocr-step-results" class="hidden space-y-4">
-          <!-- Summary Header of Extracted Data -->
           <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
             <div class="bg-blue-50 border border-blue-200 rounded-xl p-3">
               <p class="text-[11px] font-bold text-blue-800">SỐ DÒNG NHẬN DIỆN</p>
@@ -1094,7 +1016,6 @@
             </div>
           </div>
 
-          <!-- Mode selector (Replace vs Append) -->
           <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 bg-slate-50 border border-slate-200 rounded-xl p-3.5 text-xs">
             <div class="flex items-center gap-4">
               <span class="font-bold text-slate-800">Cách cập nhật:</span>
@@ -1112,7 +1033,6 @@
             </button>
           </div>
 
-          <!-- Preview & Editable Table -->
           <div class="border border-slate-200 rounded-xl overflow-x-auto max-h-72 shadow-xs custom-scrollbar">
             <table class="w-full text-left text-xs border-collapse">
               <thead class="bg-[#003B73] text-white font-bold sticky top-0">
@@ -1150,6 +1070,41 @@
           <i data-lucide="check-check" class="w-4 h-4"></i>
           <span id="btn-apply-ocr-text">Áp dụng vào hệ thống</span>
         </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== GEMINI API KEY SETTINGS MODAL ==================== -->
+  <div id="apikey-modal" class="hidden fixed inset-0 z-50 overflow-y-auto bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl shadow-2xl border border-slate-200 w-full max-w-md overflow-hidden animate-in fade-in zoom-in-95 duration-150">
+      <div class="bg-gradient-to-r from-violet-800 to-indigo-900 text-white px-6 py-4 flex items-center justify-between">
+        <div class="flex items-center gap-2.5">
+          <i data-lucide="key" class="w-5 h-5 text-violet-300"></i>
+          <h3 class="text-sm font-bold">Cài Đặt Google Gemini API Key</h3>
+        </div>
+        <button type="button" onclick="closeApiKeyModal()" class="p-1 text-white/80 hover:text-white"><i data-lucide="x" class="w-5 h-5"></i></button>
+      </div>
+      <div class="p-6 space-y-4 text-xs">
+        <p class="text-slate-600 leading-relaxed">
+          Google Gemini API Key được sử dụng để bóc tách bảng số liệu từ ảnh bằng trí tuệ nhân tạo. Khóa này được lưu trực tiếp và an toàn trên trình duyệt của bạn.
+        </p>
+        <div>
+          <label class="block font-bold text-slate-800 mb-1.5">GEMINI API KEY:</label>
+          <input
+            type="password"
+            id="input-gemini-api-key"
+            placeholder="AIzaSy..."
+            class="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-lg text-slate-900 font-mono focus:outline-none focus:ring-2 focus:ring-violet-500"
+          />
+        </div>
+        <p class="text-[11px] text-slate-500">
+          Chưa có Key? Bạn có thể lấy miễn phí tại: 
+          <a href="https://aistudio.google.com/app/apikey" target="_blank" rel="noopener noreferrer" class="text-violet-600 font-bold hover:underline">Google AI Studio</a>
+        </p>
+        <div class="pt-3 border-t border-slate-100 flex items-center justify-end gap-2">
+          <button type="button" onclick="closeApiKeyModal()" class="px-4 py-2 font-semibold text-slate-600 hover:bg-slate-100 rounded-lg">Đóng</button>
+          <button type="button" onclick="saveApiKeyModal()" class="px-4 py-2 font-bold text-white bg-violet-600 hover:bg-violet-700 rounded-lg shadow-sm">Lưu API Key</button>
+        </div>
       </div>
     </div>
   </div>
@@ -1227,8 +1182,6 @@
   <!-- ==================== SCREENSHOT PREVIEW MODAL ==================== -->
   <div id="screenshot-modal" class="hidden fixed inset-0 z-50 overflow-y-auto bg-slate-900/75 backdrop-blur-xs flex items-center justify-center p-3 sm:p-5">
     <div class="bg-white rounded-2xl shadow-2xl border border-slate-200 w-full max-w-6xl max-h-[94vh] flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-150">
-      
-      <!-- Modal Header -->
       <div class="bg-gradient-to-r from-[#003B73] via-[#004B93] to-[#00529B] text-white px-6 py-4 flex items-center justify-between">
         <div class="flex items-center gap-3">
           <div class="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center text-white border border-white/20">
@@ -1244,10 +1197,7 @@
         </button>
       </div>
 
-      <!-- Modal Body (Preview Canvas / Image) -->
       <div class="p-4 sm:p-6 overflow-y-auto flex-1 space-y-4 custom-scrollbar bg-slate-100/60">
-        
-        <!-- Controls Bar -->
         <div class="flex flex-wrap items-center justify-between gap-3 bg-white p-3.5 rounded-xl border border-slate-200/90 shadow-xs">
           <div class="flex items-center gap-3 text-xs">
             <span class="font-bold text-slate-800 flex items-center gap-1.5">
@@ -1269,7 +1219,6 @@
           </div>
         </div>
 
-        <!-- Image Container with Scroll -->
         <div class="bg-white rounded-xl border border-slate-300 p-2 sm:p-4 overflow-auto max-h-[60vh] shadow-inner text-center custom-scrollbar flex items-center justify-center min-h-[260px]" id="screenshot-image-wrapper">
           <div id="screenshot-loading-spinner" class="py-12 flex flex-col items-center justify-center gap-3 text-slate-500">
             <div class="w-10 h-10 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
@@ -1279,14 +1228,12 @@
         </div>
       </div>
 
-      <!-- Modal Footer Action Buttons -->
       <div class="bg-slate-50 border-t border-slate-200 px-6 py-3.5 flex flex-wrap items-center justify-between gap-3">
         <button type="button" onclick="closeScreenshotModal()" class="px-4 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-200/70 rounded-lg cursor-pointer">
           Đóng
         </button>
 
         <div class="flex items-center gap-2.5">
-          <!-- Copy to Clipboard Button -->
           <button
             type="button"
             id="btn-copy-screenshot"
@@ -1298,12 +1245,11 @@
             <span>Sao chép ảnh (Copy)</span>
           </button>
 
-          <!-- Download PNG Button -->
           <button
             type="button"
             id="btn-download-screenshot"
             onclick="downloadCapturedImage()"
-            class="inline-flex items-center gap-2 px-5 py-2 text-xs font-bold text-white bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 rounded-lg shadow-sm hover:shadow transition-all active:scale-95 cursor-pointer"
+            class="inline-flex items-center gap-2 px-5 py-2.5 text-xs font-bold text-white bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 rounded-lg shadow-sm hover:shadow transition-all active:scale-95 cursor-pointer"
           >
             <i data-lucide="download" class="w-4 h-4 text-blue-100"></i>
             <span>Tải ảnh PNG (HD)</span>
@@ -1313,10 +1259,7 @@
     </div>
   </div>
 
-  <!-- Offscreen Container for Clean Screenshot Generation -->
   <div id="screenshot-render-sandbox" class="fixed -left-[99999px] top-0 pointer-events-none opacity-0 overflow-hidden" style="width: 1200px;"></div>
-
-  <!-- ==================== TOAST NOTIFICATION ==================== -->
   <div id="toast-container" class="fixed top-4 right-4 z-50 pointer-events-none"></div>
 
   <!-- ==================== CORE JAVASCRIPT ENGINE ==================== -->
@@ -1368,7 +1311,7 @@
     let currentPage = 1;
     let pageSize = 25;
     let sortState = { key: null, direction: 'asc' };
-    let currentViewMode = 'auto'; // 'auto' | 'pc' | 'mobile'
+    let currentViewMode = 'auto';
     try {
       currentViewMode = localStorage.getItem('FLEET_VIEW_MODE_PREF') || 'auto';
     } catch (e) {}
@@ -1388,7 +1331,6 @@
       waterVehicles: 'all'
     };
 
-    // Upload Workspace State
     let parsedWorkbookData = {
       sheetNames: [],
       selectedSheet: '',
@@ -1398,7 +1340,7 @@
       fileName: ''
     };
 
-    // ==================== AUTHENTICATION & ACCESS CONTROL ====================
+    // AUTHENTICATION
     const AUTH_CREDENTIALS = {
       username: 'admin',
       password: 'Tsg2026@'
@@ -1477,7 +1419,7 @@
       }
       if (card) {
         card.classList.remove('animate-shake');
-        void card.offsetWidth; // Reflow
+        void card.offsetWidth;
         card.classList.add('animate-shake');
       }
     }
@@ -1510,10 +1452,8 @@
         return;
       }
 
-      // Exact credential check: admin / Tsg2026@
       if (userVal === AUTH_CREDENTIALS.username && passVal === AUTH_CREDENTIALS.password) {
         hideLoginError();
-
         if (btn) btn.disabled = true;
         if (btnText) btnText.textContent = 'Đang xác thực & tải trang...';
 
@@ -1529,7 +1469,6 @@
           const loginScreen = document.getElementById('login-screen');
           const dashboardApp = document.getElementById('dashboard-app');
 
-          // Smooth Fade Transition
           loginScreen.style.opacity = '0';
           loginScreen.style.transition = 'opacity 0.35s ease';
 
@@ -1539,7 +1478,7 @@
             dashboardApp.classList.remove('hidden');
 
             if (btn) btn.disabled = false;
-            if (btnText) btnText.textContent = 'Đăng Nhập Hệ Thống';
+            if (btnText) btnText.textContent = 'Đang Nhập Hệ Thống';
 
             loadFleetDataAndRender();
             showToast('Chào mừng Quản trị viên (admin) đăng nhập thành công!', 'success');
@@ -1617,18 +1556,14 @@
     // FILTER PIPELINE & RENDERING
     function applyFiltersAndRender() {
       filteredRecords = allRecords.filter(r => {
-        // Search
         if (filters.searchQuery) {
           const q = normalizeStr(filters.searchQuery);
           const name = normalizeStr(r.driverName);
           const veh = normalizeStr(r.vehicleNumber);
           if (!name.includes(q) && !veh.includes(q)) return false;
         }
-        // Driver
         if (filters.driverName && r.driverName !== filters.driverName) return false;
-        // Vehicle
         if (filters.vehicleNumber && r.vehicleNumber !== filters.vehicleNumber) return false;
-        // Ranges
         if (filters.minStationVolume !== null && r.stationVolume < filters.minStationVolume) return false;
         if (filters.maxStationVolume !== null && r.stationVolume > filters.maxStationVolume) return false;
         if (filters.minTotalKm !== null && r.totalKm < filters.minTotalKm) return false;
@@ -1662,7 +1597,6 @@
       renderPagination();
       updateSortIcons();
 
-      // Update badge in header
       const badge = document.getElementById('header-records-badge');
       if (badge) {
         badge.textContent = filteredRecords.length === allRecords.length
@@ -1670,7 +1604,6 @@
           : `${filteredRecords.length} / ${allRecords.length} bản ghi`;
       }
 
-      // Save to localStorage
       try {
         localStorage.setItem('VIETNAMESE_FLEET_DATA_V1', JSON.stringify(allRecords));
       } catch (e) {}
@@ -1678,7 +1611,6 @@
       if (window.lucide) lucide.createIcons();
     }
 
-    // SUMMARY CARDS RENDERER
     function renderSummaryCards() {
       const container = document.getElementById('summary-cards-container');
       if (!container) return;
@@ -1764,6 +1696,7 @@
         </div>
       `).join('');
     }
+
     function renderTable() {
       const tbody = document.getElementById('driver-tbody');
       const tfoot = document.getElementById('driver-tfoot');
@@ -1782,8 +1715,8 @@
           <h3 class="text-lg font-bold text-slate-800">Chưa có dữ liệu vận hành</h3>
           <p class="text-xs text-slate-500 max-w-sm mx-auto">Vui lòng tải file Excel lên hoặc nạp 24 tài xế mẫu.</p>
           <div class="flex items-center justify-center gap-3 pt-2">
-            <button type="button" onclick="openUploadModal()" class="px-4 py-2 text-xs font-bold text-white bg-blue-600 rounded-lg shadow-sm">Tải Excel lên</button>
-            <button type="button" onclick="resetToDemo()" class="px-4 py-2 text-xs font-semibold text-slate-700 bg-slate-100 rounded-lg">Nạp 24 dòng mẫu</button>
+            <button type="button" onclick="openUploadModal()" class="px-4 py-2 text-xs font-bold text-white bg-blue-600 rounded-lg shadow-sm cursor-pointer">Tải Excel lên</button>
+            <button type="button" onclick="resetToDemo()" class="px-4 py-2 text-xs font-semibold text-slate-700 bg-slate-100 rounded-lg cursor-pointer">Nạp 24 dòng mẫu</button>
           </div>
         `;
         return;
@@ -1799,7 +1732,7 @@
           <h3 class="text-lg font-bold text-slate-800">Không tìm thấy bản ghi phù hợp</h3>
           <p class="text-xs text-slate-500 max-w-sm mx-auto">Vui lòng thay đổi từ khóa hoặc điều kiện bộ lọc.</p>
           <div class="pt-2">
-            <button type="button" onclick="resetAllFilters()" class="px-4 py-2 text-xs font-bold text-white bg-blue-600 rounded-lg shadow-sm">Xóa tất cả bộ lọc</button>
+            <button type="button" onclick="resetAllFilters()" class="px-4 py-2 text-xs font-bold text-white bg-blue-600 rounded-lg shadow-sm cursor-pointer">Xóa tất cả bộ lọc</button>
           </div>
         `;
         return;
@@ -1808,11 +1741,10 @@
       tableWrapper.classList.remove('hidden');
       emptyState.classList.add('hidden');
 
-      // Slice for pagination
       const start = (currentPage - 1) * pageSize;
       const paginated = filteredRecords.slice(start, start + pageSize);
 
-      // 1. Render Desktop Table Body
+      // Desktop Table
       tbody.innerHTML = paginated.map((r, idx) => {
         const sttNum = start + idx + 1;
         const sttDisplay = sttNum < 10 ? `0${sttNum}` : `${sttNum}`;
@@ -1820,12 +1752,9 @@
 
         return `
           <tr class="hover:bg-blue-50/50 transition-colors group">
-            <!-- STT -->
             <td class="py-2.5 px-3 text-center border-r border-slate-100">
               <span class="inline-flex items-center justify-center w-8 h-7 text-xs font-bold text-white bg-[#0066CC] rounded-lg shadow-xs">${sttDisplay}</span>
             </td>
-
-            <!-- Driver Name -->
             <td class="py-2.5 px-4 border-r border-slate-100">
               <div class="flex items-center gap-2.5">
                 <div class="w-6 h-6 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center shrink-0">
@@ -1837,8 +1766,6 @@
                 </div>
               </div>
             </td>
-
-            <!-- Vehicle Number -->
             <td class="py-2.5 px-3.5 border-r border-slate-100 whitespace-nowrap">
               <div class="flex items-center gap-2">
                 <div class="w-5 h-5 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center shrink-0">
@@ -1847,44 +1774,30 @@
                 <span class="font-bold text-slate-800 tracking-wide font-mono text-[13px]">${r.vehicleNumber || '—'}</span>
               </div>
             </td>
-
-            <!-- Station Volume -->
             <td class="py-2.5 px-3.5 text-center border-r border-slate-100 bg-[#FBF7FE]/60">
               <span class="font-bold text-purple-700 text-sm tracking-tight">${Number(r.stationVolume || 0).toFixed(1)}</span>
             </td>
-
-            <!-- Large Trips -->
             <td class="py-2.5 px-3 text-center border-r border-slate-100 bg-[#FFF9F3]/70">
               <span class="font-bold text-amber-600 text-sm">${r.largeTrips || 0}</span>
             </td>
-
-            <!-- Small Trips -->
             <td class="py-2.5 px-3 text-center border-r border-slate-100 bg-[#FFFDF0]/80">
               <span class="font-bold text-amber-500 text-sm">${r.smallTrips || 0}</span>
             </td>
-
-            <!-- Total KM -->
             <td class="py-2.5 px-3.5 text-center border-r border-slate-100 bg-[#F3FAF5]/70">
               <span class="font-bold text-emerald-700 text-sm tracking-tight font-mono">${(Number(r.totalKm) || 0).toLocaleString('vi-VN')}</span>
             </td>
-
-            <!-- Total Trips -->
             <td class="py-2.5 px-3.5 text-center border-r border-slate-100 bg-[#FFF4F4]/70">
               <span class="font-black text-red-600 text-sm">${r.totalTrips || 0}</span>
             </td>
-
-            <!-- Water Vehicles -->
             <td class="py-2.5 px-3.5 text-center bg-[#F3F9FF]/70">
               <span class="font-bold text-sm ${r.waterVehicles > 0 ? 'text-blue-700 font-black' : 'text-blue-500'}">${r.waterVehicles || 0}</span>
             </td>
-
-            <!-- Actions -->
             <td class="py-2.5 px-2 text-center whitespace-nowrap">
               <div class="flex items-center justify-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                <button type="button" onclick="openEditModal('${r.id}')" class="p-1 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded" title="Chỉnh sửa">
+                <button type="button" onclick="openEditModal('${r.id}')" class="p-1 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded cursor-pointer" title="Chỉnh sửa">
                   <i data-lucide="pencil" class="w-3.5 h-3.5"></i>
                 </button>
-                <button type="button" onclick="deleteDriverRecord('${r.id}')" class="p-1 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded" title="Xóa">
+                <button type="button" onclick="deleteDriverRecord('${r.id}')" class="p-1 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded cursor-pointer" title="Xóa">
                   <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
                 </button>
               </div>
@@ -1893,7 +1806,7 @@
         `;
       }).join('');
 
-      // 2. Render Mobile Driver Cards Grid
+      // Mobile Cards
       if (cardsGrid) {
         cardsGrid.innerHTML = paginated.map((r, idx) => {
           const sttNum = start + idx + 1;
@@ -1902,7 +1815,6 @@
 
           return `
             <div class="bg-white rounded-2xl border border-slate-200/90 shadow-xs hover:shadow-md transition-all p-4 flex flex-col justify-between space-y-3">
-              <!-- Top Row: STT, Name, Plate & Actions -->
               <div class="flex items-start justify-between gap-2 border-b border-slate-100 pb-3">
                 <div class="flex items-center gap-2.5 min-w-0">
                   <span class="inline-flex items-center justify-center w-7 h-7 text-xs font-bold text-white bg-[#0066CC] rounded-lg shrink-0">${sttDisplay}</span>
@@ -1918,32 +1830,27 @@
                   </div>
                 </div>
 
-                <!-- Action buttons -->
                 <div class="flex items-center gap-1 shrink-0">
-                  <button type="button" onclick="openEditModal('${r.id}')" class="p-1.5 text-slate-500 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors" title="Chỉnh sửa">
+                  <button type="button" onclick="openEditModal('${r.id}')" class="p-1.5 text-slate-500 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors cursor-pointer" title="Chỉnh sửa">
                     <i data-lucide="pencil" class="w-4 h-4"></i>
                   </button>
-                  <button type="button" onclick="deleteDriverRecord('${r.id}')" class="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors" title="Xóa">
+                  <button type="button" onclick="deleteDriverRecord('${r.id}')" class="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors cursor-pointer" title="Xóa">
                     <i data-lucide="trash-2" class="w-4 h-4"></i>
                   </button>
                 </div>
               </div>
 
-              <!-- Metrics Matrix (2 columns) -->
               <div class="grid grid-cols-2 gap-2 text-xs">
-                <!-- KL Trạm TN -->
                 <div class="bg-purple-50/80 border border-purple-100 rounded-xl p-2.5 flex flex-col justify-between">
                   <span class="text-[10px] font-bold uppercase tracking-wider text-purple-700">KL Trạm TN</span>
                   <span class="text-base font-black text-purple-900 mt-0.5">${Number(r.stationVolume || 0).toFixed(1)} <span class="text-[10px] font-normal text-purple-600">m³</span></span>
                 </div>
 
-                <!-- Tổng Chuyến -->
                 <div class="bg-rose-50/80 border border-rose-100 rounded-xl p-2.5 flex flex-col justify-between">
                   <span class="text-[10px] font-bold uppercase tracking-wider text-rose-700">Tổng Chuyến</span>
                   <span class="text-base font-black text-rose-900 mt-0.5">${r.totalTrips || 0} <span class="text-[10px] font-normal text-rose-600">chuyến</span></span>
                 </div>
 
-                <!-- Chuyến Lớn / Nhỏ -->
                 <div class="bg-amber-50/80 border border-amber-100 rounded-xl p-2.5 flex flex-col justify-between">
                   <span class="text-[10px] font-bold uppercase tracking-wider text-amber-700">Chuyến Lớn / Nhỏ</span>
                   <div class="text-xs font-black text-amber-900 mt-0.5 flex items-center gap-1.5">
@@ -1953,13 +1860,11 @@
                   </div>
                 </div>
 
-                <!-- Tổng KM -->
                 <div class="bg-emerald-50/80 border border-emerald-100 rounded-xl p-2.5 flex flex-col justify-between">
                   <span class="text-[10px] font-bold uppercase tracking-wider text-emerald-700">Tổng KM</span>
                   <span class="text-base font-black text-emerald-900 font-mono mt-0.5">${(Number(r.totalKm) || 0).toLocaleString('vi-VN')} <span class="text-[10px] font-normal text-emerald-600">km</span></span>
                 </div>
 
-                <!-- Xe Nước (Full Width) -->
                 <div class="col-span-2 bg-sky-50/80 border border-sky-100 rounded-xl px-3 py-2 flex items-center justify-between">
                   <div class="flex items-center gap-1.5 text-sky-800">
                     <i data-lucide="droplet" class="w-3.5 h-3.5 text-sky-600"></i>
@@ -1975,7 +1880,7 @@
         }).join('');
       }
 
-      // Foot totals calculation
+      // Calculations
       let sumVol = 0, sumLarge = 0, sumSmall = 0, sumKm = 0, sumTrips = 0, sumWater = 0;
       filteredRecords.forEach(r => {
         sumVol += Number(r.stationVolume) || 0;
@@ -1986,7 +1891,7 @@
         sumWater += Number(r.waterVehicles) || 0;
       });
 
-      // Render Desktop Totals
+      // Desktop Totals
       tfoot.innerHTML = `
         <tr class="bg-slate-100 border-t-2 border-slate-300 text-xs font-bold text-slate-800">
           <td colspan="3" class="py-3 px-4 text-left border-r border-slate-200 uppercase font-extrabold text-slate-700">
@@ -2014,7 +1919,7 @@
         </tr>
       `;
 
-      // Render Mobile Cards Summary Totals
+      // Mobile Cards Summary Totals
       if (cardsTotals) {
         cardsTotals.innerHTML = `
           <div class="flex items-center justify-between border-b border-white/20 pb-2.5">
@@ -2045,11 +1950,9 @@
         `;
       }
 
-      // Apply view mode classes
       updateViewModeUI();
     }
 
-    // VIEW MODE (PC / MOBILE / AUTO) CONTROLLERS
     function setViewMode(mode) {
       currentViewMode = mode;
       try {
@@ -2059,8 +1962,8 @@
       
       const modeNames = {
         auto: 'Chế độ Tự động (Tự thích ứng theo màn hình)',
-        pc: 'Chế độ Giao diện PC (Bảng dữ liệu chi tiết đa cột)',
-        mobile: 'Chế độ Giao diện Mobile (Danh sách thẻ tài xế trực quan)'
+        pc: 'Chế độ Giao diện PC (Bảng dữ liệu chi tiết)',
+        mobile: 'Chế độ Giao diện Mobile (Thẻ trực quan)'
       };
       showToast(`Đã chuyển sang: ${modeNames[mode] || mode}`, 'info');
     }
@@ -2094,14 +1997,12 @@
       if (currentViewMode === 'pc') {
         if (pcBtn) pcBtn.className = activeBtnClass;
         if (desktopContainer) {
-          desktopContainer.classList.remove('hidden');
-          desktopContainer.classList.remove('md:block');
+          desktopContainer.classList.remove('hidden', 'md:block');
           desktopContainer.classList.add('block');
         }
         if (mobileContainer) {
           mobileContainer.classList.add('hidden');
-          mobileContainer.classList.remove('block');
-          mobileContainer.classList.remove('md:hidden');
+          mobileContainer.classList.remove('block', 'md:hidden');
         }
         if (floatingIcon) floatingIcon.setAttribute('data-lucide', 'monitor');
         if (floatingText) floatingText.textContent = 'PC';
@@ -2109,18 +2010,15 @@
         if (mobileBtn) mobileBtn.className = activeBtnClass;
         if (desktopContainer) {
           desktopContainer.classList.add('hidden');
-          desktopContainer.classList.remove('block');
-          desktopContainer.classList.remove('md:block');
+          desktopContainer.classList.remove('block', 'md:block');
         }
         if (mobileContainer) {
-          mobileContainer.classList.remove('hidden');
-          mobileContainer.classList.remove('md:hidden');
+          mobileContainer.classList.remove('hidden', 'md:hidden');
           mobileContainer.classList.add('block');
         }
         if (floatingIcon) floatingIcon.setAttribute('data-lucide', 'smartphone');
         if (floatingText) floatingText.textContent = 'Mobile';
       } else {
-        // Auto Mode
         if (autoBtn) autoBtn.className = activeBtnClass;
         if (desktopContainer) {
           desktopContainer.className = "bg-white rounded-xl shadow-xs border border-slate-200/90 overflow-hidden transition-all hidden md:block";
@@ -2135,21 +2033,14 @@
       if (window.lucide) lucide.createIcons();
     }
 
-    // SCROLL TO TOP & SCROLL TO BOTTOM HELPERS
     function scrollToTop() {
-      window.scrollTo({
-        top: 0,
-        behavior: 'smooth'
-      });
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
     function scrollToBottom() {
-      window.scrollTo({
-        top: Math.max(document.documentElement.scrollHeight, document.body.scrollHeight),
-        behavior: 'smooth'
-      });
+      window.scrollTo({ top: Math.max(document.documentElement.scrollHeight, document.body.scrollHeight), behavior: 'smooth' });
     }
-    // PAGINATION RENDERER
+
     function renderPagination() {
       const container = document.getElementById('pagination-bar');
       if (!container || !filteredRecords.length) return;
@@ -2214,7 +2105,6 @@
       applyFiltersAndRender();
     }
 
-    // SORT HANDLER
     function handleSort(key) {
       if (sortState.key === key) {
         if (sortState.direction === 'asc') sortState.direction = 'desc';
@@ -2240,7 +2130,6 @@
       });
     }
 
-    // SEARCH & FILTER INPUT HANDLERS
     function handleSearchInput(val) {
       filters.searchQuery = val.trim();
       currentPage = 1;
@@ -2324,7 +2213,6 @@
       vehicleSel.innerHTML = `<option value="">Tất cả số xe (${vehicles.length})</option>` +
         vehicles.map(v => `<option value="${v}" ${v === currentVehicle ? 'selected' : ''}>${v}</option>`).join('');
 
-      // Show reset filter button if any active
       let activeCount = 0;
       if (filters.searchQuery) activeCount++;
       if (filters.driverName) activeCount++;
@@ -2342,7 +2230,7 @@
       if (advText) advText.textContent = activeCount > 0 ? `Bộ lọc (${activeCount})` : 'Bộ lọc';
     }
 
-    // ==================== EXCEL UPLOAD & PARSING ====================
+    // EXCEL UPLOAD
     function openUploadModal() {
       document.getElementById('upload-modal').classList.remove('hidden');
       resetUploadDialog();
@@ -2361,11 +2249,7 @@
       document.getElementById('btn-confirm-import-data').disabled = true;
     }
 
-    function handleUploadDragOver(e) {
-      e.preventDefault();
-      e.stopPropagation();
-    }
-
+    function handleUploadDragOver(e) { e.preventDefault(); e.stopPropagation(); }
     function handleUploadDrop(e) {
       e.preventDefault();
       e.stopPropagation();
@@ -2400,7 +2284,6 @@
             const rows = XLSX.utils.sheet_to_json(ws, { header: 1, defval: '' });
             if (!rows.length) return;
 
-            // Header auto-detection in first 10 rows
             let bestHeaderIdx = 0, bestMatchCount = 0, bestMappings = [], bestHeaders = [];
             const searchLimit = Math.min(rows.length, 10);
 
@@ -2460,7 +2343,6 @@
           parsedWorkbookData.sheets = sheets;
           parsedWorkbookData.currentMappings = [...sheets[bestSheet].mappings];
 
-          // UI update
           document.getElementById('upload-dropzone').classList.add('hidden');
           document.getElementById('upload-workspace').classList.remove('hidden');
           document.getElementById('upload-file-title').textContent = `${file.name} (${(file.size/1024).toFixed(1)} KB)`;
@@ -2494,7 +2376,6 @@
         if (m.isMapped && m.excelColIndex >= 0) mappingMap[m.targetKey] = m.excelColIndex;
       });
 
-      // Parse records
       const records = [];
       sheet.rawRows.forEach((row, idx) => {
         const isBlank = row.every(c => c === null || c === undefined || String(c).trim() === '');
@@ -2532,13 +2413,11 @@
 
       parsedWorkbookData.previewRecords = records;
 
-      // Update badge
       document.getElementById('upload-summary-badge').innerHTML = `
         <i data-lucide="check-circle" class="w-4 h-4 text-blue-600"></i>
         <span>Đã nhận diện <strong class="font-bold">${records.length} dòng dữ liệu</strong> sẵn sàng nhập</span>
       `;
 
-      // Render Preview Table
       const previewTbody = document.getElementById('upload-preview-tbody');
       previewTbody.innerHTML = records.slice(0, 15).map((r, i) => `
         <tr class="hover:bg-slate-50">
@@ -2558,7 +2437,6 @@
         ? `(Đang hiển thị 15 dòng xem trước trong tổng số ${records.length} dòng dữ liệu)`
         : '';
 
-      // Render Column Mapper Table
       const mapperTbody = document.getElementById('upload-mapper-tbody');
       mapperTbody.innerHTML = COLUMN_DEFINITIONS.map(def => {
         const mapItem = parsedWorkbookData.currentMappings.find(m => m.targetKey === def.key);
@@ -2583,7 +2461,6 @@
         `;
       }).join('');
 
-      // Enable import button if required columns mapped & rows exist
       const hasDriver = parsedWorkbookData.currentMappings.some(m => m.targetKey === 'driverName' && m.isMapped);
       const hasVehicle = parsedWorkbookData.currentMappings.some(m => m.targetKey === 'vehicleNumber' && m.isMapped);
       const canImport = records.length > 0 && hasDriver && hasVehicle;
@@ -2636,7 +2513,7 @@
       showToast(`Đã nhập thành công ${allRecords.length} dòng dữ liệu từ file!`, 'success');
     }
 
-    // ==================== EXPORT & TEMPLATE ====================
+    // EXPORT
     function exportToExcel() {
       if (!filteredRecords.length) return;
       const exportData = filteredRecords.map((r, i) => ({
@@ -2711,7 +2588,7 @@
       showToast('Đã nạp lại 24 dòng dữ liệu mẫu', 'info');
     }
 
-    // ==================== EDIT / ADD RECORD ====================
+    // EDIT / ADD
     function openEditModal(recordId) {
       const modal = document.getElementById('edit-modal');
       const title = document.getElementById('edit-modal-title');
@@ -2800,7 +2677,7 @@
       });
     }
 
-    // ==================== CONFIRMATION DIALOG ====================
+    // CONFIRM DIALOG
     function openConfirmDialog(title, msg, onConfirm) {
       document.getElementById('confirm-modal').classList.remove('hidden');
       document.getElementById('confirm-title').textContent = title;
@@ -2825,7 +2702,7 @@
       document.getElementById('confirm-modal').classList.add('hidden');
     }
 
-    // ==================== TOAST MESSAGES ====================
+    // TOAST
     function showToast(msg, type = 'success') {
       const container = document.getElementById('toast-container');
       if (!container) return;
@@ -2841,11 +2718,44 @@
       }, 4000);
     }
 
+    // ==================== API KEY MODAL ====================
+    function getGeminiApiKey() {
+      return localStorage.getItem('GEMINI_API_KEY') || '';
+    }
+
+    function setGeminiApiKey(key) {
+      if (key) {
+        localStorage.setItem('GEMINI_API_KEY', key.trim());
+      } else {
+        localStorage.removeItem('GEMINI_API_KEY');
+      }
+    }
+
+    function openApiKeyModal() {
+      const modal = document.getElementById('apikey-modal');
+      const input = document.getElementById('input-gemini-api-key');
+      if (input) input.value = getGeminiApiKey();
+      modal.classList.remove('hidden');
+      if (window.lucide) lucide.createIcons();
+    }
+
+    function closeApiKeyModal() {
+      document.getElementById('apikey-modal').classList.add('hidden');
+    }
+
+    function saveApiKeyModal() {
+      const input = document.getElementById('input-gemini-api-key');
+      const val = (input?.value || '').trim();
+      setGeminiApiKey(val);
+      closeApiKeyModal();
+      showToast(val ? 'Đã lưu Gemini API Key thành công!' : 'Đã xóa API Key.', 'success');
+    }
+
     // ==================== IMAGE OCR & REGION RECOGNITION ENGINE ====================
     let ocrImageBase64 = '';
     let ocrImageMime = 'image/jpeg';
     let ocrExtractedDrivers = [];
-    let ocrRegion = { x: 5, y: 10, width: 90, height: 80 }; // Percentage coordinates
+    let ocrRegion = { x: 5, y: 10, width: 90, height: 80 };
 
     function openImageOcrModal() {
       const modal = document.getElementById('image-ocr-modal');
@@ -2937,7 +2847,6 @@
       }
     }
 
-    // Helper: Asynchronously loads, auto-downscales high-res photos to <=1920px, and optimizes as JPEG/PNG
     function preprocessImageFile(file) {
       return new Promise((resolve, reject) => {
         if (!file) {
@@ -2961,7 +2870,6 @@
           img.onerror = () => reject(new Error('Không thể giải mã hình ảnh. Vui lòng thử ảnh khác'));
           img.onload = () => {
             try {
-              // Scale down ultra high-res camera photos to max 1920px to optimize OCR precision and payload
               const maxDim = 1920;
               let targetWidth = img.width;
               let targetHeight = img.height;
@@ -2992,7 +2900,6 @@
                 height: targetHeight
               });
             } catch (err) {
-              // Fallback to raw data url if canvas security or memory issue
               resolve({
                 base64: rawDataUrl,
                 mime: file.type || 'image/jpeg',
@@ -3021,7 +2928,6 @@
       }
     }
 
-    // Global Paste Listener for Ctrl+V
     window.addEventListener('paste', async (e) => {
       const items = e.clipboardData?.items;
       if (!items) return;
@@ -3082,12 +2988,10 @@
       }
     }
 
-    // Helper: Extracts the cropped sub-image from canvas so Gemini receives pristine cropped pixels
     function getCroppedSubImageBase64() {
       const img = document.getElementById('ocr-preview-img');
       if (!img || !ocrImageBase64) return ocrImageBase64;
 
-      // If user selected full region (>=95%), send the full image
       if (ocrRegion.width >= 95 && ocrRegion.height >= 95 && ocrRegion.x <= 3 && ocrRegion.y <= 3) {
         return ocrImageBase64;
       }
@@ -3114,12 +3018,10 @@
 
         return canvas.toDataURL('image/jpeg', 0.92);
       } catch (err) {
-        console.warn('Sub-image crop fallback:', err);
         return ocrImageBase64;
       }
     }
 
-    // Interactive Cropper Drag & Resize Engine
     let isCropperInited = false;
     function initInteractiveCropper() {
       const wrapper = document.getElementById('ocr-canvas-wrapper');
@@ -3132,13 +3034,11 @@
       let startY = 0;
       let initialRegion = { ...ocrRegion };
 
-      // Prevent multiple listeners
       if (isCropperInited) return;
       isCropperInited = true;
 
       function onStart(e) {
         const target = e.target;
-        const rect = wrapper.getBoundingClientRect();
         const clientX = e.touches ? e.touches[0].clientX : e.clientX;
         const clientY = e.touches ? e.touches[0].clientY : e.clientY;
 
@@ -3213,18 +3113,15 @@
       window.addEventListener('touchend', onEnd);
     }
 
-    // Generate high-resolution test image canvas for immediate testing
     function loadSampleOcrImage() {
       const canvas = document.createElement('canvas');
       canvas.width = 1200;
       canvas.height = 700;
       const ctx = canvas.getContext('2d');
 
-      // Background
       ctx.fillStyle = '#ffffff';
       ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-      // Title
       ctx.fillStyle = '#003b73';
       ctx.font = 'bold 26px "Plus Jakarta Sans", Arial, sans-serif';
       ctx.fillText('BẢNG BÁO CÁO VẬN HÀNH ĐỘI XE VÀ TÀI XẾ (MẪU ẢNH THỰC TẾ)', 40, 50);
@@ -3233,7 +3130,6 @@
       ctx.font = '14px Arial';
       ctx.fillText('Trích xuất ngày 18/08/2026 • Khu vực TP. Hồ Chí Minh', 40, 75);
 
-      // Table Header
       const startX = 40;
       const startY = 100;
       const colWidths = [60, 240, 140, 130, 110, 110, 120, 110, 100];
@@ -3250,7 +3146,6 @@
         curX += colWidths[idx];
       });
 
-      // Sample Data Rows
       const sampleRows = [
         ['1', 'Đặng Kim Thương', '51B 33618', '356.5', '50', '0', '1683', '50', '0'],
         ['2', 'Nguyễn Thanh Phong', '51N 04419', '242.0', '26', '2', '775', '28', '1'],
@@ -3269,12 +3164,10 @@
         ctx.fillStyle = rIdx % 2 === 0 ? '#f8fafc' : '#ffffff';
         ctx.fillRect(startX, rowY, 1120, 35);
 
-        // Border
         ctx.strokeStyle = '#e2e8f0';
         ctx.strokeRect(startX, rowY, 1120, 35);
 
         ctx.fillStyle = '#1e293b';
-        ctx.font = '13px Arial';
         let rowX = startX;
         row.forEach((val, cIdx) => {
           if (cIdx === 1) ctx.font = 'bold 13px Arial';
@@ -3290,47 +3183,143 @@
       showToast('Đã nạp ảnh mẫu bảng dữ liệu tài xế!', 'info');
     }
 
+    // Direct Gemini Vision API Caller for Browser / Static hosting
+    async function callGeminiVisionDirect(base64Image, mimeType, apiKey, region) {
+      let cleanBase64 = base64Image;
+      if (cleanBase64.includes('base64,')) {
+        cleanBase64 = cleanBase64.split('base64,')[1];
+      }
+      cleanBase64 = cleanBase64.replace(/[\r\n\s]/g, '');
+
+      const systemPrompt = `Bạn là chuyên gia AI Vision OCR bóc tách dữ liệu vận tải và đội xe chuyên nghiệp tại Việt Nam.
+Nhiệm vụ của bạn là nhận diện, bóc tách chính xác toàn bộ bảng danh sách tài xế vận hành từ hình ảnh.
+Hãy trả về duy nhất định dạng JSON thuần túy (không markdown) với cấu trúc:
+{
+  "detectedRegionDescription": "Mô tả bảng",
+  "drivers": [
+    {
+      "stt": 1,
+      "driverName": "Họ và tên tài xế (tiếng Việt có dấu)",
+      "vehicleNumber": "Biển số xe (ví dụ 51B 33618)",
+      "stationVolume": 356.5,
+      "largeTrips": 50,
+      "smallTrips": 0,
+      "totalKm": 1683,
+      "totalTrips": 50,
+      "waterVehicles": 0
+    }
+  ]
+}`;
+
+      let userText = "Hãy bóc tách toàn bộ bảng danh sách tài xế trong hình ảnh này.";
+      if (region && (region.width < 95 || region.height < 95)) {
+        userText += ` Tập trung vào vùng khoanh chọn x=${Math.round(region.x)}%, y=${Math.round(region.y)}%, w=${Math.round(region.width)}%, h=${Math.round(region.height)}%.`;
+      }
+
+      const candidateModels = ['gemini-2.5-flash', 'gemini-1.5-flash', 'gemini-2.0-flash'];
+      let lastError = null;
+
+      for (const model of candidateModels) {
+        try {
+          const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
+          const response = await fetch(endpoint, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              contents: [
+                {
+                  parts: [
+                    { inline_data: { mime_type: mimeType || 'image/jpeg', data: cleanBase64 } },
+                    { text: systemPrompt + '\n' + userText }
+                  ]
+                }
+              ],
+              generationConfig: {
+                responseMimeType: "application/json"
+              }
+            })
+          });
+
+          if (!response.ok) {
+            const errData = await response.json().catch(() => ({}));
+            throw new Error(errData?.error?.message || `Lỗi Gemini API (${response.status})`);
+          }
+
+          const result = await response.json();
+          const text = result?.candidates?.[0]?.content?.parts?.[0]?.text;
+          if (!text) throw new Error('Không nhận được nội dung từ AI.');
+          
+          let cleanJson = text.trim();
+          if (cleanJson.startsWith('```json')) {
+            cleanJson = cleanJson.replace(/^```json\s*/i, '').replace(/```$/, '').trim();
+          } else if (cleanJson.startsWith('```')) {
+            cleanJson = cleanJson.replace(/^```\s*/i, '').replace(/```$/, '').trim();
+          }
+
+          return JSON.parse(cleanJson);
+        } catch (err) {
+          lastError = err;
+          console.warn(`Model ${model} không phản hồi, thử tiếp...`, err);
+        }
+      }
+      throw lastError || new Error('Không thể kết nối với Gemini AI.');
+    }
+
     async function startImageOcrRecognition() {
       if (!ocrImageBase64) {
         showToast('Vui lòng chọn hoặc chụp một bức ảnh trước khi nhận dạng!', 'warning');
         return;
       }
 
-      // Show Loading & Laser
       document.getElementById('ocr-step-crop').classList.add('hidden');
       document.getElementById('ocr-step-loading').classList.remove('hidden');
       document.getElementById('ocr-step-results').classList.add('hidden');
       if (window.lucide) lucide.createIcons();
 
       try {
-        // Crop the exact sub-image canvas to send to Gemini
         const subImageBase64 = getCroppedSubImageBase64();
+        let data = null;
 
-        const response = await fetch('/api/recognize-image', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            image: subImageBase64,
-            mimeType: 'image/jpeg',
-            region: ocrRegion
-          })
-        });
+        // 1. Thử gọi backend server trước nếu đang chạy node server
+        try {
+          const response = await fetch('/api/recognize-image', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              image: subImageBase64,
+              mimeType: 'image/jpeg',
+              region: ocrRegion
+            })
+          });
 
-        if (!response.ok) {
-          const errData = await response.json().catch(() => ({}));
-          throw new Error(errData.error || `Lỗi máy chủ (${response.status})`);
+          if (response.ok) {
+            data = await response.json();
+          }
+        } catch (backendErr) {
+          // Bỏ qua nếu chạy thuần static
         }
 
-        const data = await response.json();
-        const rawDrivers = data.drivers || [];
+        // 2. Nếu Backend không phản hồi -> Dùng client-side Gemini Vision
+        if (!data || !data.drivers) {
+          let apiKey = getGeminiApiKey();
+          if (!apiKey) {
+            document.getElementById('ocr-step-loading').classList.add('hidden');
+            document.getElementById('ocr-step-crop').classList.remove('hidden');
+            openApiKeyModal();
+            showToast('Vui lòng nhập Gemini API Key để thực hiện nhận dạng ảnh AI!', 'warning');
+            return;
+          }
 
+          data = await callGeminiVisionDirect(subImageBase64, 'image/jpeg', apiKey, ocrRegion);
+        }
+
+        const rawDrivers = data.drivers || [];
         if (rawDrivers.length === 0) {
           showToast('Không tìm thấy dòng dữ liệu tài xế nào trong vùng đã chọn. Vui lòng mở rộng vùng khoanh chọn và thử lại!', 'warning');
           backToCropStage();
           return;
         }
 
-        // Normalize Extracted Drivers
         ocrExtractedDrivers = rawDrivers.map((d, i) => ({
           id: `ocr-${Date.now()}-${i+1}`,
           stt: d.stt || (i + 1),
@@ -3349,7 +3338,7 @@
         showToast(`AI đã nhận diện thành công ${ocrExtractedDrivers.length} tài xế từ ảnh!`, 'success');
       } catch (err) {
         console.error('OCR Error:', err);
-        showToast(err.message || 'Không thể nhận dạng ảnh. Vui lòng thử lại!', 'error');
+        showToast(err.message || 'Không thể nhận dạng ảnh. Vui lòng kiểm tra lại API Key!', 'error');
         backToCropStage();
       }
     }
@@ -3367,7 +3356,6 @@
       document.getElementById('ocr-step-crop').classList.add('hidden');
       document.getElementById('ocr-step-results').classList.remove('hidden');
 
-      // Totals
       const totalVol = ocrExtractedDrivers.reduce((acc, d) => acc + (d.stationVolume || 0), 0);
       const totalKm = ocrExtractedDrivers.reduce((acc, d) => acc + (d.totalKm || 0), 0);
       const totalTrips = ocrExtractedDrivers.reduce((acc, d) => acc + (d.totalTrips || 0), 0);
@@ -3406,7 +3394,7 @@
             <input type="number" value="${r.waterVehicles}" oninput="updateOcrItem('${r.id}', 'waterVehicles', parseInt(this.value,10)||0)" class="w-14 px-1.5 py-1 bg-slate-50 border border-slate-200 rounded text-center font-bold text-blue-700" />
           </td>
           <td class="py-2 px-2 text-center">
-            <button type="button" onclick="removeOcrItem('${r.id}')" class="p-1 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded transition-colors">
+            <button type="button" onclick="removeOcrItem('${r.id}')" class="p-1 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded transition-colors cursor-pointer">
               <i data-lucide="trash-2" class="w-4 h-4"></i>
             </button>
           </td>
@@ -3440,7 +3428,6 @@
       if (mode === 'replace') {
         allRecords = ocrExtractedDrivers.map((d, idx) => ({ ...d, stt: idx + 1 }));
       } else {
-        // Append mode
         const startStt = allRecords.length;
         const newRows = ocrExtractedDrivers.map((d, idx) => ({
           ...d,
@@ -3450,12 +3437,10 @@
         allRecords = [...allRecords, ...newRows];
       }
 
-      // Update Timestamp
       const now = new Date();
       const timeStr = `${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')} - ${now.toLocaleDateString('vi-VN')}`;
       document.getElementById('header-updated-time').textContent = `Cập nhật từ ảnh: ${timeStr}`;
 
-      // Save to storage & Render
       try {
         localStorage.setItem('VIETNAMESE_FLEET_DATA_V1', JSON.stringify(allRecords));
       } catch (e) {}
@@ -3467,7 +3452,7 @@
       showToast(`Đã cập nhật thành công ${ocrExtractedDrivers.length} dòng dữ liệu từ ảnh vào hệ thống!`, 'success');
     }
 
-    // ==================== REAL-TIME LIVE CLOCK & FORMATTING ====================
+    // LIVE CLOCK
     let lastDataActionTimestamp = null;
 
     function formatVietDateTime(d = new Date(), withSeconds = true) {
@@ -3514,7 +3499,7 @@
       }
     }
 
-    // ==================== HIGH-DEFINITION PC TABLE SCREENSHOT ENGINE ====================
+    // SCREENSHOT
     let currentScreenshotCanvas = null;
     let currentScreenshotDataUrl = '';
     let currentScreenshotBlob = null;
@@ -3527,18 +3512,14 @@
       }
 
       currentScreenshotScope = scope;
-      
-      // Update radio if open
       const radios = document.querySelectorAll('input[name="screenshot-scope"]');
       radios.forEach(r => {
         if (r.value === scope) r.checked = true;
       });
 
-      // Update count badge
       const countBadge = document.getElementById('screenshot-scope-count');
       if (countBadge) countBadge.textContent = filteredRecords.length;
 
-      // Open Modal in loading state
       const modal = document.getElementById('screenshot-modal');
       const spinner = document.getElementById('screenshot-loading-spinner');
       const resultImg = document.getElementById('screenshot-result-img');
@@ -3550,10 +3531,8 @@
       if (resInfo) resInfo.textContent = 'Đang xử lý tạo ảnh HD...';
       if (window.lucide) lucide.createIcons();
 
-      // Defer rendering so modal animation starts smoothly
       setTimeout(async () => {
         try {
-          // Determine rows to render in report
           const recordsToRender = scope === 'current-page'
             ? filteredRecords.slice((currentPage - 1) * pageSize, currentPage * pageSize)
             : filteredRecords;
@@ -3562,7 +3541,6 @@
             throw new Error('Không có dòng dữ liệu nào để chụp');
           }
 
-          // Calculate sums
           let sumVol = 0, sumLarge = 0, sumSmall = 0, sumKm = 0, sumTrips = 0, sumWater = 0;
           recordsToRender.forEach(r => {
             sumVol += Number(r.stationVolume) || 0;
@@ -3576,12 +3554,10 @@
           const now = new Date();
           const exportTimeStr = formatVietDateTime(now, true);
 
-          // Build clean, standalone printable report container
           const sandbox = document.getElementById('screenshot-render-sandbox');
           sandbox.innerHTML = `
             <div id="screenshot-capture-node" style="width: 1280px; background-color: #ffffff; padding: 28px; font-family: 'Plus Jakarta Sans', Arial, sans-serif; color: #0f172a; box-sizing: border-box;">
               
-              <!-- Report Header Banner -->
               <div style="display: flex; align-items: center; justify-content: space-between; border-bottom: 2px solid #004b93; padding-bottom: 16px; margin-bottom: 20px;">
                 <div style="display: flex; align-items: center; gap: 14px;">
                   <div style="width: 52px; height: 52px; border-radius: 14px; background: linear-gradient(135deg, #003B73 0%, #00529B 50%, #0066CC 100%); display: flex; align-items: center; justify-content: center; color: #ffffff; font-size: 26px; font-weight: bold; box-shadow: 0 4px 10px rgba(0,82,155,0.25);">
@@ -3607,7 +3583,6 @@
                 </div>
               </div>
 
-              <!-- Quick Metrics Grid -->
               <div style="display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px; margin-bottom: 20px;">
                 <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 12px; text-align: center;">
                   <span style="font-size: 10px; font-weight: 700; color: #64748b; text-transform: uppercase; display: block;">TỔNG TÀI XẾ</span>
@@ -3631,7 +3606,6 @@
                 </div>
               </div>
 
-              <!-- Main Full Table -->
               <table style="width: 100%; border-collapse: collapse; font-size: 12px; text-align: left; border: 1px solid #cbd5e1; border-radius: 8px; overflow: hidden;">
                 <thead>
                   <tr style="background: linear-gradient(90deg, #003B73 0%, #004B93 50%, #00529B 100%); color: #ffffff; font-weight: 800; text-transform: uppercase; font-size: 11px; letter-spacing: 0.5px;">
@@ -3656,8 +3630,7 @@
                           ${i + 1 < 10 ? '0' + (i + 1) : (i + 1)}
                         </td>
                         <td style="padding: 8px 14px; border-right: 1px solid #e2e8f0; font-weight: 700; color: #0f172a;">
-                          ${r.driverName || '—'}
-                          ${isWarning ? '<span style="color: #f59e0b; margin-left: 4px;">⚠️</span>' : ''}
+                          ${r.driverName || '—'} ${isWarning ? '<span style="color: #f59e0b; margin-left: 4px;">⚠️</span>' : ''}
                         </td>
                         <td style="padding: 8px 12px; border-right: 1px solid #e2e8f0; font-family: 'JetBrains Mono', monospace; font-weight: 800; color: #1e293b;">
                           ${r.vehicleNumber || '—'}
@@ -3711,7 +3684,6 @@
                 </tfoot>
               </table>
 
-              <!-- Report Footer Note -->
               <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 18px; padding-top: 12px; border-top: 1px solid #e2e8f0; font-size: 11px; color: #64748b;">
                 <span>Hệ thống Quản lý và Phân tích Dữ liệu trạm trộn Tasago-TNT © 2026</span>
                 <span>Sản phẩm thuộc quyền LVT • Hotline 0942320923</span>
@@ -3724,7 +3696,6 @@
             throw new Error('Thư viện chụp ảnh html2canvas chưa sẵn sàng');
           }
 
-          // Use html2canvas with scale 2 for ultra crispness
           const canvas = await html2canvas(node, {
             scale: 2,
             useCORS: true,
@@ -3737,12 +3708,10 @@
           currentScreenshotCanvas = canvas;
           currentScreenshotDataUrl = canvas.toDataURL('image/png', 1.0);
 
-          // Get blob for clipboard copying
           canvas.toBlob((blob) => {
             currentScreenshotBlob = blob;
           }, 'image/png');
 
-          // Render into preview modal
           resultImg.src = currentScreenshotDataUrl;
           resultImg.classList.remove('hidden');
           spinner.classList.add('hidden');
@@ -3800,7 +3769,6 @@
         }
         return;
       }
-
       await doCopyBlob(currentScreenshotBlob);
     }
 

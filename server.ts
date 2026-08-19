@@ -7,7 +7,7 @@ import dotenv from "dotenv";
 dotenv.config();
 
 function getGeminiClient(): GoogleGenAI | null {
-  const apiKey = process.env.AQ.Ab8RN6KS8v8T9rA2ir_4VyEpLWtlvWS3gOfI9u8NlvxJ5YQAVA;
+  const apiKey = process.env.GEMINI_API_KEY;
   if (!apiKey) {
     return null;
   }

@@ -1,0 +1,6 @@
+{
+  "name": "Quản Lý Tài Xế - Fleet Management",
+  "description": "Hệ thống quản lý, đọc file Excel tự động và phân tích dữ liệu vận hành đội xe và tài xế",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

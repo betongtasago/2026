@@ -1,0 +1,1792 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Quản Lý Tài Xế - Hệ Thống Vận Hành Đội Xe</title>
+  <meta name="description" content="Hệ thống quản lý, đọc file Excel tự động và phân tích dữ liệu vận hành đội xe và tài xế" />
+
+  <!-- Google Fonts: Plus Jakarta Sans & JetBrains Mono -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['"Plus Jakarta Sans"', 'ui-sans-serif', 'system-ui', 'sans-serif'],
+            mono: ['"JetBrains Mono"', 'ui-monospace', 'monospace'],
+          },
+          colors: {
+            brand: {
+              50: '#f0f7ff',
+              100: '#e0effe',
+              500: '#0066cc',
+              600: '#00529b',
+              700: '#004b93',
+              800: '#003b73',
+              900: '#002850',
+            }
+          }
+        }
+      }
+    }
+  </script>
+
+  <!-- SheetJS (XLSX) CDN for in-browser Excel reading/writing -->
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+
+  <!-- Lucide Icons CDN -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <style>
+    body {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      background-color: #f1f5f9;
+      color: #0f172a;
+    }
+    .custom-scrollbar::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-track {
+      background: #f1f5f9;
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+      background: #cbd5e1;
+      border-radius: 4px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+      background: #94a3b8;
+    }
+    [v-cloak] { display: none; }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col antialiased selection:bg-blue-600 selection:text-white">
+
+  <!-- ==================== HEADER ==================== -->
+  <header class="bg-white border-b border-slate-200 sticky top-0 z-30 shadow-xs">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3.5">
+      <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+        <!-- Logo & Title -->
+        <div class="flex items-center space-x-3.5">
+          <div class="w-11 h-11 rounded-xl bg-gradient-to-br from-[#003B73] via-[#00529B] to-[#0066CC] flex items-center justify-center text-white shadow-md shadow-blue-500/20">
+            <i data-lucide="truck" class="w-6 h-6"></i>
+          </div>
+          <div>
+            <div class="flex items-center gap-2.5">
+              <h1 class="text-xl font-bold tracking-tight text-slate-900">
+                QUẢN LÝ TÀI XẾ
+              </h1>
+              <span id="header-records-badge" class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-blue-50 text-blue-700 border border-blue-200/60">
+                24 bản ghi
+              </span>
+            </div>
+            <p class="text-xs font-medium text-slate-500 flex items-center gap-2 mt-0.5">
+              <span>Dữ liệu vận hành đội xe</span>
+              <span class="text-slate-300">•</span>
+              <span id="header-updated-time" class="text-slate-400">Cập nhật: 18/08/2026 19:20</span>
+            </p>
+          </div>
+        </div>
+
+        <!-- Header Action Buttons -->
+        <div class="flex flex-wrap items-center gap-2">
+          <!-- Primary Upload Button -->
+          <button
+            type="button"
+            id="btn-open-upload"
+            onclick="openUploadModal()"
+            class="inline-flex items-center gap-2 px-4 py-2 text-sm font-bold text-white bg-gradient-to-r from-[#00529B] to-[#0066CC] hover:from-[#003B73] hover:to-[#00529B] rounded-lg shadow-sm hover:shadow transition-all duration-150 active:scale-[0.98] cursor-pointer"
+          >
+            <i data-lucide="upload" class="w-4 h-4"></i>
+            <span>Tải Excel lên</span>
+          </button>
+
+          <!-- Download Sample Template -->
+          <button
+            type="button"
+            onclick="downloadSampleTemplate()"
+            title="Tải file Excel mẫu chuẩn 24 dòng để thử nghiệm"
+            class="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-medium text-slate-700 bg-slate-100 hover:bg-slate-200 border border-slate-300/80 rounded-lg transition-colors cursor-pointer"
+          >
+            <i data-lucide="file-spreadsheet" class="w-3.5 h-3.5 text-emerald-600"></i>
+            <span class="hidden sm:inline">File mẫu</span>
+          </button>
+
+          <!-- Export Excel -->
+          <button
+            type="button"
+            onclick="exportToExcel()"
+            class="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-medium text-emerald-800 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 rounded-lg transition-colors cursor-pointer"
+          >
+            <i data-lucide="download" class="w-3.5 h-3.5 text-emerald-600"></i>
+            <span>Xuất Excel</span>
+          </button>
+
+          <!-- Export CSV -->
+          <button
+            type="button"
+            onclick="exportToCSV()"
+            class="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-medium text-slate-700 bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-lg transition-colors cursor-pointer"
+          >
+            <i data-lucide="file-text" class="w-3.5 h-3.5 text-slate-500"></i>
+            <span>Xuất CSV</span>
+          </button>
+
+          <!-- Add Driver Row -->
+          <button
+            type="button"
+            onclick="openEditModal()"
+            class="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-medium text-blue-700 bg-blue-50 hover:bg-blue-100 border border-blue-200 rounded-lg transition-colors cursor-pointer"
+          >
+            <i data-lucide="plus-circle" class="w-3.5 h-3.5 text-blue-600"></i>
+            <span class="hidden sm:inline">Thêm dòng</span>
+          </button>
+
+          <!-- Quick Actions: Reset Demo & Clear -->
+          <div class="flex items-center gap-1 pl-1 border-l border-slate-200">
+            <button
+              type="button"
+              onclick="resetToDemo()"
+              title="Khôi phục lại 24 dòng dữ liệu mẫu ban đầu"
+              class="p-2 text-slate-500 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors cursor-pointer"
+            >
+              <i data-lucide="rotate-ccw" class="w-4 h-4"></i>
+            </button>
+            <button
+              type="button"
+              onclick="openClearConfirm()"
+              title="Xóa toàn bộ dữ liệu bảng"
+              class="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors cursor-pointer"
+            >
+              <i data-lucide="trash-2" class="w-4 h-4"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- ==================== MAIN CONTENT ==================== -->
+  <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-5 space-y-4">
+
+    <!-- SUMMARY CARDS -->
+    <div id="summary-cards-container" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3.5 sm:gap-4">
+      <!-- Generated via JS -->
+    </div>
+
+    <!-- SEARCH & FILTERS BAR -->
+    <div id="filter-bar" class="bg-white rounded-xl border border-slate-200/90 shadow-xs p-3.5 sm:p-4 space-y-3">
+      <div class="flex flex-col md:flex-row gap-3 items-stretch md:items-center justify-between">
+        <!-- Search Input -->
+        <div class="relative flex-1">
+          <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
+            <i data-lucide="search" class="w-4 h-4"></i>
+          </div>
+          <input
+            type="text"
+            id="search-input"
+            oninput="handleSearchInput(this.value)"
+            placeholder="Tìm tài xế hoặc số xe..."
+            class="w-full pl-9 pr-9 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600 transition-colors"
+          />
+          <button
+            id="btn-clear-search"
+            type="button"
+            onclick="clearSearch()"
+            class="hidden absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-600"
+          >
+            <i data-lucide="x" class="w-4 h-4"></i>
+          </button>
+        </div>
+
+        <!-- Filter: Driver Name -->
+        <div class="w-full md:w-56">
+          <select
+            id="filter-driver-select"
+            onchange="handleFilterChange('driverName', this.value)"
+            class="w-full py-2 px-3 text-sm bg-slate-50 border border-slate-200 rounded-lg text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600"
+          >
+            <option value="">Tất cả tài xế</option>
+          </select>
+        </div>
+
+        <!-- Filter: Vehicle Number -->
+        <div class="w-full md:w-48">
+          <select
+            id="filter-vehicle-select"
+            onchange="handleFilterChange('vehicleNumber', this.value)"
+            class="w-full py-2 px-3 text-sm bg-slate-50 border border-slate-200 rounded-lg text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600"
+          >
+            <option value="">Tất cả số xe</option>
+          </select>
+        </div>
+
+        <!-- Advanced Toggle & Reset -->
+        <div class="flex items-center gap-2">
+          <button
+            type="button"
+            id="btn-toggle-advanced"
+            onclick="toggleAdvancedFilters()"
+            class="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-semibold rounded-lg border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 transition-colors cursor-pointer"
+          >
+            <i data-lucide="sliders-horizontal" class="w-3.5 h-3.5"></i>
+            <span id="advanced-filter-text">Bộ lọc</span>
+            <i data-lucide="chevron-down" id="advanced-chevron" class="w-3.5 h-3.5"></i>
+          </button>
+
+          <button
+            type="button"
+            id="btn-reset-filters"
+            onclick="resetAllFilters()"
+            class="hidden inline-flex items-center gap-1 px-3 py-2 text-xs font-medium text-red-600 bg-red-50 hover:bg-red-100 border border-red-200 rounded-lg transition-colors cursor-pointer"
+          >
+            <i data-lucide="rotate-ccw" class="w-3.5 h-3.5"></i>
+            <span>Xóa bộ lọc</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Advanced Filters Drawer -->
+      <div id="advanced-filters-panel" class="hidden pt-3 border-t border-slate-100 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3.5 text-xs">
+        <div>
+          <label class="block text-[11px] font-semibold text-slate-600 mb-1">KL TRẠM TN (m³)</label>
+          <div class="flex items-center gap-1.5">
+            <input type="number" id="filter-min-vol" placeholder="Từ" oninput="handleFilterChange('minStationVolume', this.value)" class="w-full px-2.5 py-1.5 bg-slate-50 border border-slate-200 rounded text-slate-800" />
+            <span class="text-slate-400">-</span>
+            <input type="number" id="filter-max-vol" placeholder="Đến" oninput="handleFilterChange('maxStationVolume', this.value)" class="w-full px-2.5 py-1.5 bg-slate-50 border border-slate-200 rounded text-slate-800" />
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-[11px] font-semibold text-slate-600 mb-1">TỔNG KM</label>
+          <div class="flex items-center gap-1.5">
+            <input type="number" id="filter-min-km" placeholder="Min" oninput="handleFilterChange('minTotalKm', this.value)" class="w-full px-2.5 py-1.5 bg-slate-50 border border-slate-200 rounded text-slate-800" />
+            <span class="text-slate-400">-</span>
+            <input type="number" id="filter-max-km" placeholder="Max" oninput="handleFilterChange('maxTotalKm', this.value)" class="w-full px-2.5 py-1.5 bg-slate-50 border border-slate-200 rounded text-slate-800" />
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-[11px] font-semibold text-slate-600 mb-1">CHUYẾN LỚN</label>
+          <div class="flex items-center gap-1.5">
+            <input type="number" id="filter-min-large" placeholder="Từ" oninput="handleFilterChange('minLargeTrips', this.value)" class="w-full px-2.5 py-1.5 bg-slate-50 border border-slate-200 rounded text-slate-800" />
+            <span class="text-slate-400">-</span>
+            <input type="number" id="filter-max-large" placeholder="Đến" oninput="handleFilterChange('maxLargeTrips', this.value)" class="w-full px-2.5 py-1.5 bg-slate-50 border border-slate-200 rounded text-slate-800" />
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-[11px] font-semibold text-slate-600 mb-1">CHUYẾN NHỎ</label>
+          <div class="flex items-center gap-1.5">
+            <input type="number" id="filter-min-small" placeholder="Từ" oninput="handleFilterChange('minSmallTrips', this.value)" class="w-full px-2.5 py-1.5 bg-slate-50 border border-slate-200 rounded text-slate-800" />
+            <span class="text-slate-400">-</span>
+            <input type="number" id="filter-max-small" placeholder="Đến" oninput="handleFilterChange('maxSmallTrips', this.value)" class="w-full px-2.5 py-1.5 bg-slate-50 border border-slate-200 rounded text-slate-800" />
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-[11px] font-semibold text-slate-600 mb-1">XE NƯỚC</label>
+          <select id="filter-water" onchange="handleFilterChange('waterVehicles', this.value)" class="w-full px-2.5 py-1.5 bg-slate-50 border border-slate-200 rounded text-slate-800">
+            <option value="all">Tất cả</option>
+            <option value="0">0 chuyến</option>
+            <option value="1">1 chuyến</option>
+            <option value="2">2 chuyến</option>
+            <option value="3">3 chuyến</option>
+            <option value="gt0">&gt; 0 chuyến</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <!-- DATA TABLE CONTAINER -->
+    <div id="table-wrapper" class="space-y-3">
+      <div class="bg-white rounded-xl shadow-xs border border-slate-200/90 overflow-hidden">
+        <div class="overflow-x-auto min-h-[380px] custom-scrollbar">
+          <table class="w-full text-left border-collapse min-w-[960px]">
+            <!-- Table Header -->
+            <thead>
+              <tr class="bg-gradient-to-r from-[#003B73] via-[#004B93] to-[#00529B] text-white text-xs font-bold uppercase tracking-wider select-none">
+                <!-- STT -->
+                <th rowspan="2" class="py-3 px-3 w-16 text-center border-r border-blue-600/40 first:rounded-tl-lg">
+                  <div class="flex items-center justify-center gap-1">
+                    <i data-lucide="list-ordered" class="w-4 h-4 text-blue-200"></i>
+                    <span>STT</span>
+                  </div>
+                </th>
+
+                <!-- TÊN TÀI XẾ -->
+                <th rowspan="2" onclick="handleSort('driverName')" class="py-3 px-4 min-w-[200px] border-r border-blue-600/40 cursor-pointer hover:bg-blue-800/40 transition-colors group">
+                  <div class="flex items-center justify-between gap-2">
+                    <div class="flex items-center gap-2">
+                      <div class="w-5 h-5 rounded-full bg-blue-500/40 flex items-center justify-center text-blue-100">
+                        <i data-lucide="user" class="w-3.5 h-3.5"></i>
+                      </div>
+                      <span>TÊN TÀI XẾ</span>
+                    </div>
+                    <span id="sort-icon-driverName"><i data-lucide="arrow-up-down" class="w-3.5 h-3.5 opacity-40"></i></span>
+                  </div>
+                </th>
+
+                <!-- SỐ XE -->
+                <th rowspan="2" onclick="handleSort('vehicleNumber')" class="py-3 px-3.5 min-w-[130px] border-r border-blue-600/40 cursor-pointer hover:bg-blue-800/40 transition-colors group">
+                  <div class="flex items-center justify-between gap-2">
+                    <div class="flex items-center gap-2">
+                      <div class="w-5 h-5 rounded-full bg-blue-500/40 flex items-center justify-center text-blue-100">
+                        <i data-lucide="car" class="w-3.5 h-3.5"></i>
+                      </div>
+                      <span>SỐ XE</span>
+                    </div>
+                    <span id="sort-icon-vehicleNumber"><i data-lucide="arrow-up-down" class="w-3.5 h-3.5 opacity-40"></i></span>
+                  </div>
+                </th>
+
+                <!-- KL TRẠM TN -->
+                <th rowspan="2" onclick="handleSort('stationVolume')" class="py-3 px-3.5 min-w-[140px] text-center border-r border-blue-600/40 cursor-pointer hover:bg-blue-800/40 transition-colors group">
+                  <div class="flex items-center justify-center gap-1.5">
+                    <div class="w-5 h-5 rounded-full bg-purple-400/40 flex items-center justify-center text-purple-200">
+                      <i data-lucide="droplet" class="w-3.5 h-3.5"></i>
+                    </div>
+                    <span>KL TRẠM TN (m³)</span>
+                    <span id="sort-icon-stationVolume"><i data-lucide="arrow-up-down" class="w-3.5 h-3.5 opacity-40"></i></span>
+                  </div>
+                </th>
+
+                <!-- GROUPED HEADER: CHUYẾN -->
+                <th colspan="2" class="py-2 px-3 text-center border-r border-b border-blue-600/40 bg-blue-900/40">
+                  <span class="text-[11px] font-black tracking-widest text-blue-100">CHUYẾN</span>
+                </th>
+
+                <!-- TỔNG KM -->
+                <th rowspan="2" onclick="handleSort('totalKm')" class="py-3 px-3.5 min-w-[120px] text-center border-r border-blue-600/40 cursor-pointer hover:bg-blue-800/40 transition-colors group">
+                  <div class="flex items-center justify-center gap-1.5">
+                    <div class="w-5 h-5 rounded-full bg-emerald-400/40 flex items-center justify-center text-emerald-200">
+                      <i data-lucide="map-pin" class="w-3.5 h-3.5"></i>
+                    </div>
+                    <span>TỔNG KM</span>
+                    <span id="sort-icon-totalKm"><i data-lucide="arrow-up-down" class="w-3.5 h-3.5 opacity-40"></i></span>
+                  </div>
+                </th>
+
+                <!-- TỔNG CHUYẾN -->
+                <th rowspan="2" onclick="handleSort('totalTrips')" class="py-3 px-3.5 min-w-[125px] text-center border-r border-blue-600/40 cursor-pointer hover:bg-blue-800/40 transition-colors group">
+                  <div class="flex items-center justify-center gap-1.5">
+                    <div class="w-5 h-5 rounded-full bg-rose-400/40 flex items-center justify-center text-rose-200">
+                      <i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i>
+                    </div>
+                    <span>TỔNG CHUYẾN</span>
+                    <span id="sort-icon-totalTrips"><i data-lucide="arrow-up-down" class="w-3.5 h-3.5 opacity-40"></i></span>
+                  </div>
+                </th>
+
+                <!-- XE NƯỚC -->
+                <th rowspan="2" onclick="handleSort('waterVehicles')" class="py-3 px-3.5 min-w-[110px] text-center last:rounded-tr-lg cursor-pointer hover:bg-blue-800/40 transition-colors group">
+                  <div class="flex items-center justify-center gap-1.5">
+                    <div class="w-5 h-5 rounded-full bg-sky-400/40 flex items-center justify-center text-sky-200">
+                      <i data-lucide="droplet" class="w-3.5 h-3.5"></i>
+                    </div>
+                    <span>XE NƯỚC</span>
+                    <span id="sort-icon-waterVehicles"><i data-lucide="arrow-up-down" class="w-3.5 h-3.5 opacity-40"></i></span>
+                  </div>
+                </th>
+
+                <!-- ACTIONS -->
+                <th rowspan="2" class="py-3 px-2 w-16 text-center">
+                  <span class="text-[10px] opacity-75">TÁC VỤ</span>
+                </th>
+              </tr>
+
+              <!-- Sub-header for CHUYẾN LỚN / CHUYẾN NHỎ -->
+              <tr class="bg-[#004B93] text-white text-[11px] font-bold uppercase select-none border-b border-blue-600/40">
+                <th onclick="handleSort('largeTrips')" class="py-1.5 px-3 min-w-[105px] text-center border-r border-blue-600/40 cursor-pointer hover:bg-blue-800/40 transition-colors group">
+                  <div class="flex items-center justify-center gap-1">
+                    <span>🚚</span>
+                    <span>CHUYẾN LỚN</span>
+                    <span id="sort-icon-largeTrips"><i data-lucide="arrow-up-down" class="w-3 h-3 opacity-40"></i></span>
+                  </div>
+                </th>
+                <th onclick="handleSort('smallTrips')" class="py-1.5 px-3 min-w-[105px] text-center border-r border-blue-600/40 cursor-pointer hover:bg-blue-800/40 transition-colors group">
+                  <div class="flex items-center justify-center gap-1">
+                    <span>🚛</span>
+                    <span>CHUYẾN NHỎ</span>
+                    <span id="sort-icon-smallTrips"><i data-lucide="arrow-up-down" class="w-3 h-3 opacity-40"></i></span>
+                  </div>
+                </th>
+              </tr>
+            </thead>
+
+            <!-- Table Body -->
+            <tbody id="driver-tbody" class="divide-y divide-slate-100 text-sm font-medium">
+              <!-- Rendered via JS -->
+            </tbody>
+
+            <!-- Table Footer Totals -->
+            <tfoot id="driver-tfoot" class="bg-slate-100 border-t-2 border-slate-300 text-xs font-bold text-slate-800">
+              <!-- Rendered via JS -->
+            </tfoot>
+          </table>
+        </div>
+      </div>
+
+      <!-- Pagination -->
+      <div id="pagination-bar" class="bg-white rounded-xl border border-slate-200/80 shadow-xs px-4 py-3 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-600">
+        <!-- Rendered via JS -->
+      </div>
+    </div>
+
+    <!-- Empty State Container (Shown if no data) -->
+    <div id="empty-state-container" class="hidden bg-white rounded-2xl border border-slate-200/90 shadow-xs p-12 text-center max-w-lg mx-auto my-8 space-y-4">
+      <!-- Rendered via JS -->
+    </div>
+  </main>
+
+  <!-- ==================== FOOTER ==================== -->
+  <footer class="mt-auto py-4 border-t border-slate-200 bg-white text-center text-xs text-slate-500">
+    <div class="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-2">
+      <span>Hệ thống Quản lý và Phân tích Dữ liệu Vận hành Tài xế © 2026</span>
+      <span class="text-slate-400">Đóng gói chuẩn Single File HTML • Tự động nhận diện Excel tiếng Việt</span>
+    </div>
+  </footer>
+
+  <!-- ==================== UPLOAD EXCEL MODAL ==================== -->
+  <div id="upload-modal" class="hidden fixed inset-0 z-50 overflow-y-auto bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl shadow-2xl border border-slate-200 w-full max-w-4xl max-h-[90vh] flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-150">
+      <!-- Modal Header -->
+      <div class="bg-gradient-to-r from-[#003B73] via-[#004B93] to-[#00529B] text-white px-6 py-4 flex items-center justify-between">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center text-white border border-white/20">
+            <i data-lucide="file-spreadsheet" class="w-5 h-5"></i>
+          </div>
+          <div>
+            <h3 class="text-base font-bold tracking-tight">Nhập Dữ Liệu Từ Excel (.xlsx / .xls)</h3>
+            <p class="text-xs text-blue-100/80">Tự động nhận diện cột tiếng Việt, kiểm tra và chuẩn hóa dữ liệu</p>
+          </div>
+        </div>
+        <button type="button" onclick="closeUploadModal()" class="p-1.5 text-white/80 hover:text-white hover:bg-white/10 rounded-lg cursor-pointer">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <!-- Modal Body -->
+      <div id="upload-modal-body" class="p-6 overflow-y-auto flex-1 space-y-5 custom-scrollbar">
+        <!-- Dropzone / File Picker -->
+        <div
+          id="upload-dropzone"
+          ondragover="handleUploadDragOver(event)"
+          ondrop="handleUploadDrop(event)"
+          onclick="document.getElementById('excel-file-input').click()"
+          class="border-2 border-dashed border-blue-300 hover:border-blue-500 bg-blue-50/40 hover:bg-blue-50/70 rounded-2xl p-8 text-center cursor-pointer transition-all duration-150 flex flex-col items-center justify-center group"
+        >
+          <input type="file" id="excel-file-input" accept=".xlsx,.xls" class="hidden" onchange="handleFileSelect(event)" />
+          <div class="w-16 h-16 rounded-2xl bg-blue-600 text-white flex items-center justify-center shadow-lg shadow-blue-500/25 group-hover:scale-105 transition-transform mb-3">
+            <i data-lucide="upload-cloud" class="w-8 h-8"></i>
+          </div>
+          <h4 class="text-base font-bold text-slate-800 mb-1">Kéo thả file Excel vào đây hoặc click để chọn</h4>
+          <p class="text-xs text-slate-500 max-w-sm mb-4">
+            Hỗ trợ định dạng chuẩn <strong class="text-slate-700">.xlsx</strong>, <strong class="text-slate-700">.xls</strong>.
+          </p>
+          <button type="button" class="px-4 py-2 text-xs font-bold text-white bg-blue-600 hover:bg-blue-700 rounded-lg shadow-sm">
+            📁 Chọn file Excel từ máy tính
+          </button>
+        </div>
+
+        <!-- Uploading / Parsed Workspace -->
+        <div id="upload-workspace" class="hidden space-y-4">
+          <!-- File info bar -->
+          <div class="bg-slate-50 border border-slate-200 rounded-xl p-3.5 flex flex-wrap items-center justify-between gap-3">
+            <div class="flex items-center gap-3">
+              <div class="w-9 h-9 rounded-lg bg-emerald-100 text-emerald-700 flex items-center justify-center">
+                <i data-lucide="file-check" class="w-5 h-5"></i>
+              </div>
+              <div>
+                <p id="upload-file-title" class="text-xs font-bold text-slate-900"></p>
+                <p id="upload-file-stats" class="text-[11px] text-slate-600"></p>
+              </div>
+            </div>
+
+            <!-- Sheet selector -->
+            <div class="flex items-center gap-2">
+              <span class="text-xs font-medium text-slate-700">Sheet:</span>
+              <select id="upload-sheet-select" onchange="onUploadSheetChanged(this.value)" class="py-1.5 px-3 text-xs bg-white border border-slate-300 rounded-lg font-bold text-blue-900"></select>
+              <button type="button" onclick="resetUploadDialog()" class="px-2.5 py-1.5 text-xs text-slate-600 hover:text-red-600 hover:bg-red-50 border border-slate-200 rounded-lg">Đổi file</button>
+            </div>
+          </div>
+
+          <!-- Tabs Switcher -->
+          <div class="flex items-center justify-between gap-2 p-3 bg-blue-50/70 border border-blue-200/80 rounded-xl text-xs">
+            <div id="upload-summary-badge" class="flex items-center gap-2 text-blue-900 font-medium"></div>
+            <div class="flex items-center bg-white p-0.5 rounded-lg border border-blue-200">
+              <button type="button" id="tab-btn-preview" onclick="switchUploadTab('preview')" class="px-3 py-1 text-xs font-bold rounded-md bg-blue-600 text-white shadow-xs">Xem trước</button>
+              <button type="button" id="tab-btn-mapper" onclick="switchUploadTab('mapper')" class="px-3 py-1 text-xs font-bold rounded-md text-slate-600 hover:text-blue-700">Ánh xạ cột</button>
+            </div>
+          </div>
+
+          <!-- Tab Content: Preview -->
+          <div id="upload-tab-preview" class="space-y-3">
+            <div class="border border-slate-200 rounded-xl overflow-x-auto max-h-64 shadow-xs custom-scrollbar">
+              <table class="w-full text-left text-xs border-collapse">
+                <thead class="bg-[#003B73] text-white font-bold sticky top-0">
+                  <tr>
+                    <th class="py-2 px-2.5 text-center">STT</th>
+                    <th class="py-2 px-3">TÊN TÀI XẾ</th>
+                    <th class="py-2 px-2.5">SỐ XE</th>
+                    <th class="py-2 px-2.5 text-center">KL TRẠM (m³)</th>
+                    <th class="py-2 px-2 text-center">CHUYẾN LỚN</th>
+                    <th class="py-2 px-2 text-center">CHUYẾN NHỎ</th>
+                    <th class="py-2 px-2.5 text-center">TỔNG KM</th>
+                    <th class="py-2 px-2 text-center">TỔNG CHUYẾN</th>
+                    <th class="py-2 px-2 text-center">XE NƯỚC</th>
+                  </tr>
+                </thead>
+                <tbody id="upload-preview-tbody" class="divide-y divide-slate-100 bg-white"></tbody>
+              </table>
+            </div>
+            <p id="upload-preview-footnote" class="text-[11px] text-slate-500 text-center"></p>
+          </div>
+
+          <!-- Tab Content: Column Mapper -->
+          <div id="upload-tab-mapper" class="hidden space-y-3">
+            <div class="bg-slate-50 rounded-xl border border-slate-200 overflow-hidden">
+              <table class="w-full text-left text-xs">
+                <thead class="bg-slate-100/80 text-slate-700 font-bold border-b border-slate-200">
+                  <tr>
+                    <th class="py-2.5 px-3.5 w-1/3">CỘT HỆ THỐNG YÊU CẦU</th>
+                    <th class="py-2.5 px-2 w-8 text-center"></th>
+                    <th class="py-2.5 px-3.5 w-1/2">CỘT TRONG FILE EXCEL CỦA BẠN</th>
+                    <th class="py-2.5 px-3.5 text-right">TRẠNG THÁI</th>
+                  </tr>
+                </thead>
+                <tbody id="upload-mapper-tbody" class="divide-y divide-slate-200/60 bg-white"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Modal Footer -->
+      <div class="bg-slate-50 border-t border-slate-200 px-6 py-3.5 flex items-center justify-between">
+        <button type="button" onclick="closeUploadModal()" class="px-4 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-200/70 rounded-lg cursor-pointer">Hủy bỏ</button>
+        <button type="button" id="btn-confirm-import-data" onclick="confirmExcelImport()" disabled class="inline-flex items-center gap-2 px-5 py-2.5 text-xs font-bold text-white bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 disabled:opacity-40 disabled:cursor-not-allowed rounded-lg shadow-sm cursor-pointer">
+          <i data-lucide="check-circle" class="w-4 h-4"></i>
+          <span id="btn-confirm-text">Xác nhận nhập dữ liệu</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== EDIT / ADD DRIVER MODAL ==================== -->
+  <div id="edit-modal" class="hidden fixed inset-0 z-50 overflow-y-auto bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl shadow-2xl border border-slate-200 w-full max-w-lg overflow-hidden animate-in fade-in zoom-in-95 duration-150">
+      <div class="bg-gradient-to-r from-[#003B73] via-[#004B93] to-[#00529B] text-white px-6 py-4 flex items-center justify-between">
+        <h3 id="edit-modal-title" class="text-base font-bold">Thêm Bản Ghi Mới</h3>
+        <button type="button" onclick="closeEditModal()" class="p-1 text-white/80 hover:text-white"><i data-lucide="x" class="w-5 h-5"></i></button>
+      </div>
+      <form onsubmit="handleSaveDriver(event)" class="p-6 space-y-4 text-xs">
+        <input type="hidden" id="edit-id" />
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+          <div class="sm:col-span-2">
+            <label class="block font-bold text-slate-700 mb-1">TÊN TÀI XẾ <span class="text-red-500">*</span></label>
+            <input type="text" id="edit-driver-name" required placeholder="VD: Đặng Kim Thương" class="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-lg text-slate-900 font-medium" />
+          </div>
+          <div>
+            <label class="block font-bold text-slate-700 mb-1">SỐ XE <span class="text-red-500">*</span></label>
+            <input type="text" id="edit-vehicle-num" required placeholder="VD: 51B 33618" class="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-lg text-slate-900 font-mono font-bold" />
+          </div>
+          <div>
+            <label class="block font-bold text-slate-700 mb-1">KL TRẠM TN (m³)</label>
+            <input type="number" step="0.1" id="edit-volume" value="0" class="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-lg text-purple-700 font-bold" />
+          </div>
+          <div>
+            <label class="block font-bold text-slate-700 mb-1">CHUYẾN LỚN</label>
+            <input type="number" id="edit-large-trips" value="0" class="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-lg text-amber-600 font-bold" />
+          </div>
+          <div>
+            <label class="block font-bold text-slate-700 mb-1">CHUYẾN NHỎ</label>
+            <input type="number" id="edit-small-trips" value="0" class="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-lg text-amber-500 font-bold" />
+          </div>
+          <div>
+            <label class="block font-bold text-slate-700 mb-1">TỔNG KM</label>
+            <input type="number" id="edit-km" value="0" class="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-lg text-emerald-700 font-mono font-bold" />
+          </div>
+          <div>
+            <label class="block font-bold text-slate-700 mb-1">TỔNG CHUYẾN</label>
+            <input type="number" id="edit-total-trips" value="0" class="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-lg text-red-600 font-bold" />
+          </div>
+          <div class="sm:col-span-2">
+            <label class="block font-bold text-slate-700 mb-1">XE NƯỚC (Lượt tiếp nước)</label>
+            <input type="number" id="edit-water-trips" value="0" class="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-lg text-blue-700 font-bold" />
+          </div>
+        </div>
+        <div class="pt-4 border-t border-slate-100 flex items-center justify-end gap-2">
+          <button type="button" onclick="closeEditModal()" class="px-4 py-2 font-semibold text-slate-600 hover:bg-slate-100 rounded-lg">Hủy</button>
+          <button type="submit" class="px-4 py-2 font-bold text-white bg-blue-600 hover:bg-blue-700 rounded-lg shadow-sm">Lưu thông tin</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ==================== CONFIRM DIALOG ==================== -->
+  <div id="confirm-modal" class="hidden fixed inset-0 z-50 overflow-y-auto bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl shadow-2xl border border-slate-200 w-full max-w-md overflow-hidden p-6">
+      <div class="flex items-start gap-4">
+        <div class="w-10 h-10 rounded-full bg-red-100 text-red-600 flex items-center justify-center shrink-0">
+          <i data-lucide="alert-triangle" class="w-5 h-5"></i>
+        </div>
+        <div class="space-y-1 flex-1">
+          <h3 id="confirm-title" class="text-sm font-bold text-slate-900">Xác nhận</h3>
+          <p id="confirm-message" class="text-xs text-slate-500 leading-relaxed"></p>
+        </div>
+      </div>
+      <div class="mt-6 flex items-center justify-end gap-2">
+        <button type="button" onclick="closeConfirmDialog()" class="px-3.5 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 rounded-lg">Hủy</button>
+        <button type="button" id="confirm-btn-action" class="px-4 py-2 text-xs font-bold text-white bg-red-600 hover:bg-red-700 rounded-lg shadow-sm">Xác nhận</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== TOAST NOTIFICATION ==================== -->
+  <div id="toast-container" class="fixed top-4 right-4 z-50 pointer-events-none"></div>
+
+  <!-- ==================== CORE JAVASCRIPT ENGINE ==================== -->
+  <script>
+    // 1. ORIGINAL 24 SAMPLE RECORDS
+    const SAMPLE_RECORDS = [
+      { id: '1', stt: 1, driverName: 'Đặng Kim Thương', vehicleNumber: '51B 33618', stationVolume: 356.5, largeTrips: 50, smallTrips: 0, totalKm: 1683, totalTrips: 50, waterVehicles: 0 },
+      { id: '2', stt: 2, driverName: 'Nguyễn Thanh Phong', vehicleNumber: '51N 04419', stationVolume: 242.0, largeTrips: 26, smallTrips: 2, totalKm: 775, totalTrips: 28, waterVehicles: 1 },
+      { id: '3', stt: 3, driverName: 'Lê Văn Nhành', vehicleNumber: '50CD 00927', stationVolume: 341.8, largeTrips: 47, smallTrips: 4, totalKm: 1622, totalTrips: 51, waterVehicles: 2 },
+      { id: '4', stt: 4, driverName: 'Huỳnh Minh Luận', vehicleNumber: '51L 93030', stationVolume: 265.5, largeTrips: 28, smallTrips: 3, totalKm: 887, totalTrips: 31, waterVehicles: 0 },
+      { id: '5', stt: 5, driverName: 'Phạm Hữu Lực.', vehicleNumber: '51L 93030', stationVolume: 119.5, largeTrips: 14, smallTrips: 3, totalKm: 427, totalTrips: 17, waterVehicles: 1, hasWarning: true },
+      { id: '6', stt: 6, driverName: 'Nguyễn Văn Nghĩa.', vehicleNumber: '51L 73435', stationVolume: 161.6, largeTrips: 23, smallTrips: 1, totalKm: 874, totalTrips: 24, waterVehicles: 0, hasWarning: true },
+      { id: '7', stt: 7, driverName: 'Phan Hoàng Vũ', vehicleNumber: '51M 93245', stationVolume: 357.2, largeTrips: 40, smallTrips: 7, totalKm: 1557, totalTrips: 47, waterVehicles: 3 },
+      { id: '8', stt: 8, driverName: 'Võ Chí Linh', vehicleNumber: '51N 04245', stationVolume: 257.9, largeTrips: 29, smallTrips: 2, totalKm: 980, totalTrips: 31, waterVehicles: 2 },
+      { id: '9', stt: 9, driverName: 'Nguyễn Thanh Phong.', vehicleNumber: '51E 33146', stationVolume: 115.0, largeTrips: 15, smallTrips: 4, totalKm: 626, totalTrips: 19, waterVehicles: 2, hasWarning: true },
+      { id: '10', stt: 10, driverName: 'Nguyễn Thanh Tùng', vehicleNumber: '51E 33146', stationVolume: 216.5, largeTrips: 30, smallTrips: 1, totalKm: 711, totalTrips: 31, waterVehicles: 1 },
+      { id: '11', stt: 11, driverName: 'Nguyễn Hữu Hòa', vehicleNumber: '51L 92546', stationVolume: 240.8, largeTrips: 28, smallTrips: 3, totalKm: 1004, totalTrips: 31, waterVehicles: 1 },
+      { id: '12', stt: 12, driverName: 'Võ Chí Linh.', vehicleNumber: '51L 92546', stationVolume: 98.5, largeTrips: 11, smallTrips: 2, totalKm: 433, totalTrips: 13, waterVehicles: 0, hasWarning: true },
+      { id: '13', stt: 13, driverName: 'Nguyễn Văn Nghĩa', vehicleNumber: '51N 04357', stationVolume: 273.5, largeTrips: 30, smallTrips: 3, totalKm: 925, totalTrips: 33, waterVehicles: 1 },
+      { id: '14', stt: 14, driverName: 'Nguyễn Đức Giang', vehicleNumber: '51L 73164', stationVolume: 304.8, largeTrips: 43, smallTrips: 1, totalKm: 1414, totalTrips: 44, waterVehicles: 1 },
+      { id: '15', stt: 15, driverName: 'Nguyễn Hoàng Vũ', vehicleNumber: '51N 04264', stationVolume: 225.5, largeTrips: 25, smallTrips: 2, totalKm: 646, totalTrips: 27, waterVehicles: 1 },
+      { id: '16', stt: 16, driverName: 'Phạm Hữu Lực', vehicleNumber: '51N 04265', stationVolume: 310.0, largeTrips: 32, smallTrips: 4, totalKm: 1153, totalTrips: 36, waterVehicles: 0 },
+      { id: '17', stt: 17, driverName: 'Huỳnh Thanh Trọng', vehicleNumber: '51M 51767', stationVolume: 389.5, largeTrips: 42, smallTrips: 3, totalKm: 1367, totalTrips: 45, waterVehicles: 0 },
+      { id: '18', stt: 18, driverName: 'Đỗ Tuấn Vinh', vehicleNumber: '51M 23071', stationVolume: 423.9, largeTrips: 45, smallTrips: 4, totalKm: 1647, totalTrips: 49, waterVehicles: 0 },
+      { id: '19', stt: 19, driverName: 'Bùi Thái Sơn', vehicleNumber: '51M 97571', stationVolume: 334.8, largeTrips: 35, smallTrips: 3, totalKm: 1151, totalTrips: 38, waterVehicles: 0 },
+      { id: '20', stt: 20, driverName: 'Nguyễn Thanh Phú', vehicleNumber: '51M 51884', stationVolume: 401.7, largeTrips: 43, smallTrips: 10, totalKm: 1670, totalTrips: 53, waterVehicles: 1 },
+      { id: '21', stt: 21, driverName: 'Huỳnh Thành Tốt', vehicleNumber: '51L 74085', stationVolume: 102.5, largeTrips: 11, smallTrips: 3, totalKm: 415, totalTrips: 14, waterVehicles: 0 },
+      { id: '22', stt: 22, driverName: 'Nguyễn Đình Linh', vehicleNumber: '51L 74085', stationVolume: 249.0, largeTrips: 26, smallTrips: 3, totalKm: 791, totalTrips: 29, waterVehicles: 0 },
+      { id: '23', stt: 23, driverName: 'Đoàn Công Danh', vehicleNumber: '51M 97691', stationVolume: 409.0, largeTrips: 44, smallTrips: 6, totalKm: 1519, totalTrips: 50, waterVehicles: 1 },
+      { id: '24', stt: 24, driverName: 'Nguyễn Hoàng Phước', vehicleNumber: '51L 60192', stationVolume: 320.8, largeTrips: 45, smallTrips: 2, totalKm: 1406, totalTrips: 47, waterVehicles: 1 }
+    ];
+
+    // COLUMN DEFINITIONS FOR EXCEL RECOGNITION
+    const COLUMN_DEFINITIONS = [
+      { key: 'stt', label: 'STT', required: false, aliases: ['stt', 'sothutu', 'no', 'idx', 'thutu'] },
+      { key: 'driverName', label: 'TÊN TÀI XẾ', required: true, aliases: ['tentaixe', 'taixe', 'tenlaixe', 'laixe', 'hovaten', 'hoten', 'driver', 'tx'] },
+      { key: 'vehicleNumber', label: 'SỐ XE', required: true, aliases: ['soxe', 'bienso', 'biensoxe', 'bsx', 'bks', 'vehicle', 'xe'] },
+      { key: 'stationVolume', label: 'KL TRẠM TN (m³)', required: false, aliases: ['kltramtn', 'kltramtnm3', 'khoiluongtram', 'kltram', 'khoiluong', 'volume', 'kl'] },
+      { key: 'largeTrips', label: 'CHUYẾN LỚN', required: false, aliases: ['chuyenlon', 'lon', 'xelon', 'triplarge', 'cl'] },
+      { key: 'smallTrips', label: 'CHUYẾN NHỎ', required: false, aliases: ['chuyennho', 'nho', 'xenho', 'tripsmall', 'cn'] },
+      { key: 'totalKm', label: 'TỔNG KM', required: false, aliases: ['tongkm', 'sokm', 'km', 'quangduong', 'totalkm'] },
+      { key: 'totalTrips', label: 'TỔNG CHUYẾN', required: false, aliases: ['tongchuyen', 'tongsochuyen', 'chuyentong', 'totaltrips'] },
+      { key: 'waterVehicles', label: 'XE NƯỚC', required: false, aliases: ['xenuoc', 'soxenuoc', 'watertruck', 'xn'] }
+    ];
+
+    // APPLICATION STATE
+    let allRecords = [];
+    let filteredRecords = [];
+    let currentPage = 1;
+    let pageSize = 25;
+    let sortState = { key: null, direction: 'asc' };
+    let filters = {
+      searchQuery: '',
+      driverName: '',
+      vehicleNumber: '',
+      minStationVolume: null,
+      maxStationVolume: null,
+      minTotalKm: null,
+      maxTotalKm: null,
+      minLargeTrips: null,
+      maxLargeTrips: null,
+      minSmallTrips: null,
+      maxSmallTrips: null,
+      waterVehicles: 'all'
+    };
+
+    // Upload Workspace State
+    let parsedWorkbookData = {
+      sheetNames: [],
+      selectedSheet: '',
+      sheets: {},
+      currentMappings: [],
+      previewRecords: [],
+      fileName: ''
+    };
+
+    // INITIALIZATION
+    window.addEventListener('DOMContentLoaded', () => {
+      try {
+        const saved = localStorage.getItem('VIETNAMESE_FLEET_DATA_V1');
+        if (saved) {
+          const parsed = JSON.parse(saved);
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            allRecords = parsed;
+          } else {
+            allRecords = [...SAMPLE_RECORDS];
+          }
+        } else {
+          allRecords = [...SAMPLE_RECORDS];
+        }
+      } catch (e) {
+        allRecords = [...SAMPLE_RECORDS];
+      }
+
+      applyFiltersAndRender();
+      if (window.lucide) lucide.createIcons();
+    });
+
+    // STRING & NUMBER NORMALIZATION
+    function normalizeStr(str) {
+      if (!str) return '';
+      return String(str).toLowerCase()
+        .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+        .replace(/đ/g, 'd').replace(/Đ/g, 'd')
+        .replace(/[\s\-_().,:;'"[\]{}*#/?\\+=|~`!@$%^&]/g, '')
+        .replace(/m3|m³|m\^3/g, 'm3')
+        .trim();
+    }
+
+    function parseVietNum(val) {
+      if (val === null || val === undefined || val === '') return 0;
+      if (typeof val === 'number') return isNaN(val) ? 0 : val;
+      let str = String(val).trim();
+      if (!str || str === '-' || str === '—' || str === 'N/A') return 0;
+      const isNeg = str.startsWith('-');
+      if (isNeg) str = str.substring(1).trim();
+
+      if (str.includes(',') && str.includes('.')) {
+        if (str.indexOf(',') < str.indexOf('.')) str = str.replace(/,/g, '');
+        else str = str.replace(/\./g, '').replace(',', '.');
+      } else if (str.includes(',')) {
+        const parts = str.split(',');
+        if (parts.length === 2 && (parts[1].length <= 2)) str = parts[0] + '.' + parts[1];
+        else str = str.replace(/,/g, '');
+      }
+      const num = parseFloat(str);
+      return isNaN(num) ? 0 : (isNeg ? -num : num);
+    }
+
+    // FILTER PIPELINE & RENDERING
+    function applyFiltersAndRender() {
+      filteredRecords = allRecords.filter(r => {
+        // Search
+        if (filters.searchQuery) {
+          const q = normalizeStr(filters.searchQuery);
+          const name = normalizeStr(r.driverName);
+          const veh = normalizeStr(r.vehicleNumber);
+          if (!name.includes(q) && !veh.includes(q)) return false;
+        }
+        // Driver
+        if (filters.driverName && r.driverName !== filters.driverName) return false;
+        // Vehicle
+        if (filters.vehicleNumber && r.vehicleNumber !== filters.vehicleNumber) return false;
+        // Ranges
+        if (filters.minStationVolume !== null && r.stationVolume < filters.minStationVolume) return false;
+        if (filters.maxStationVolume !== null && r.stationVolume > filters.maxStationVolume) return false;
+        if (filters.minTotalKm !== null && r.totalKm < filters.minTotalKm) return false;
+        if (filters.maxTotalKm !== null && r.totalKm > filters.maxTotalKm) return false;
+        if (filters.minLargeTrips !== null && r.largeTrips < filters.minLargeTrips) return false;
+        if (filters.maxLargeTrips !== null && r.largeTrips > filters.maxLargeTrips) return false;
+        if (filters.minSmallTrips !== null && r.smallTrips < filters.minSmallTrips) return false;
+        if (filters.maxSmallTrips !== null && r.smallTrips > filters.maxSmallTrips) return false;
+        if (filters.waterVehicles !== 'all') {
+          if (filters.waterVehicles === 'gt0' && r.waterVehicles <= 0) return false;
+          if (filters.waterVehicles !== 'gt0' && r.waterVehicles !== Number(filters.waterVehicles)) return false;
+        }
+        return true;
+      });
+
+      // Sort
+      if (sortState.key) {
+        const k = sortState.key;
+        const dir = sortState.direction === 'asc' ? 1 : -1;
+        filteredRecords.sort((a, b) => {
+          if (typeof a[k] === 'string' && typeof b[k] === 'string') {
+            return a[k].localeCompare(b[k], 'vi') * dir;
+          }
+          return ((Number(a[k]) || 0) - (Number(b[k]) || 0)) * dir;
+        });
+      }
+
+      renderSummaryCards();
+      renderFilterSelects();
+      renderTable();
+      renderPagination();
+      updateSortIcons();
+
+      // Update badge in header
+      const badge = document.getElementById('header-records-badge');
+      if (badge) {
+        badge.textContent = filteredRecords.length === allRecords.length
+          ? `${allRecords.length} bản ghi`
+          : `${filteredRecords.length} / ${allRecords.length} bản ghi`;
+      }
+
+      // Save to localStorage
+      try {
+        localStorage.setItem('VIETNAMESE_FLEET_DATA_V1', JSON.stringify(allRecords));
+      } catch (e) {}
+
+      if (window.lucide) lucide.createIcons();
+    }
+
+    // SUMMARY CARDS RENDERER
+    function renderSummaryCards() {
+      const container = document.getElementById('summary-cards-container');
+      if (!container) return;
+
+      let sumVol = 0, sumLarge = 0, sumSmall = 0, sumTrips = 0, sumKm = 0, sumWater = 0;
+      const uniqueDrivers = new Set();
+      const uniqueVehicles = new Set();
+
+      filteredRecords.forEach(r => {
+        if (r.driverName) uniqueDrivers.add(r.driverName.trim());
+        if (r.vehicleNumber) uniqueVehicles.add(r.vehicleNumber.trim());
+        sumVol += Number(r.stationVolume) || 0;
+        sumLarge += Number(r.largeTrips) || 0;
+        sumSmall += Number(r.smallTrips) || 0;
+        sumTrips += Number(r.totalTrips) || 0;
+        sumKm += Number(r.totalKm) || 0;
+        sumWater += Number(r.waterVehicles) || 0;
+      });
+
+      const cards = [
+        {
+          label: 'TỔNG TÀI XẾ',
+          sub: `${uniqueVehicles.size} xe hoạt động`,
+          val: filteredRecords.length.toLocaleString('vi-VN'),
+          unit: 'tài xế',
+          icon: 'users',
+          iconBg: 'bg-blue-50 text-blue-600 border border-blue-200/50',
+          valColor: 'text-blue-900'
+        },
+        {
+          label: 'TỔNG KL TRẠM',
+          sub: `TB ${filteredRecords.length ? (sumVol/filteredRecords.length).toFixed(1) : 0} m³/xe`,
+          val: sumVol.toLocaleString('vi-VN', { minimumFractionDigits: 1, maximumFractionDigits: 1 }),
+          unit: 'm³',
+          icon: 'droplets',
+          iconBg: 'bg-purple-50 text-purple-600 border border-purple-200/50',
+          valColor: 'text-purple-900'
+        },
+        {
+          label: 'TỔNG CHUYẾN',
+          sub: `Lớn: ${sumLarge} • Nhỏ: ${sumSmall}`,
+          val: sumTrips.toLocaleString('vi-VN'),
+          unit: 'lượt',
+          icon: 'rotate-cw',
+          iconBg: 'bg-amber-50 text-amber-600 border border-amber-200/50',
+          valColor: 'text-amber-900'
+        },
+        {
+          label: 'TỔNG KM',
+          sub: `TB ${filteredRecords.length ? Math.round(sumKm/filteredRecords.length).toLocaleString('vi-VN') : 0} km/xe`,
+          val: sumKm.toLocaleString('vi-VN'),
+          unit: 'km',
+          icon: 'map-pin',
+          iconBg: 'bg-emerald-50 text-emerald-600 border border-emerald-200/50',
+          valColor: 'text-emerald-900'
+        },
+        {
+          label: 'TỔNG XE NƯỚC',
+          sub: 'Chuyến xe bồn hỗ trợ',
+          val: sumWater.toLocaleString('vi-VN'),
+          unit: 'chuyến',
+          icon: 'truck',
+          iconBg: 'bg-sky-50 text-sky-600 border border-sky-200/50',
+          valColor: 'text-sky-900'
+        }
+      ];
+
+      container.innerHTML = cards.map(c => `
+        <div class="bg-white rounded-xl border border-slate-200/80 p-3.5 sm:p-4 shadow-xs hover:shadow-md transition-all flex flex-col justify-between">
+          <div class="flex items-center justify-between gap-2 mb-2">
+            <span class="text-[11px] sm:text-xs font-semibold tracking-wider text-slate-500 uppercase">${c.label}</span>
+            <div class="p-1.5 rounded-lg ${c.iconBg}">
+              <i data-lucide="${c.icon}" class="w-4 h-4"></i>
+            </div>
+          </div>
+          <div class="mt-1">
+            <div class="flex items-baseline gap-1.5">
+              <span class="text-xl sm:text-2xl font-black tracking-tight ${c.valColor}">${c.val}</span>
+              <span class="text-xs font-medium text-slate-400">${c.unit}</span>
+            </div>
+            <p class="text-[11px] font-medium text-slate-500 mt-1 truncate">${c.sub}</p>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    // TABLE RENDERER
+    function renderTable() {
+      const tbody = document.getElementById('driver-tbody');
+      const tfoot = document.getElementById('driver-tfoot');
+      const tableWrapper = document.getElementById('table-wrapper');
+      const emptyState = document.getElementById('empty-state-container');
+
+      if (!allRecords.length) {
+        tableWrapper.classList.add('hidden');
+        emptyState.classList.remove('hidden');
+        emptyState.innerHTML = `
+          <div class="w-16 h-16 rounded-2xl bg-blue-50 text-blue-600 mx-auto flex items-center justify-center border border-blue-100 shadow-inner">
+            <i data-lucide="file-spreadsheet" class="w-8 h-8"></i>
+          </div>
+          <h3 class="text-lg font-bold text-slate-800">Chưa có dữ liệu vận hành</h3>
+          <p class="text-xs text-slate-500 max-w-sm mx-auto">Vui lòng tải file Excel lên hoặc nạp 24 tài xế mẫu.</p>
+          <div class="flex items-center justify-center gap-3 pt-2">
+            <button type="button" onclick="openUploadModal()" class="px-4 py-2 text-xs font-bold text-white bg-blue-600 rounded-lg shadow-sm">Tải Excel lên</button>
+            <button type="button" onclick="resetToDemo()" class="px-4 py-2 text-xs font-semibold text-slate-700 bg-slate-100 rounded-lg">Nạp 24 dòng mẫu</button>
+          </div>
+        `;
+        return;
+      }
+
+      if (!filteredRecords.length) {
+        tableWrapper.classList.add('hidden');
+        emptyState.classList.remove('hidden');
+        emptyState.innerHTML = `
+          <div class="w-16 h-16 rounded-2xl bg-amber-50 text-amber-600 mx-auto flex items-center justify-center border border-amber-100 shadow-inner">
+            <i data-lucide="search-x" class="w-8 h-8"></i>
+          </div>
+          <h3 class="text-lg font-bold text-slate-800">Không tìm thấy bản ghi phù hợp</h3>
+          <p class="text-xs text-slate-500 max-w-sm mx-auto">Vui lòng thay đổi từ khóa hoặc điều kiện bộ lọc.</p>
+          <div class="pt-2">
+            <button type="button" onclick="resetAllFilters()" class="px-4 py-2 text-xs font-bold text-white bg-blue-600 rounded-lg shadow-sm">Xóa tất cả bộ lọc</button>
+          </div>
+        `;
+        return;
+      }
+
+      tableWrapper.classList.remove('hidden');
+      emptyState.classList.add('hidden');
+
+      // Slice for pagination
+      const start = (currentPage - 1) * pageSize;
+      const paginated = filteredRecords.slice(start, start + pageSize);
+
+      tbody.innerHTML = paginated.map((r, idx) => {
+        const sttNum = start + idx + 1;
+        const sttDisplay = sttNum < 10 ? `0${sttNum}` : `${sttNum}`;
+        const isWarning = r.hasWarning || (r.driverName && r.driverName.endsWith('.'));
+
+        return `
+          <tr class="hover:bg-blue-50/50 transition-colors group">
+            <!-- STT -->
+            <td class="py-2.5 px-3 text-center border-r border-slate-100">
+              <span class="inline-flex items-center justify-center w-8 h-7 text-xs font-bold text-white bg-[#0066CC] rounded-lg shadow-xs">${sttDisplay}</span>
+            </td>
+
+            <!-- Driver Name -->
+            <td class="py-2.5 px-4 border-r border-slate-100">
+              <div class="flex items-center gap-2.5">
+                <div class="w-6 h-6 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center shrink-0">
+                  <i data-lucide="user" class="w-3.5 h-3.5"></i>
+                </div>
+                <div class="flex items-center gap-1.5 min-w-0">
+                  <span class="font-semibold text-slate-800 tracking-tight truncate">${r.driverName || '—'}</span>
+                  ${isWarning ? `<span title="Tên có dấu chấm đuôi" class="text-amber-500 shrink-0"><i data-lucide="alert-circle" class="w-3.5 h-3.5"></i></span>` : ''}
+                </div>
+              </div>
+            </td>
+
+            <!-- Vehicle Number -->
+            <td class="py-2.5 px-3.5 border-r border-slate-100 whitespace-nowrap">
+              <div class="flex items-center gap-2">
+                <div class="w-5 h-5 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center shrink-0">
+                  <i data-lucide="car" class="w-3 h-3"></i>
+                </div>
+                <span class="font-bold text-slate-800 tracking-wide font-mono text-[13px]">${r.vehicleNumber || '—'}</span>
+              </div>
+            </td>
+
+            <!-- Station Volume -->
+            <td class="py-2.5 px-3.5 text-center border-r border-slate-100 bg-[#FBF7FE]/60">
+              <span class="font-bold text-purple-700 text-sm tracking-tight">${Number(r.stationVolume || 0).toFixed(1)}</span>
+            </td>
+
+            <!-- Large Trips -->
+            <td class="py-2.5 px-3 text-center border-r border-slate-100 bg-[#FFF9F3]/70">
+              <span class="font-bold text-amber-600 text-sm">${r.largeTrips || 0}</span>
+            </td>
+
+            <!-- Small Trips -->
+            <td class="py-2.5 px-3 text-center border-r border-slate-100 bg-[#FFFDF0]/80">
+              <span class="font-bold text-amber-500 text-sm">${r.smallTrips || 0}</span>
+            </td>
+
+            <!-- Total KM -->
+            <td class="py-2.5 px-3.5 text-center border-r border-slate-100 bg-[#F3FAF5]/70">
+              <span class="font-bold text-emerald-700 text-sm tracking-tight font-mono">${(Number(r.totalKm) || 0).toLocaleString('vi-VN')}</span>
+            </td>
+
+            <!-- Total Trips -->
+            <td class="py-2.5 px-3.5 text-center border-r border-slate-100 bg-[#FFF4F4]/70">
+              <span class="font-black text-red-600 text-sm">${r.totalTrips || 0}</span>
+            </td>
+
+            <!-- Water Vehicles -->
+            <td class="py-2.5 px-3.5 text-center bg-[#F3F9FF]/70">
+              <span class="font-bold text-sm ${r.waterVehicles > 0 ? 'text-blue-700 font-black' : 'text-blue-500'}">${r.waterVehicles || 0}</span>
+            </td>
+
+            <!-- Actions -->
+            <td class="py-2.5 px-2 text-center whitespace-nowrap">
+              <div class="flex items-center justify-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                <button type="button" onclick="openEditModal('${r.id}')" class="p-1 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded" title="Chỉnh sửa">
+                  <i data-lucide="pencil" class="w-3.5 h-3.5"></i>
+                </button>
+                <button type="button" onclick="deleteDriverRecord('${r.id}')" class="p-1 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded" title="Xóa">
+                  <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+                </button>
+              </div>
+            </td>
+          </tr>
+        `;
+      }).join('');
+
+      // Foot totals
+      let sumVol = 0, sumLarge = 0, sumSmall = 0, sumKm = 0, sumTrips = 0, sumWater = 0;
+      filteredRecords.forEach(r => {
+        sumVol += Number(r.stationVolume) || 0;
+        sumLarge += Number(r.largeTrips) || 0;
+        sumSmall += Number(r.smallTrips) || 0;
+        sumKm += Number(r.totalKm) || 0;
+        sumTrips += Number(r.totalTrips) || 0;
+        sumWater += Number(r.waterVehicles) || 0;
+      });
+
+      tfoot.innerHTML = `
+        <tr class="bg-slate-100 border-t-2 border-slate-300 text-xs font-bold text-slate-800">
+          <td colspan="3" class="py-3 px-4 text-left border-r border-slate-200 uppercase font-extrabold text-slate-700">
+            TỔNG CỘNG (${filteredRecords.length} TÀI XẾ)
+          </td>
+          <td class="py-3 px-3.5 text-center border-r border-slate-200 text-purple-800 font-extrabold">
+            ${sumVol.toLocaleString('vi-VN', { minimumFractionDigits: 1, maximumFractionDigits: 1 })}
+          </td>
+          <td class="py-3 px-3 text-center border-r border-slate-200 text-amber-700 font-extrabold">
+            ${sumLarge.toLocaleString('vi-VN')}
+          </td>
+          <td class="py-3 px-3 text-center border-r border-slate-200 text-amber-600 font-extrabold">
+            ${sumSmall.toLocaleString('vi-VN')}
+          </td>
+          <td class="py-3 px-3.5 text-center border-r border-slate-200 text-emerald-800 font-extrabold font-mono">
+            ${sumKm.toLocaleString('vi-VN')}
+          </td>
+          <td class="py-3 px-3.5 text-center border-r border-slate-200 text-red-700 font-extrabold">
+            ${sumTrips.toLocaleString('vi-VN')}
+          </td>
+          <td class="py-3 px-3.5 text-center text-blue-800 font-extrabold">
+            ${sumWater.toLocaleString('vi-VN')}
+          </td>
+          <td></td>
+        </tr>
+      `;
+    }
+
+    // PAGINATION RENDERER
+    function renderPagination() {
+      const container = document.getElementById('pagination-bar');
+      if (!container || !filteredRecords.length) return;
+
+      const totalPages = Math.ceil(filteredRecords.length / pageSize) || 1;
+      const startItem = (currentPage - 1) * pageSize + 1;
+      const endItem = Math.min(currentPage * pageSize, filteredRecords.length);
+
+      let pageBtnsHtml = '';
+      for (let p = 1; p <= totalPages; p++) {
+        if (p === 1 || p === totalPages || (p >= currentPage - 2 && p <= currentPage + 2)) {
+          pageBtnsHtml += `
+            <button type="button" onclick="goToPage(${p})" class="min-w-7 h-7 px-2 rounded-lg text-xs font-bold transition-colors ${
+              currentPage === p ? 'bg-blue-600 text-white shadow-xs' : 'border border-slate-200 bg-white text-slate-700 hover:bg-slate-50'
+            }">${p}</button>
+          `;
+        } else if (p === currentPage - 3 || p === currentPage + 3) {
+          pageBtnsHtml += `<span class="px-1 text-slate-400">...</span>`;
+        }
+      }
+
+      container.innerHTML = `
+        <div class="flex items-center gap-3">
+          <p class="font-medium text-slate-700">
+            Hiển thị <span class="font-bold text-slate-900">${startItem}–${endItem}</span> trên <span class="font-bold text-slate-900">${filteredRecords.length.toLocaleString('vi-VN')}</span> tài xế
+          </p>
+          <div class="flex items-center gap-1.5 pl-3 border-l border-slate-200">
+            <span class="text-slate-500">Mỗi trang:</span>
+            <select onchange="changePageSize(Number(this.value))" class="py-1 px-2 bg-slate-50 border border-slate-200 rounded font-semibold text-slate-800">
+              <option value="24" ${pageSize === 24 ? 'selected' : ''}>24 dòng</option>
+              <option value="25" ${pageSize === 25 ? 'selected' : ''}>25 dòng</option>
+              <option value="50" ${pageSize === 50 ? 'selected' : ''}>50 dòng</option>
+              <option value="100" ${pageSize === 100 ? 'selected' : ''}>100 dòng</option>
+            </select>
+          </div>
+        </div>
+        ${totalPages > 1 ? `
+          <div class="flex items-center space-x-1">
+            <button type="button" onclick="goToPage(1)" ${currentPage === 1 ? 'disabled' : ''} class="p-1.5 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 disabled:opacity-30"><i data-lucide="chevrons-left" class="w-3.5 h-3.5"></i></button>
+            <button type="button" onclick="goToPage(${currentPage - 1})" ${currentPage === 1 ? 'disabled' : ''} class="p-1.5 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 disabled:opacity-30"><i data-lucide="chevron-left" class="w-3.5 h-3.5"></i></button>
+            ${pageBtnsHtml}
+            <button type="button" onclick="goToPage(${currentPage + 1})" ${currentPage === totalPages ? 'disabled' : ''} class="p-1.5 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 disabled:opacity-30"><i data-lucide="chevron-right" class="w-3.5 h-3.5"></i></button>
+            <button type="button" onclick="goToPage(${totalPages})" ${currentPage === totalPages ? 'disabled' : ''} class="p-1.5 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 disabled:opacity-30"><i data-lucide="chevrons-right" class="w-3.5 h-3.5"></i></button>
+          </div>
+        ` : ''}
+      `;
+    }
+
+    function goToPage(p) {
+      const totalPages = Math.ceil(filteredRecords.length / pageSize) || 1;
+      if (p >= 1 && p <= totalPages) {
+        currentPage = p;
+        renderTable();
+        renderPagination();
+        if (window.lucide) lucide.createIcons();
+      }
+    }
+
+    function changePageSize(sz) {
+      pageSize = sz;
+      currentPage = 1;
+      applyFiltersAndRender();
+    }
+
+    // SORT HANDLER
+    function handleSort(key) {
+      if (sortState.key === key) {
+        if (sortState.direction === 'asc') sortState.direction = 'desc';
+        else sortState = { key: null, direction: 'asc' };
+      } else {
+        sortState = { key, direction: 'asc' };
+      }
+      applyFiltersAndRender();
+    }
+
+    function updateSortIcons() {
+      const keys = ['driverName', 'vehicleNumber', 'stationVolume', 'largeTrips', 'smallTrips', 'totalKm', 'totalTrips', 'waterVehicles'];
+      keys.forEach(k => {
+        const el = document.getElementById(`sort-icon-${k}`);
+        if (!el) return;
+        if (sortState.key === k) {
+          el.innerHTML = sortState.direction === 'asc'
+            ? `<i data-lucide="arrow-up" class="w-3.5 h-3.5 text-blue-300 font-bold"></i>`
+            : `<i data-lucide="arrow-down" class="w-3.5 h-3.5 text-blue-300 font-bold"></i>`;
+        } else {
+          el.innerHTML = `<i data-lucide="arrow-up-down" class="w-3.5 h-3.5 opacity-40"></i>`;
+        }
+      });
+    }
+
+    // SEARCH & FILTER INPUT HANDLERS
+    function handleSearchInput(val) {
+      filters.searchQuery = val.trim();
+      currentPage = 1;
+      const clearBtn = document.getElementById('btn-clear-search');
+      if (clearBtn) clearBtn.classList.toggle('hidden', !val);
+      applyFiltersAndRender();
+    }
+
+    function clearSearch() {
+      document.getElementById('search-input').value = '';
+      handleSearchInput('');
+    }
+
+    function handleFilterChange(field, val) {
+      if (field.startsWith('min') || field.startsWith('max')) {
+        filters[field] = val === '' ? null : Number(val);
+      } else {
+        filters[field] = val;
+      }
+      currentPage = 1;
+      applyFiltersAndRender();
+    }
+
+    function toggleAdvancedFilters() {
+      const panel = document.getElementById('advanced-filters-panel');
+      const chevron = document.getElementById('advanced-chevron');
+      const isHidden = panel.classList.contains('hidden');
+      panel.classList.toggle('hidden', !isHidden);
+      if (chevron) {
+        chevron.setAttribute('data-lucide', isHidden ? 'chevron-up' : 'chevron-down');
+        if (window.lucide) lucide.createIcons();
+      }
+    }
+
+    function resetAllFilters() {
+      filters = {
+        searchQuery: '',
+        driverName: '',
+        vehicleNumber: '',
+        minStationVolume: null,
+        maxStationVolume: null,
+        minTotalKm: null,
+        maxTotalKm: null,
+        minLargeTrips: null,
+        maxLargeTrips: null,
+        minSmallTrips: null,
+        maxSmallTrips: null,
+        waterVehicles: 'all'
+      };
+      document.getElementById('search-input').value = '';
+      document.getElementById('filter-driver-select').value = '';
+      document.getElementById('filter-vehicle-select').value = '';
+      document.getElementById('filter-min-vol').value = '';
+      document.getElementById('filter-max-vol').value = '';
+      document.getElementById('filter-min-km').value = '';
+      document.getElementById('filter-max-km').value = '';
+      document.getElementById('filter-min-large').value = '';
+      document.getElementById('filter-max-large').value = '';
+      document.getElementById('filter-min-small').value = '';
+      document.getElementById('filter-max-small').value = '';
+      document.getElementById('filter-water').value = 'all';
+      currentPage = 1;
+      applyFiltersAndRender();
+      showToast('Đã đặt lại tất cả bộ lọc', 'info');
+    }
+
+    function renderFilterSelects() {
+      const driverSel = document.getElementById('filter-driver-select');
+      const vehicleSel = document.getElementById('filter-vehicle-select');
+      if (!driverSel || !vehicleSel) return;
+
+      const currentDriver = filters.driverName;
+      const currentVehicle = filters.vehicleNumber;
+
+      const drivers = Array.from(new Set(allRecords.map(r => r.driverName).filter(Boolean))).sort((a,b)=>a.localeCompare(b,'vi'));
+      const vehicles = Array.from(new Set(allRecords.map(r => r.vehicleNumber).filter(Boolean))).sort();
+
+      driverSel.innerHTML = `<option value="">Tất cả tài xế (${drivers.length})</option>` +
+        drivers.map(d => `<option value="${d}" ${d === currentDriver ? 'selected' : ''}>${d}</option>`).join('');
+
+      vehicleSel.innerHTML = `<option value="">Tất cả số xe (${vehicles.length})</option>` +
+        vehicles.map(v => `<option value="${v}" ${v === currentVehicle ? 'selected' : ''}>${v}</option>`).join('');
+
+      // Show reset filter button if any active
+      let activeCount = 0;
+      if (filters.searchQuery) activeCount++;
+      if (filters.driverName) activeCount++;
+      if (filters.vehicleNumber) activeCount++;
+      if (filters.minStationVolume !== null || filters.maxStationVolume !== null) activeCount++;
+      if (filters.minTotalKm !== null || filters.maxTotalKm !== null) activeCount++;
+      if (filters.minLargeTrips !== null || filters.maxLargeTrips !== null) activeCount++;
+      if (filters.minSmallTrips !== null || filters.maxSmallTrips !== null) activeCount++;
+      if (filters.waterVehicles !== 'all') activeCount++;
+
+      const resetBtn = document.getElementById('btn-reset-filters');
+      if (resetBtn) resetBtn.classList.toggle('hidden', activeCount === 0);
+
+      const advText = document.getElementById('advanced-filter-text');
+      if (advText) advText.textContent = activeCount > 0 ? `Bộ lọc (${activeCount})` : 'Bộ lọc';
+    }
+
+    // ==================== EXCEL UPLOAD & PARSING ====================
+    function openUploadModal() {
+      document.getElementById('upload-modal').classList.remove('hidden');
+      resetUploadDialog();
+      if (window.lucide) lucide.createIcons();
+    }
+
+    function closeUploadModal() {
+      document.getElementById('upload-modal').classList.add('hidden');
+    }
+
+    function resetUploadDialog() {
+      document.getElementById('upload-dropzone').classList.remove('hidden');
+      document.getElementById('upload-workspace').classList.add('hidden');
+      document.getElementById('excel-file-input').value = '';
+      parsedWorkbookData = { sheetNames: [], selectedSheet: '', sheets: {}, currentMappings: [], previewRecords: [], fileName: '' };
+      document.getElementById('btn-confirm-import-data').disabled = true;
+    }
+
+    function handleUploadDragOver(e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+
+    function handleUploadDrop(e) {
+      e.preventDefault();
+      e.stopPropagation();
+      if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+        processExcelFile(e.dataTransfer.files[0]);
+      }
+    }
+
+    function handleFileSelect(e) {
+      if (e.target.files && e.target.files[0]) {
+        processExcelFile(e.target.files[0]);
+      }
+    }
+
+    function processExcelFile(file) {
+      parsedWorkbookData.fileName = file.name;
+      const reader = new FileReader();
+
+      reader.onload = function(e) {
+        try {
+          const data = new Uint8Array(e.target.result);
+          const workbook = XLSX.read(data, { type: 'array', cellDates: true });
+          const sheetNames = workbook.SheetNames;
+          if (!sheetNames.length) throw new Error('File Excel rỗng.');
+
+          const sheets = {};
+          let bestSheet = sheetNames[0];
+          let maxMatches = -1;
+
+          sheetNames.forEach(sName => {
+            const ws = workbook.Sheets[sName];
+            const rows = XLSX.utils.sheet_to_json(ws, { header: 1, defval: '' });
+            if (!rows.length) return;
+
+            // Header auto-detection in first 10 rows
+            let bestHeaderIdx = 0, bestMatchCount = 0, bestMappings = [], bestHeaders = [];
+            const searchLimit = Math.min(rows.length, 10);
+
+            for (let r = 0; r < searchLimit; r++) {
+              const headers = (rows[r] || []).map(c => String(c || '').trim());
+              const mappings = [];
+              let matchCount = 0;
+
+              COLUMN_DEFINITIONS.forEach(def => {
+                let foundColIdx = -1, bestScore = 0;
+                headers.forEach((h, colIdx) => {
+                  const normH = normalizeStr(h);
+                  if (!normH) return;
+                  if (normH === normalizeStr(def.key) || normH === normalizeStr(def.label)) {
+                    foundColIdx = colIdx;
+                    bestScore = 1.0;
+                  } else {
+                    for (const alias of def.aliases) {
+                      if (normH.includes(normalizeStr(alias))) {
+                        if (0.8 > bestScore) { foundColIdx = colIdx; bestScore = 0.8; }
+                      }
+                    }
+                  }
+                });
+
+                if (foundColIdx !== -1) {
+                  matchCount++;
+                  mappings.push({ targetKey: def.key, targetLabel: def.label, excelColIndex: foundColIdx, isMapped: true });
+                } else {
+                  mappings.push({ targetKey: def.key, targetLabel: def.label, excelColIndex: -1, isMapped: false });
+                }
+              });
+
+              if (matchCount > bestMatchCount) {
+                bestMatchCount = matchCount;
+                bestHeaderIdx = r;
+                bestMappings = mappings;
+                bestHeaders = headers;
+              }
+            }
+
+            sheets[sName] = {
+              rawRows: rows.slice(bestHeaderIdx + 1),
+              headers: bestHeaders,
+              mappings: bestMappings,
+              matches: bestMatchCount
+            };
+
+            if (bestMatchCount > maxMatches) {
+              maxMatches = bestMatchCount;
+              bestSheet = sName;
+            }
+          });
+
+          parsedWorkbookData.sheetNames = sheetNames;
+          parsedWorkbookData.selectedSheet = bestSheet;
+          parsedWorkbookData.sheets = sheets;
+          parsedWorkbookData.currentMappings = [...sheets[bestSheet].mappings];
+
+          // UI update
+          document.getElementById('upload-dropzone').classList.add('hidden');
+          document.getElementById('upload-workspace').classList.remove('hidden');
+          document.getElementById('upload-file-title').textContent = `${file.name} (${(file.size/1024).toFixed(1)} KB)`;
+          document.getElementById('upload-file-stats').textContent = `${sheetNames.length} sheet • Đã tự động chọn sheet có dữ liệu tốt nhất`;
+
+          const sel = document.getElementById('upload-sheet-select');
+          sel.innerHTML = sheetNames.map(sn => `<option value="${sn}" ${sn === bestSheet ? 'selected' : ''}>${sn} (${sheets[sn]?.rawRows.length || 0} dòng)</option>`).join('');
+
+          renderUploadPreviewAndMapper();
+          showToast(`Đã đọc thành công file "${file.name}"`, 'success');
+        } catch (err) {
+          alert('Không thể đọc file Excel: ' + err.message);
+        }
+      };
+
+      reader.readAsArrayBuffer(file);
+    }
+
+    function onUploadSheetChanged(sName) {
+      parsedWorkbookData.selectedSheet = sName;
+      parsedWorkbookData.currentMappings = [...parsedWorkbookData.sheets[sName].mappings];
+      renderUploadPreviewAndMapper();
+    }
+
+    function renderUploadPreviewAndMapper() {
+      const sheet = parsedWorkbookData.sheets[parsedWorkbookData.selectedSheet];
+      if (!sheet) return;
+
+      const mappingMap = {};
+      parsedWorkbookData.currentMappings.forEach(m => {
+        if (m.isMapped && m.excelColIndex >= 0) mappingMap[m.targetKey] = m.excelColIndex;
+      });
+
+      // Parse records
+      const records = [];
+      sheet.rawRows.forEach((row, idx) => {
+        const isBlank = row.every(c => c === null || c === undefined || String(c).trim() === '');
+        if (isBlank) return;
+
+        const getVal = (k) => {
+          const cIdx = mappingMap[k];
+          return (cIdx !== undefined && cIdx >= 0) ? row[cIdx] : '';
+        };
+
+        const driver = String(getVal('driverName') || '').trim();
+        const vehicle = String(getVal('vehicleNumber') || '').trim();
+        if (!driver && !vehicle) return;
+        if (driver.toLowerCase().startsWith('tổng') || driver.toLowerCase().startsWith('cộng')) return;
+
+        const large = Math.round(parseVietNum(getVal('largeTrips')));
+        const small = Math.round(parseVietNum(getVal('smallTrips')));
+        let totalT = Math.round(parseVietNum(getVal('totalTrips')));
+        if (totalT === 0 && (large > 0 || small > 0)) totalT = large + small;
+
+        records.push({
+          id: `imp-${Date.now()}-${idx}`,
+          stt: idx + 1,
+          driverName: driver || '—',
+          vehicleNumber: vehicle || '—',
+          stationVolume: Number(parseVietNum(getVal('stationVolume')).toFixed(1)),
+          largeTrips: large,
+          smallTrips: small,
+          totalKm: Math.round(parseVietNum(getVal('totalKm'))),
+          totalTrips: totalT,
+          waterVehicles: Math.round(parseVietNum(getVal('waterVehicles'))),
+          hasWarning: driver.endsWith('.')
+        });
+      });
+
+      parsedWorkbookData.previewRecords = records;
+
+      // Update badge
+      document.getElementById('upload-summary-badge').innerHTML = `
+        <i data-lucide="check-circle" class="w-4 h-4 text-blue-600"></i>
+        <span>Đã nhận diện <strong class="font-bold">${records.length} dòng dữ liệu</strong> sẵn sàng nhập</span>
+      `;
+
+      // Render Preview Table
+      const previewTbody = document.getElementById('upload-preview-tbody');
+      previewTbody.innerHTML = records.slice(0, 15).map((r, i) => `
+        <tr class="hover:bg-slate-50">
+          <td class="py-2 px-2.5 text-center font-bold text-blue-700">${i + 1 < 10 ? '0' + (i+1) : i+1}</td>
+          <td class="py-2 px-3 font-semibold text-slate-900">${r.driverName}</td>
+          <td class="py-2 px-2.5 font-bold font-mono text-slate-800">${r.vehicleNumber}</td>
+          <td class="py-2 px-2.5 text-center text-purple-700 font-bold bg-purple-50/30">${r.stationVolume.toFixed(1)}</td>
+          <td class="py-2 px-2 text-center text-amber-600 font-bold bg-amber-50/30">${r.largeTrips}</td>
+          <td class="py-2 px-2 text-center text-amber-500 font-bold bg-amber-50/20">${r.smallTrips}</td>
+          <td class="py-2 px-2.5 text-center text-emerald-700 font-bold font-mono bg-emerald-50/30">${r.totalKm.toLocaleString('vi-VN')}</td>
+          <td class="py-2 px-2 text-center text-red-600 font-black bg-red-50/30">${r.totalTrips}</td>
+          <td class="py-2 px-2 text-center text-blue-700 font-bold bg-blue-50/30">${r.waterVehicles}</td>
+        </tr>
+      `).join('');
+
+      document.getElementById('upload-preview-footnote').textContent = records.length > 15
+        ? `(Đang hiển thị 15 dòng xem trước trong tổng số ${records.length} dòng dữ liệu)`
+        : '';
+
+      // Render Column Mapper Table
+      const mapperTbody = document.getElementById('upload-mapper-tbody');
+      mapperTbody.innerHTML = COLUMN_DEFINITIONS.map(def => {
+        const mapItem = parsedWorkbookData.currentMappings.find(m => m.targetKey === def.key);
+        const mappedIdx = (mapItem && mapItem.isMapped) ? mapItem.excelColIndex : -1;
+
+        const optionsHtml = `<option value="-1">-- Không dùng cột này --</option>` +
+          sheet.headers.map((h, colIdx) => `<option value="${colIdx}" ${colIdx === mappedIdx ? 'selected' : ''}>Cột ${colIdx+1}: ${h || '[Trống]'}</option>`).join('');
+
+        return `
+          <tr class="hover:bg-slate-50">
+            <td class="py-2.5 px-3.5 font-bold text-slate-900">${def.label} ${def.required ? '<span class="text-red-500">*</span>' : ''}</td>
+            <td class="py-2.5 px-2 text-center text-slate-400">➔</td>
+            <td class="py-2.5 px-3.5">
+              <select onchange="onMappingChanged('${def.key}', Number(this.value))" class="w-full py-1.5 px-2.5 rounded-lg border text-xs font-medium ${mappedIdx >= 0 ? 'bg-blue-50/40 border-blue-300 text-blue-900 font-bold' : 'border-slate-300'}">
+                ${optionsHtml}
+              </select>
+            </td>
+            <td class="py-2.5 px-3.5 text-right font-bold text-[11px]">
+              ${mappedIdx >= 0 ? '<span class="text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded">Đã nhận diện</span>' : (def.required ? '<span class="text-red-600 bg-red-50 px-2 py-0.5 rounded">Cần chọn</span>' : '<span class="text-slate-400">Bỏ qua</span>')}
+            </td>
+          </tr>
+        `;
+      }).join('');
+
+      // Enable import button if required columns mapped & rows exist
+      const hasDriver = parsedWorkbookData.currentMappings.some(m => m.targetKey === 'driverName' && m.isMapped);
+      const hasVehicle = parsedWorkbookData.currentMappings.some(m => m.targetKey === 'vehicleNumber' && m.isMapped);
+      const canImport = records.length > 0 && hasDriver && hasVehicle;
+
+      const confirmBtn = document.getElementById('btn-confirm-import-data');
+      confirmBtn.disabled = !canImport;
+      document.getElementById('btn-confirm-text').textContent = `Xác nhận nhập (${records.length} dòng)`;
+
+      if (window.lucide) lucide.createIcons();
+    }
+
+    function onMappingChanged(targetKey, colIdx) {
+      const mapItem = parsedWorkbookData.currentMappings.find(m => m.targetKey === targetKey);
+      if (mapItem) {
+        mapItem.excelColIndex = colIdx;
+        mapItem.isMapped = colIdx >= 0;
+      }
+      renderUploadPreviewAndMapper();
+    }
+
+    function switchUploadTab(tab) {
+      const pTab = document.getElementById('upload-tab-preview');
+      const mTab = document.getElementById('upload-tab-mapper');
+      const pBtn = document.getElementById('tab-btn-preview');
+      const mBtn = document.getElementById('tab-btn-mapper');
+
+      if (tab === 'preview') {
+        pTab.classList.remove('hidden');
+        mTab.classList.add('hidden');
+        pBtn.className = 'px-3 py-1 text-xs font-bold rounded-md bg-blue-600 text-white shadow-xs';
+        mBtn.className = 'px-3 py-1 text-xs font-bold rounded-md text-slate-600 hover:text-blue-700';
+      } else {
+        pTab.classList.add('hidden');
+        mTab.classList.remove('hidden');
+        pBtn.className = 'px-3 py-1 text-xs font-bold rounded-md text-slate-600 hover:text-blue-700';
+        mBtn.className = 'px-3 py-1 text-xs font-bold rounded-md bg-blue-600 text-white shadow-xs';
+      }
+    }
+
+    function confirmExcelImport() {
+      if (!parsedWorkbookData.previewRecords.length) return;
+      allRecords = [...parsedWorkbookData.previewRecords];
+      const now = new Date();
+      const timeStr = `${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')} - ${now.toLocaleDateString('vi-VN')}`;
+      document.getElementById('header-updated-time').textContent = `Cập nhật: ${timeStr}`;
+
+      closeUploadModal();
+      currentPage = 1;
+      resetAllFilters();
+      showToast(`Đã nhập thành công ${allRecords.length} dòng dữ liệu từ file!`, 'success');
+    }
+
+    // ==================== EXPORT & TEMPLATE ====================
+    function exportToExcel() {
+      if (!filteredRecords.length) return;
+      const exportData = filteredRecords.map((r, i) => ({
+        'STT': i + 1,
+        'TÊN TÀI XẾ': r.driverName,
+        'SỐ XE': r.vehicleNumber,
+        'KL TRẠM TN (m³)': r.stationVolume,
+        'CHUYẾN LỚN': r.largeTrips,
+        'CHUYẾN NHỎ': r.smallTrips,
+        'TỔNG KM': r.totalKm,
+        'TỔNG CHUYẾN': r.totalTrips,
+        'XE NƯỚC': r.waterVehicles
+      }));
+
+      const ws = XLSX.utils.json_to_sheet(exportData);
+      ws['!cols'] = [{ wch: 6 }, { wch: 24 }, { wch: 14 }, { wch: 18 }, { wch: 14 }, { wch: 14 }, { wch: 14 }, { wch: 14 }, { wch: 12 }];
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, 'Báo cáo tài xế');
+      XLSX.writeFile(wb, `BaoCaoTaiXe_${Date.now()}.xlsx`);
+      showToast(`Đã xuất ${filteredRecords.length} dòng ra Excel!`, 'success');
+    }
+
+    function exportToCSV() {
+      if (!filteredRecords.length) return;
+      const headers = ['STT', 'TÊN TÀI XẾ', 'SỐ XE', 'KL TRẠM TN (m³)', 'CHUYẾN LỚN', 'CHUYẾN NHỎ', 'TỔNG KM', 'TỔNG CHUYẾN', 'XE NƯỚC'];
+      const rows = filteredRecords.map((r, i) => [
+        i + 1,
+        `"${(r.driverName||'').replace(/"/g, '""')}"`,
+        `"${(r.vehicleNumber||'').replace(/"/g, '""')}"`,
+        r.stationVolume.toFixed(1),
+        r.largeTrips,
+        r.smallTrips,
+        r.totalKm,
+        r.totalTrips,
+        r.waterVehicles
+      ]);
+      const csv = '\uFEFF' + [headers.join(','), ...rows.map(row => row.join(','))].join('\r\n');
+      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `BaoCaoTaiXe_${Date.now()}.csv`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      showToast(`Đã xuất ${filteredRecords.length} dòng ra CSV!`, 'success');
+    }
+
+    function downloadSampleTemplate() {
+      const templateData = SAMPLE_RECORDS.map((r, i) => ({
+        'STT': i + 1,
+        'TÊN TÀI XẾ': r.driverName,
+        'SỐ XE': r.vehicleNumber,
+        'KL TRẠM TN (m³)': r.stationVolume,
+        'CHUYẾN LỚN': r.largeTrips,
+        'CHUYẾN NHỎ': r.smallTrips,
+        'TỔNG KM': r.totalKm,
+        'TỔNG CHUYẾN': r.totalTrips,
+        'XE NƯỚC': r.waterVehicles
+      }));
+      const ws = XLSX.utils.json_to_sheet(templateData);
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, 'Mẫu Báo Cáo Tài Xế');
+      XLSX.writeFile(wb, 'Mau_BaoCao_TaiXe_24Dong.xlsx');
+      showToast('Đã tải xuống file Excel mẫu chuẩn 24 dòng', 'success');
+    }
+
+    function resetToDemo() {
+      allRecords = [...SAMPLE_RECORDS];
+      resetAllFilters();
+      showToast('Đã nạp lại 24 dòng dữ liệu mẫu', 'info');
+    }
+
+    // ==================== EDIT / ADD RECORD ====================
+    function openEditModal(recordId) {
+      const modal = document.getElementById('edit-modal');
+      const title = document.getElementById('edit-modal-title');
+      modal.classList.remove('hidden');
+
+      if (recordId) {
+        const r = allRecords.find(item => item.id === recordId);
+        if (r) {
+          title.textContent = 'Chỉnh Sửa Thông Tin Tài Xế';
+          document.getElementById('edit-id').value = r.id;
+          document.getElementById('edit-driver-name').value = r.driverName || '';
+          document.getElementById('edit-vehicle-num').value = r.vehicleNumber || '';
+          document.getElementById('edit-volume').value = r.stationVolume || 0;
+          document.getElementById('edit-large-trips').value = r.largeTrips || 0;
+          document.getElementById('edit-small-trips').value = r.smallTrips || 0;
+          document.getElementById('edit-km').value = r.totalKm || 0;
+          document.getElementById('edit-total-trips').value = r.totalTrips || 0;
+          document.getElementById('edit-water-trips').value = r.waterVehicles || 0;
+        }
+      } else {
+        title.textContent = 'Thêm Bản Ghi Mới';
+        document.getElementById('edit-id').value = '';
+        document.getElementById('edit-driver-name').value = '';
+        document.getElementById('edit-vehicle-num').value = '';
+        document.getElementById('edit-volume').value = 0;
+        document.getElementById('edit-large-trips').value = 0;
+        document.getElementById('edit-small-trips').value = 0;
+        document.getElementById('edit-km').value = 0;
+        document.getElementById('edit-total-trips').value = 0;
+        document.getElementById('edit-water-trips').value = 0;
+      }
+      if (window.lucide) lucide.createIcons();
+    }
+
+    function closeEditModal() {
+      document.getElementById('edit-modal').classList.add('hidden');
+    }
+
+    function handleSaveDriver(e) {
+      e.preventDefault();
+      const id = document.getElementById('edit-id').value || `custom-${Date.now()}`;
+      const driver = document.getElementById('edit-driver-name').value.trim();
+      const vehicle = document.getElementById('edit-vehicle-num').value.trim().toUpperCase();
+      const vol = parseFloat(document.getElementById('edit-volume').value) || 0;
+      const large = parseInt(document.getElementById('edit-large-trips').value, 10) || 0;
+      const small = parseInt(document.getElementById('edit-small-trips').value, 10) || 0;
+      const km = parseInt(document.getElementById('edit-km').value, 10) || 0;
+      let totalT = parseInt(document.getElementById('edit-total-trips').value, 10);
+      if (isNaN(totalT) || totalT <= 0) totalT = large + small;
+      const water = parseInt(document.getElementById('edit-water-trips').value, 10) || 0;
+
+      const updatedRecord = {
+        id,
+        stt: 1,
+        driverName: driver,
+        vehicleNumber: vehicle,
+        stationVolume: Number(vol.toFixed(1)),
+        largeTrips: large,
+        smallTrips: small,
+        totalKm: km,
+        totalTrips: totalT,
+        waterVehicles: water,
+        hasWarning: driver.endsWith('.')
+      };
+
+      const existingIdx = allRecords.findIndex(r => r.id === id);
+      if (existingIdx >= 0) {
+        allRecords[existingIdx] = updatedRecord;
+        showToast(`Đã cập nhật thông tin tài xế ${driver}`, 'success');
+      } else {
+        allRecords.unshift(updatedRecord);
+        showToast(`Đã thêm mới tài xế ${driver}`, 'success');
+      }
+
+      closeEditModal();
+      applyFiltersAndRender();
+    }
+
+    function deleteDriverRecord(recordId) {
+      const rec = allRecords.find(r => r.id === recordId);
+      if (!rec) return;
+      openConfirmDialog('Xóa tài xế?', `Bạn có chắc chắn muốn xóa bản ghi của tài xế "${rec.driverName}"?`, () => {
+        allRecords = allRecords.filter(r => r.id !== recordId);
+        applyFiltersAndRender();
+        showToast(`Đã xóa tài xế ${rec.driverName}`, 'warning');
+      });
+    }
+
+    // ==================== CONFIRMATION DIALOG ====================
+    function openConfirmDialog(title, msg, onConfirm) {
+      document.getElementById('confirm-modal').classList.remove('hidden');
+      document.getElementById('confirm-title').textContent = title;
+      document.getElementById('confirm-message').textContent = msg;
+      const btn = document.getElementById('confirm-btn-action');
+      btn.onclick = () => {
+        onConfirm();
+        closeConfirmDialog();
+      };
+      if (window.lucide) lucide.createIcons();
+    }
+
+    function openClearConfirm() {
+      openConfirmDialog('Xóa toàn bộ dữ liệu?', 'Thao tác này sẽ xóa sạch toàn bộ danh sách tài xế. Bạn có thể nhấn Nạp lại 24 dòng mẫu bất cứ lúc nào.', () => {
+        allRecords = [];
+        applyFiltersAndRender();
+        showToast('Đã xóa toàn bộ dữ liệu', 'warning');
+      });
+    }
+
+    function closeConfirmDialog() {
+      document.getElementById('confirm-modal').classList.add('hidden');
+    }
+
+    // ==================== TOAST MESSAGES ====================
+    function showToast(msg, type = 'success') {
+      const container = document.getElementById('toast-container');
+      if (!container) return;
+      const el = document.createElement('div');
+      el.className = `flex items-center gap-3 px-4 py-3 rounded-xl shadow-lg border text-xs font-semibold mb-2 pointer-events-auto transition-all ${
+        type === 'success' ? 'bg-emerald-800 text-white border-emerald-700' : (type === 'warning' ? 'bg-amber-800 text-white border-amber-700' : 'bg-slate-900 text-white border-slate-800')
+      }`;
+      el.innerHTML = `<span>${msg}</span>`;
+      container.appendChild(el);
+      setTimeout(() => {
+        el.style.opacity = '0';
+        setTimeout(() => el.remove(), 300);
+      }, 4000);
+    }
+  </script>
+</body>
+</html>

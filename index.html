@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Quản Lý Tài Xế - Hệ Thống quản lý chuyến Tasago</title>
-  <meta name="description" content="Hệ thống quản lý dữ liệu chuyến của tài xế bê tông Tasago" />
+  <title>Quản Lý Dữ Liệu Tài Xế Bê Tông Tasago</title>
+  <meta name="description" content="Hệ thống quản lý, lưu trữ dữ liệu bê tông Tasago" />
 
   <!-- Google Fonts: Plus Jakarta Sans & JetBrains Mono -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -96,12 +96,24 @@
 
         <!-- Header Action Buttons -->
         <div class="flex flex-wrap items-center gap-2">
+          <!-- Primary Image OCR Button -->
+          <button
+            type="button"
+            id="btn-open-image-ocr"
+            onclick="openImageOcrModal()"
+            class="inline-flex items-center gap-2 px-3.5 py-2 text-sm font-bold text-white bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-700 hover:to-indigo-700 rounded-lg shadow-sm hover:shadow transition-all duration-150 active:scale-[0.98] cursor-pointer"
+            title="Tải ảnh bảng dữ liệu hoặc chụp ảnh để AI tự động nhận dạng vùng số liệu"
+          >
+            <i data-lucide="scan-line" class="w-4 h-4 text-violet-200"></i>
+            <span>Quét ảnh AI</span>
+          </button>
+
           <!-- Primary Upload Button -->
           <button
             type="button"
             id="btn-open-upload"
             onclick="openUploadModal()"
-            class="inline-flex items-center gap-2 px-4 py-2 text-sm font-bold text-white bg-gradient-to-r from-[#00529B] to-[#0066CC] hover:from-[#003B73] hover:to-[#00529B] rounded-lg shadow-sm hover:shadow transition-all duration-150 active:scale-[0.98] cursor-pointer"
+            class="inline-flex items-center gap-2 px-3.5 py-2 text-sm font-bold text-white bg-gradient-to-r from-[#00529B] to-[#0066CC] hover:from-[#003B73] hover:to-[#00529B] rounded-lg shadow-sm hover:shadow transition-all duration-150 active:scale-[0.98] cursor-pointer"
           >
             <i data-lucide="upload" class="w-4 h-4"></i>
             <span>Tải Excel lên</span>
@@ -574,6 +586,224 @@
         <button type="button" id="btn-confirm-import-data" onclick="confirmExcelImport()" disabled class="inline-flex items-center gap-2 px-5 py-2.5 text-xs font-bold text-white bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 disabled:opacity-40 disabled:cursor-not-allowed rounded-lg shadow-sm cursor-pointer">
           <i data-lucide="check-circle" class="w-4 h-4"></i>
           <span id="btn-confirm-text">Xác nhận nhập dữ liệu</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== IMAGE OCR & REGION RECOGNITION MODAL ==================== -->
+  <div id="image-ocr-modal" class="hidden fixed inset-0 z-50 overflow-y-auto bg-slate-900/70 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4">
+    <div class="bg-white rounded-2xl shadow-2xl border border-slate-200 w-full max-w-5xl max-h-[92vh] flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-150">
+      <!-- Modal Header -->
+      <div class="bg-gradient-to-r from-slate-900 via-indigo-950 to-blue-950 text-white px-6 py-4 flex items-center justify-between">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-xl bg-violet-500/20 text-violet-300 border border-violet-400/30 flex items-center justify-center">
+            <i data-lucide="scan-line" class="w-5 h-5"></i>
+          </div>
+          <div>
+            <div class="flex items-center gap-2">
+              <h3 class="text-base font-bold tracking-tight">Nhận Dạng Bảng Dữ Liệu Từ Hình Ảnh</h3>
+              <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-violet-500/30 text-violet-200 border border-violet-400/40">AI Vision OCR</span>
+            </div>
+            <p class="text-xs text-slate-300">Tải ảnh chụp / ảnh scan, khoanh vùng dữ liệu và cập nhật trực tiếp vào hệ thống</p>
+          </div>
+        </div>
+        <button type="button" onclick="closeImageOcrModal()" class="p-1.5 text-white/80 hover:text-white hover:bg-white/10 rounded-lg cursor-pointer">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <!-- Modal Body -->
+      <div id="image-ocr-body" class="p-5 sm:p-6 overflow-y-auto flex-1 space-y-4 custom-scrollbar">
+        <!-- Step 1: Upload / Dropzone (Shown initially) -->
+        <div id="ocr-step-upload" class="space-y-4">
+          <div
+            id="ocr-dropzone"
+            ondragover="handleOcrDragOver(event)"
+            ondrop="handleOcrDrop(event)"
+            onclick="document.getElementById('ocr-file-input').click()"
+            class="border-2 border-dashed border-violet-300 hover:border-violet-500 bg-violet-50/40 hover:bg-violet-50/70 rounded-2xl p-8 sm:p-10 text-center cursor-pointer transition-all duration-150 flex flex-col items-center justify-center group"
+          >
+            <input type="file" id="ocr-file-input" accept="image/png,image/jpeg,image/jpg,image/webp" class="hidden" onchange="handleOcrFileSelect(event)" />
+            <div class="w-16 h-16 rounded-2xl bg-gradient-to-tr from-violet-600 to-indigo-600 text-white flex items-center justify-center shadow-lg shadow-violet-500/25 group-hover:scale-105 transition-transform mb-3">
+              <i data-lucide="image-up" class="w-8 h-8"></i>
+            </div>
+            <h4 class="text-base font-bold text-slate-800 mb-1">Kéo thả ảnh vào đây, hoặc click để chọn ảnh</h4>
+            <p class="text-xs text-slate-500 max-w-md mb-4">
+              Hỗ trợ định dạng <strong>PNG, JPG, JPEG, WEBP</strong>. Bạn cũng có thể nhấn <strong>Ctrl + V</strong> ở bất kỳ đâu để dán ảnh chụp màn hình!
+            </p>
+            <div class="flex flex-wrap items-center justify-center gap-2">
+              <button type="button" class="px-4 py-2 text-xs font-bold text-white bg-violet-600 hover:bg-violet-700 rounded-lg shadow-sm">
+                📁 Chọn ảnh từ thiết bị
+              </button>
+              <button type="button" onclick="event.stopPropagation(); loadSampleOcrImage();" class="px-3.5 py-2 text-xs font-bold text-violet-700 bg-white hover:bg-violet-100 border border-violet-300 rounded-lg shadow-xs">
+                🖼️ Thử ảnh mẫu bảng dữ liệu
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Step 2: Interactive Region Selection Stage -->
+        <div id="ocr-step-crop" class="hidden space-y-4">
+          <!-- Toolbar -->
+          <div class="flex flex-wrap items-center justify-between gap-3 bg-slate-50 border border-slate-200 rounded-xl p-3">
+            <div class="flex items-center gap-2 text-xs font-medium text-slate-700">
+              <span class="font-bold text-violet-800 flex items-center gap-1">
+                <i data-lucide="crop" class="w-4 h-4"></i>
+                Vùng khoanh chọn:
+              </span>
+              <span id="ocr-region-coords-text" class="font-mono text-slate-600 bg-white px-2 py-0.5 rounded border border-slate-200">Toàn bộ ảnh (100%)</span>
+            </div>
+
+            <div class="flex flex-wrap items-center gap-2">
+              <button type="button" onclick="selectFullImageRegion()" class="px-3 py-1.5 text-xs font-semibold text-slate-700 bg-white hover:bg-slate-100 border border-slate-300 rounded-lg">
+                Toàn bộ ảnh
+              </button>
+              <button type="button" onclick="resetCropSelection()" class="px-3 py-1.5 text-xs font-semibold text-slate-700 bg-white hover:bg-slate-100 border border-slate-300 rounded-lg">
+                Đặt lại khung
+              </button>
+              <button type="button" onclick="resetImageOcrDialog()" class="px-3 py-1.5 text-xs font-semibold text-slate-600 hover:text-red-600 hover:bg-red-50 border border-slate-200 rounded-lg">
+                Đổi ảnh
+              </button>
+            </div>
+          </div>
+
+          <!-- Interactive Image & Bounding Box Workspace -->
+          <div class="relative bg-slate-900 rounded-2xl overflow-hidden shadow-inner flex items-center justify-center min-h-[340px] max-h-[500px] select-none border border-slate-300" id="ocr-canvas-wrapper">
+            <img id="ocr-preview-img" src="" alt="OCR Preview" class="max-w-full max-h-[500px] object-contain block mx-auto pointer-events-none" />
+
+            <!-- Draggable & Resizable Crop Overlay -->
+            <div id="ocr-crop-overlay" class="absolute border-2 border-violet-500 bg-violet-500/15 cursor-move shadow-[0_0_0_9999px_rgba(15,23,42,0.65)]" style="top: 10%; left: 5%; width: 90%; height: 80%;">
+              <!-- Crop Handles -->
+              <div class="absolute -top-1.5 -left-1.5 w-3 h-3 bg-violet-600 border-2 border-white rounded-full cursor-nwse-resize" data-handle="nw"></div>
+              <div class="absolute -top-1.5 -right-1.5 w-3 h-3 bg-violet-600 border-2 border-white rounded-full cursor-nesw-resize" data-handle="ne"></div>
+              <div class="absolute -bottom-1.5 -left-1.5 w-3 h-3 bg-violet-600 border-2 border-white rounded-full cursor-nesw-resize" data-handle="sw"></div>
+              <div class="absolute -bottom-1.5 -right-1.5 w-3 h-3 bg-violet-600 border-2 border-white rounded-full cursor-nwse-resize" data-handle="se"></div>
+              <!-- Edge Handles -->
+              <div class="absolute top-1/2 -left-1.5 -translate-y-1/2 w-3 h-3 bg-violet-600 border-2 border-white rounded-full cursor-ew-resize" data-handle="w"></div>
+              <div class="absolute top-1/2 -right-1.5 -translate-y-1/2 w-3 h-3 bg-violet-600 border-2 border-white rounded-full cursor-ew-resize" data-handle="e"></div>
+              <div class="absolute -top-1.5 left-1/2 -translate-x-1/2 w-3 h-3 bg-violet-600 border-2 border-white rounded-full cursor-ns-resize" data-handle="n"></div>
+              <div class="absolute -bottom-1.5 left-1/2 -translate-x-1/2 w-3 h-3 bg-violet-600 border-2 border-white rounded-full cursor-ns-resize" data-handle="s"></div>
+
+              <!-- Region Tag -->
+              <div class="absolute top-2 left-2 px-2 py-0.5 rounded bg-violet-700 text-white text-[10px] font-bold shadow-xs pointer-events-none flex items-center gap-1">
+                <span>VÙNG NHẬN DẠNG</span>
+              </div>
+            </div>
+
+            <!-- Scanning Laser Animation (Shown during recognition) -->
+            <div id="ocr-scanning-laser" class="hidden absolute inset-x-0 h-1 bg-gradient-to-r from-transparent via-cyan-400 to-transparent shadow-[0_0_15px_#22d3ee] animate-pulse"></div>
+          </div>
+
+          <!-- Quick instructions & Action -->
+          <div class="flex flex-col sm:flex-row items-center justify-between gap-3 bg-violet-50 border border-violet-200 rounded-xl p-3.5 text-xs text-slate-700">
+            <p class="flex items-center gap-2">
+              <span class="text-violet-600 font-bold">💡 Mẹo:</span>
+              <span>Kéo hoặc điều chỉnh khung tím bao quanh bảng dữ liệu tài xế để nhận dạng chính xác nhất.</span>
+            </p>
+            <button
+              type="button"
+              id="btn-start-ocr-scan"
+              onclick="startImageOcrRecognition()"
+              class="shrink-0 inline-flex items-center gap-2 px-5 py-2.5 text-xs font-bold text-white bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-700 hover:to-indigo-700 rounded-lg shadow-md active:scale-95 cursor-pointer"
+            >
+              <i data-lucide="sparkles" class="w-4 h-4 text-violet-200"></i>
+              <span>Nhận dạng vùng đã chọn</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Step 3: Loading Progress Bar -->
+        <div id="ocr-step-loading" class="hidden py-12 text-center space-y-4">
+          <div class="relative w-16 h-16 mx-auto">
+            <div class="w-16 h-16 rounded-2xl bg-violet-600 text-white flex items-center justify-center animate-bounce shadow-lg shadow-violet-500/30">
+              <i data-lucide="scan-line" class="w-8 h-8"></i>
+            </div>
+            <div class="absolute -inset-1 rounded-2xl bg-violet-400 opacity-30 animate-ping"></div>
+          </div>
+          <div class="space-y-1">
+            <h4 class="text-base font-bold text-slate-800" id="ocr-loading-title">Đang phân tích và bóc tách dữ liệu từ ảnh...</h4>
+            <p class="text-xs text-slate-500" id="ocr-loading-desc">AI đang nhận diện tên tài xế, số xe, KL trạm, số chuyến và km...</p>
+          </div>
+        </div>
+
+        <!-- Step 4: Results & Verification Table -->
+        <div id="ocr-step-results" class="hidden space-y-4">
+          <!-- Summary Header of Extracted Data -->
+          <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            <div class="bg-blue-50 border border-blue-200 rounded-xl p-3">
+              <p class="text-[11px] font-bold text-blue-800">SỐ DÒNG NHẬN DIỆN</p>
+              <p class="text-lg font-black text-blue-900" id="ocr-res-count">0 tài xế</p>
+            </div>
+            <div class="bg-purple-50 border border-purple-200 rounded-xl p-3">
+              <p class="text-[11px] font-bold text-purple-800">TỔNG KL TRẠM (m³)</p>
+              <p class="text-lg font-black text-purple-900" id="ocr-res-volume">0.0</p>
+            </div>
+            <div class="bg-emerald-50 border border-emerald-200 rounded-xl p-3">
+              <p class="text-[11px] font-bold text-emerald-800">TỔNG KM</p>
+              <p class="text-lg font-black text-emerald-900" id="ocr-res-km">0</p>
+            </div>
+            <div class="bg-rose-50 border border-rose-200 rounded-xl p-3">
+              <p class="text-[11px] font-bold text-rose-800">TỔNG CHUYẾN</p>
+              <p class="text-lg font-black text-rose-900" id="ocr-res-trips">0</p>
+            </div>
+          </div>
+
+          <!-- Mode selector (Replace vs Append) -->
+          <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 bg-slate-50 border border-slate-200 rounded-xl p-3.5 text-xs">
+            <div class="flex items-center gap-4">
+              <span class="font-bold text-slate-800">Cách cập nhật:</span>
+              <label class="flex items-center gap-1.5 font-semibold text-slate-700 cursor-pointer">
+                <input type="radio" name="ocr-import-mode" value="replace" checked class="text-violet-600 focus:ring-violet-500" />
+                <span>Thay thế toàn bộ bảng hiện tại</span>
+              </label>
+              <label class="flex items-center gap-1.5 font-semibold text-slate-700 cursor-pointer">
+                <input type="radio" name="ocr-import-mode" value="append" class="text-violet-600 focus:ring-violet-500" />
+                <span>Nối tiếp vào danh sách</span>
+              </label>
+            </div>
+            <button type="button" onclick="backToCropStage()" class="px-3 py-1.5 font-semibold text-slate-600 hover:text-slate-900 bg-white border border-slate-200 rounded-lg">
+              Quét lại / Chọn vùng khác
+            </button>
+          </div>
+
+          <!-- Preview & Editable Table -->
+          <div class="border border-slate-200 rounded-xl overflow-x-auto max-h-72 shadow-xs custom-scrollbar">
+            <table class="w-full text-left text-xs border-collapse">
+              <thead class="bg-[#003B73] text-white font-bold sticky top-0">
+                <tr>
+                  <th class="py-2.5 px-2 text-center w-12">STT</th>
+                  <th class="py-2.5 px-3 min-w-[160px]">TÊN TÀI XẾ</th>
+                  <th class="py-2.5 px-2.5 min-w-[110px]">SỐ XE</th>
+                  <th class="py-2.5 px-2 text-center">KL TRẠM</th>
+                  <th class="py-2.5 px-2 text-center">CHUYẾN LỚN</th>
+                  <th class="py-2.5 px-2 text-center">CHUYẾN NHỎ</th>
+                  <th class="py-2.5 px-2 text-center">TỔNG KM</th>
+                  <th class="py-2.5 px-2 text-center">TỔNG CHUYẾN</th>
+                  <th class="py-2.5 px-2 text-center">XE NƯỚC</th>
+                  <th class="py-2.5 px-2 text-center w-12">XÓA</th>
+                </tr>
+              </thead>
+              <tbody id="ocr-results-tbody" class="divide-y divide-slate-100 bg-white"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- Modal Footer -->
+      <div class="bg-slate-50 border-t border-slate-200 px-6 py-3.5 flex items-center justify-between">
+        <button type="button" onclick="closeImageOcrModal()" class="px-4 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-200/70 rounded-lg cursor-pointer">
+          Đóng
+        </button>
+        <button
+          type="button"
+          id="btn-apply-ocr-data"
+          onclick="applyImageOcrDataToSystem()"
+          disabled
+          class="inline-flex items-center gap-2 px-5 py-2.5 text-xs font-bold text-white bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 disabled:opacity-40 disabled:cursor-not-allowed rounded-lg shadow-sm cursor-pointer"
+        >
+          <i data-lucide="check-check" class="w-4 h-4"></i>
+          <span id="btn-apply-ocr-text">Áp dụng vào hệ thống</span>
         </button>
       </div>
     </div>
@@ -1778,7 +2008,7 @@
       if (!container) return;
       const el = document.createElement('div');
       el.className = `flex items-center gap-3 px-4 py-3 rounded-xl shadow-lg border text-xs font-semibold mb-2 pointer-events-auto transition-all ${
-        type === 'success' ? 'bg-emerald-800 text-white border-emerald-700' : (type === 'warning' ? 'bg-amber-800 text-white border-amber-700' : 'bg-slate-900 text-white border-slate-800')
+        type === 'success' ? 'bg-emerald-800 text-white border-emerald-700' : (type === 'warning' ? 'bg-amber-800 text-white border-amber-700' : (type === 'error' ? 'bg-rose-900 text-white border-rose-800' : 'bg-slate-900 text-white border-slate-800'))
       }`;
       el.innerHTML = `<span>${msg}</span>`;
       container.appendChild(el);
@@ -1786,6 +2016,470 @@
         el.style.opacity = '0';
         setTimeout(() => el.remove(), 300);
       }, 4000);
+    }
+
+    // ==================== IMAGE OCR & REGION RECOGNITION ENGINE ====================
+    let ocrImageBase64 = '';
+    let ocrImageMime = 'image/jpeg';
+    let ocrExtractedDrivers = [];
+    let ocrRegion = { x: 5, y: 10, width: 90, height: 80 }; // Percentage coordinates
+
+    function openImageOcrModal() {
+      const modal = document.getElementById('image-ocr-modal');
+      modal.classList.remove('hidden');
+      if (!ocrImageBase64) {
+        resetImageOcrDialog();
+      }
+      if (window.lucide) lucide.createIcons();
+    }
+
+    function closeImageOcrModal() {
+      document.getElementById('image-ocr-modal').classList.add('hidden');
+    }
+
+    function resetImageOcrDialog() {
+      ocrImageBase64 = '';
+      ocrExtractedDrivers = [];
+      document.getElementById('ocr-step-upload').classList.remove('hidden');
+      document.getElementById('ocr-step-crop').classList.add('hidden');
+      document.getElementById('ocr-step-loading').classList.add('hidden');
+      document.getElementById('ocr-step-results').classList.add('hidden');
+      document.getElementById('btn-apply-ocr-data').disabled = true;
+      document.getElementById('ocr-file-input').value = '';
+      if (window.lucide) lucide.createIcons();
+    }
+
+    function handleOcrDragOver(e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+
+    function handleOcrDrop(e) {
+      e.preventDefault();
+      e.stopPropagation();
+      const files = e.dataTransfer?.files;
+      if (files && files.length > 0) {
+        loadOcrImageFile(files[0]);
+      }
+    }
+
+    function handleOcrFileSelect(e) {
+      const files = e.target.files;
+      if (files && files.length > 0) {
+        loadOcrImageFile(files[0]);
+      }
+    }
+
+    function loadOcrImageFile(file) {
+      if (!file || !file.type.startsWith('image/')) {
+        showToast('Vui lòng chọn một file hình ảnh (PNG, JPG, JPEG, WEBP)', 'warning');
+        return;
+      }
+      ocrImageMime = file.type || 'image/jpeg';
+      const reader = new FileReader();
+      reader.onload = (evt) => {
+        ocrImageBase64 = evt.target.result;
+        displayOcrCropStage(ocrImageBase64);
+      };
+      reader.readAsDataURL(file);
+    }
+
+    // Global Paste Listener for Ctrl+V
+    window.addEventListener('paste', (e) => {
+      const items = e.clipboardData?.items;
+      if (!items) return;
+      for (let i = 0; i < items.length; i++) {
+        if (items[i].type.indexOf('image') !== -1) {
+          const blob = items[i].getAsFile();
+          if (blob) {
+            openImageOcrModal();
+            loadOcrImageFile(blob);
+            showToast('Đã nhận hình ảnh từ clipboard (Ctrl + V)!', 'info');
+            break;
+          }
+        }
+      }
+    });
+
+    function displayOcrCropStage(imageSrc) {
+      document.getElementById('ocr-step-upload').classList.add('hidden');
+      document.getElementById('ocr-step-crop').classList.remove('hidden');
+      document.getElementById('ocr-step-loading').classList.add('hidden');
+      document.getElementById('ocr-step-results').classList.add('hidden');
+
+      const img = document.getElementById('ocr-preview-img');
+      img.src = imageSrc;
+
+      img.onload = () => {
+        resetCropSelection();
+        initInteractiveCropper();
+      };
+      if (window.lucide) lucide.createIcons();
+    }
+
+    function selectFullImageRegion() {
+      ocrRegion = { x: 0, y: 0, width: 100, height: 100 };
+      updateCropOverlayUI();
+    }
+
+    function resetCropSelection() {
+      ocrRegion = { x: 5, y: 10, width: 90, height: 80 };
+      updateCropOverlayUI();
+    }
+
+    function updateCropOverlayUI() {
+      const overlay = document.getElementById('ocr-crop-overlay');
+      if (!overlay) return;
+      overlay.style.left = `${ocrRegion.x}%`;
+      overlay.style.top = `${ocrRegion.y}%`;
+      overlay.style.width = `${ocrRegion.width}%`;
+      overlay.style.height = `${ocrRegion.height}%`;
+
+      const text = document.getElementById('ocr-region-coords-text');
+      if (text) {
+        text.textContent = `X: ${Math.round(ocrRegion.x)}%, Y: ${Math.round(ocrRegion.y)}% | Rộng: ${Math.round(ocrRegion.width)}%, Cao: ${Math.round(ocrRegion.height)}%`;
+      }
+    }
+
+    // Interactive Cropper Drag & Resize Engine
+    let isCropperInited = false;
+    function initInteractiveCropper() {
+      const wrapper = document.getElementById('ocr-canvas-wrapper');
+      const overlay = document.getElementById('ocr-crop-overlay');
+      if (!wrapper || !overlay) return;
+
+      let isDragging = false;
+      let activeHandle = null;
+      let startX = 0;
+      let startY = 0;
+      let initialRegion = { ...ocrRegion };
+
+      // Prevent multiple listeners
+      if (isCropperInited) return;
+      isCropperInited = true;
+
+      function onStart(e) {
+        const target = e.target;
+        const rect = wrapper.getBoundingClientRect();
+        const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+        const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+
+        if (target.dataset.handle) {
+          activeHandle = target.dataset.handle;
+          isDragging = false;
+        } else if (target === overlay || overlay.contains(target)) {
+          isDragging = true;
+          activeHandle = null;
+        } else {
+          return;
+        }
+
+        startX = clientX;
+        startY = clientY;
+        initialRegion = { ...ocrRegion };
+        e.preventDefault();
+      }
+
+      function onMove(e) {
+        if (!isDragging && !activeHandle) return;
+        const rect = wrapper.getBoundingClientRect();
+        const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+        const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+
+        const deltaX = ((clientX - startX) / rect.width) * 100;
+        const deltaY = ((clientY - startY) / rect.height) * 100;
+
+        if (isDragging) {
+          let newX = Math.max(0, Math.min(100 - initialRegion.width, initialRegion.x + deltaX));
+          let newY = Math.max(0, Math.min(100 - initialRegion.height, initialRegion.y + deltaY));
+          ocrRegion.x = newX;
+          ocrRegion.y = newY;
+        } else if (activeHandle) {
+          let { x, y, width, height } = initialRegion;
+
+          if (activeHandle.includes('e')) {
+            width = Math.max(10, Math.min(100 - x, initialRegion.width + deltaX));
+          }
+          if (activeHandle.includes('s')) {
+            height = Math.max(10, Math.min(100 - y, initialRegion.height + deltaY));
+          }
+          if (activeHandle.includes('w')) {
+            const maxX = initialRegion.x + initialRegion.width - 10;
+            const newX = Math.max(0, Math.min(maxX, initialRegion.x + deltaX));
+            width = initialRegion.width + (initialRegion.x - newX);
+            x = newX;
+          }
+          if (activeHandle.includes('n')) {
+            const maxY = initialRegion.y + initialRegion.height - 10;
+            const newY = Math.max(0, Math.min(maxY, initialRegion.y + deltaY));
+            height = initialRegion.height + (initialRegion.y - newY);
+            y = newY;
+          }
+
+          ocrRegion = { x, y, width, height };
+        }
+
+        updateCropOverlayUI();
+      }
+
+      function onEnd() {
+        isDragging = false;
+        activeHandle = null;
+      }
+
+      overlay.addEventListener('mousedown', onStart);
+      overlay.addEventListener('touchstart', onStart, { passive: false });
+      window.addEventListener('mousemove', onMove);
+      window.addEventListener('touchmove', onMove, { passive: false });
+      window.addEventListener('mouseup', onEnd);
+      window.addEventListener('touchend', onEnd);
+    }
+
+    // Generate high-resolution test image canvas for immediate testing
+    function loadSampleOcrImage() {
+      const canvas = document.createElement('canvas');
+      canvas.width = 1200;
+      canvas.height = 700;
+      const ctx = canvas.getContext('2d');
+
+      // Background
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      // Title
+      ctx.fillStyle = '#003b73';
+      ctx.font = 'bold 26px "Plus Jakarta Sans", Arial, sans-serif';
+      ctx.fillText('BẢNG BÁO CÁO VẬN HÀNH ĐỘI XE VÀ TÀI XẾ (MẪU ẢNH THỰC TẾ)', 40, 50);
+
+      ctx.fillStyle = '#64748b';
+      ctx.font = '14px Arial';
+      ctx.fillText('Trích xuất ngày 18/08/2026 • Khu vực TP. Hồ Chí Minh', 40, 75);
+
+      // Table Header
+      const startX = 40;
+      const startY = 100;
+      const colWidths = [60, 240, 140, 130, 110, 110, 120, 110, 100];
+      const headers = ['STT', 'TÊN TÀI XẾ', 'SỐ XE', 'KL TRẠM (m³)', 'CHUYẾN LỚN', 'CHUYẾN NHỎ', 'TỔNG KM', 'TỔNG CHUYẾN', 'XE NƯỚC'];
+
+      ctx.fillStyle = '#004b93';
+      ctx.fillRect(startX, startY, 1120, 40);
+
+      ctx.fillStyle = '#ffffff';
+      ctx.font = 'bold 13px Arial';
+      let curX = startX;
+      headers.forEach((h, idx) => {
+        ctx.fillText(h, curX + 10, startY + 25);
+        curX += colWidths[idx];
+      });
+
+      // Sample Data Rows
+      const sampleRows = [
+        ['1', 'Đặng Kim Thương', '51B 33618', '356.5', '50', '0', '1683', '50', '0'],
+        ['2', 'Nguyễn Thanh Phong', '51N 04419', '242.0', '26', '2', '775', '28', '1'],
+        ['3', 'Lê Văn Nhành', '50CD 00927', '341.8', '47', '4', '1622', '51', '2'],
+        ['4', 'Huỳnh Minh Luận', '51L 93030', '265.5', '28', '3', '887', '31', '0'],
+        ['5', 'Phan Hoàng Vũ', '51M 93245', '357.2', '40', '7', '1557', '47', '3'],
+        ['6', 'Võ Chí Linh', '51N 04245', '257.9', '29', '2', '980', '31', '2'],
+        ['7', 'Nguyễn Thanh Tùng', '51E 33146', '216.5', '30', '1', '711', '31', '1'],
+        ['8', 'Nguyễn Hữu Hòa', '51L 92546', '240.8', '28', '3', '1004', '31', '1'],
+        ['9', 'Nguyễn Văn Nghĩa', '51N 04357', '273.5', '30', '3', '925', '33', '1'],
+        ['10', 'Nguyễn Đức Giang', '51L 73164', '304.8', '43', '1', '1414', '44', '1']
+      ];
+
+      sampleRows.forEach((row, rIdx) => {
+        const rowY = startY + 40 + (rIdx * 35);
+        ctx.fillStyle = rIdx % 2 === 0 ? '#f8fafc' : '#ffffff';
+        ctx.fillRect(startX, rowY, 1120, 35);
+
+        // Border
+        ctx.strokeStyle = '#e2e8f0';
+        ctx.strokeRect(startX, rowY, 1120, 35);
+
+        ctx.fillStyle = '#1e293b';
+        ctx.font = '13px Arial';
+        let rowX = startX;
+        row.forEach((val, cIdx) => {
+          if (cIdx === 1) ctx.font = 'bold 13px Arial';
+          else ctx.font = '13px Arial';
+          ctx.fillText(val, rowX + 10, rowY + 22);
+          rowX += colWidths[cIdx];
+        });
+      });
+
+      ocrImageBase64 = canvas.toDataURL('image/png');
+      ocrImageMime = 'image/png';
+      displayOcrCropStage(ocrImageBase64);
+      showToast('Đã nạp ảnh mẫu bảng dữ liệu tài xế!', 'info');
+    }
+
+    async function startImageOcrRecognition() {
+      if (!ocrImageBase64) return;
+
+      // Show Loading & Laser
+      document.getElementById('ocr-step-crop').classList.add('hidden');
+      document.getElementById('ocr-step-loading').classList.remove('hidden');
+      document.getElementById('ocr-step-results').classList.add('hidden');
+      if (window.lucide) lucide.createIcons();
+
+      try {
+        const response = await fetch('/api/recognize-image', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            image: ocrImageBase64,
+            mimeType: ocrImageMime,
+            region: ocrRegion
+          })
+        });
+
+        if (!response.ok) {
+          const errData = await response.json().catch(() => ({}));
+          throw new Error(errData.error || `Lỗi máy chủ (${response.status})`);
+        }
+
+        const data = await response.json();
+        const rawDrivers = data.drivers || [];
+
+        if (rawDrivers.length === 0) {
+          showToast('Không tìm thấy dòng dữ liệu tài xế nào trong vùng đã chọn. Vui lòng mở rộng vùng khoanh chọn và thử lại!', 'warning');
+          backToCropStage();
+          return;
+        }
+
+        // Normalize Extracted Drivers
+        ocrExtractedDrivers = rawDrivers.map((d, i) => ({
+          id: `ocr-${Date.now()}-${i+1}`,
+          stt: d.stt || (i + 1),
+          driverName: (d.driverName || '').trim(),
+          vehicleNumber: (d.vehicleNumber || '').trim().toUpperCase(),
+          stationVolume: typeof d.stationVolume === 'number' ? Number(d.stationVolume.toFixed(1)) : 0,
+          largeTrips: typeof d.largeTrips === 'number' ? d.largeTrips : 0,
+          smallTrips: typeof d.smallTrips === 'number' ? d.smallTrips : 0,
+          totalKm: typeof d.totalKm === 'number' ? d.totalKm : 0,
+          totalTrips: typeof d.totalTrips === 'number' && d.totalTrips > 0 ? d.totalTrips : ((d.largeTrips || 0) + (d.smallTrips || 0)),
+          waterVehicles: typeof d.waterVehicles === 'number' ? d.waterVehicles : 0,
+          hasWarning: (d.driverName || '').endsWith('.')
+        }));
+
+        renderOcrResultsTable();
+        showToast(`AI đã nhận diện thành công ${ocrExtractedDrivers.length} tài xế từ ảnh!`, 'success');
+      } catch (err) {
+        console.error('OCR Error:', err);
+        showToast(err.message || 'Không thể nhận dạng ảnh. Vui lòng thử lại!', 'error');
+        backToCropStage();
+      }
+    }
+
+    function backToCropStage() {
+      document.getElementById('ocr-step-upload').classList.add('hidden');
+      document.getElementById('ocr-step-crop').classList.remove('hidden');
+      document.getElementById('ocr-step-loading').classList.add('hidden');
+      document.getElementById('ocr-step-results').classList.add('hidden');
+      if (window.lucide) lucide.createIcons();
+    }
+
+    function renderOcrResultsTable() {
+      document.getElementById('ocr-step-loading').classList.add('hidden');
+      document.getElementById('ocr-step-crop').classList.add('hidden');
+      document.getElementById('ocr-step-results').classList.remove('hidden');
+
+      // Totals
+      const totalVol = ocrExtractedDrivers.reduce((acc, d) => acc + (d.stationVolume || 0), 0);
+      const totalKm = ocrExtractedDrivers.reduce((acc, d) => acc + (d.totalKm || 0), 0);
+      const totalTrips = ocrExtractedDrivers.reduce((acc, d) => acc + (d.totalTrips || 0), 0);
+
+      document.getElementById('ocr-res-count').textContent = `${ocrExtractedDrivers.length} tài xế`;
+      document.getElementById('ocr-res-volume').textContent = totalVol.toFixed(1);
+      document.getElementById('ocr-res-km').textContent = totalKm.toLocaleString('vi-VN');
+      document.getElementById('ocr-res-trips').textContent = totalTrips.toLocaleString('vi-VN');
+
+      const tbody = document.getElementById('ocr-results-tbody');
+      tbody.innerHTML = ocrExtractedDrivers.map((r, idx) => `
+        <tr class="hover:bg-blue-50/50 transition-colors" id="ocr-row-${r.id}">
+          <td class="py-2 px-2 text-center text-slate-500 font-bold">${idx + 1}</td>
+          <td class="py-2 px-3">
+            <input type="text" value="${r.driverName}" oninput="updateOcrItem('${r.id}', 'driverName', this.value)" class="w-full px-2 py-1 bg-slate-50 border border-slate-200 rounded font-bold text-slate-900" />
+          </td>
+          <td class="py-2 px-2.5">
+            <input type="text" value="${r.vehicleNumber}" oninput="updateOcrItem('${r.id}', 'vehicleNumber', this.value.toUpperCase())" class="w-full px-2 py-1 bg-slate-50 border border-slate-200 rounded font-mono font-bold text-blue-900" />
+          </td>
+          <td class="py-2 px-2 text-center">
+            <input type="number" step="0.1" value="${r.stationVolume}" oninput="updateOcrItem('${r.id}', 'stationVolume', parseFloat(this.value)||0)" class="w-20 px-1.5 py-1 bg-slate-50 border border-slate-200 rounded text-center font-bold text-purple-700" />
+          </td>
+          <td class="py-2 px-2 text-center">
+            <input type="number" value="${r.largeTrips}" oninput="updateOcrItem('${r.id}', 'largeTrips', parseInt(this.value,10)||0)" class="w-16 px-1.5 py-1 bg-slate-50 border border-slate-200 rounded text-center font-bold text-amber-600" />
+          </td>
+          <td class="py-2 px-2 text-center">
+            <input type="number" value="${r.smallTrips}" oninput="updateOcrItem('${r.id}', 'smallTrips', parseInt(this.value,10)||0)" class="w-16 px-1.5 py-1 bg-slate-50 border border-slate-200 rounded text-center font-bold text-amber-500" />
+          </td>
+          <td class="py-2 px-2 text-center">
+            <input type="number" value="${r.totalKm}" oninput="updateOcrItem('${r.id}', 'totalKm', parseInt(this.value,10)||0)" class="w-20 px-1.5 py-1 bg-slate-50 border border-slate-200 rounded text-center font-mono font-bold text-emerald-700" />
+          </td>
+          <td class="py-2 px-2 text-center">
+            <input type="number" value="${r.totalTrips}" oninput="updateOcrItem('${r.id}', 'totalTrips', parseInt(this.value,10)||0)" class="w-16 px-1.5 py-1 bg-slate-50 border border-slate-200 rounded text-center font-bold text-red-600" />
+          </td>
+          <td class="py-2 px-2 text-center">
+            <input type="number" value="${r.waterVehicles}" oninput="updateOcrItem('${r.id}', 'waterVehicles', parseInt(this.value,10)||0)" class="w-14 px-1.5 py-1 bg-slate-50 border border-slate-200 rounded text-center font-bold text-blue-700" />
+          </td>
+          <td class="py-2 px-2 text-center">
+            <button type="button" onclick="removeOcrItem('${r.id}')" class="p-1 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded transition-colors">
+              <i data-lucide="trash-2" class="w-4 h-4"></i>
+            </button>
+          </td>
+        </tr>
+      `).join('');
+
+      document.getElementById('btn-apply-ocr-data').disabled = ocrExtractedDrivers.length === 0;
+      document.getElementById('btn-apply-ocr-text').textContent = `Áp dụng vào hệ thống (${ocrExtractedDrivers.length} dòng)`;
+      if (window.lucide) lucide.createIcons();
+    }
+
+    function updateOcrItem(id, field, val) {
+      const item = ocrExtractedDrivers.find(d => d.id === id);
+      if (!item) return;
+      item[field] = val;
+      if (field === 'largeTrips' || field === 'smallTrips') {
+        item.totalTrips = (item.largeTrips || 0) + (item.smallTrips || 0);
+      }
+    }
+
+    function removeOcrItem(id) {
+      ocrExtractedDrivers = ocrExtractedDrivers.filter(d => d.id !== id);
+      renderOcrResultsTable();
+    }
+
+    function applyImageOcrDataToSystem() {
+      if (!ocrExtractedDrivers.length) return;
+
+      const mode = document.querySelector('input[name="ocr-import-mode"]:checked')?.value || 'replace';
+
+      if (mode === 'replace') {
+        allRecords = ocrExtractedDrivers.map((d, idx) => ({ ...d, stt: idx + 1 }));
+      } else {
+        // Append mode
+        const startStt = allRecords.length;
+        const newRows = ocrExtractedDrivers.map((d, idx) => ({
+          ...d,
+          stt: startStt + idx + 1,
+          id: `appended-${Date.now()}-${idx}`
+        }));
+        allRecords = [...allRecords, ...newRows];
+      }
+
+      // Update Timestamp
+      const now = new Date();
+      const timeStr = `${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')} - ${now.toLocaleDateString('vi-VN')}`;
+      document.getElementById('header-updated-time').textContent = `Cập nhật từ ảnh: ${timeStr}`;
+
+      // Save to storage & Render
+      try {
+        localStorage.setItem('VIETNAMESE_FLEET_DATA_V1', JSON.stringify(allRecords));
+      } catch (e) {}
+
+      closeImageOcrModal();
+      currentPage = 1;
+      resetAllFilters();
+      showToast(`Đã cập nhật thành công ${ocrExtractedDrivers.length} dòng dữ liệu từ ảnh vào hệ thống!`, 'success');
     }
   </script>
 </body>

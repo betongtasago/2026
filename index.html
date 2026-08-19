@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Quản Lý Hệ Thống TasagoTNT</title>
-  <meta name="description" content="Hệ thống quản lý dữ liệu chuyến TasagoTNT" />
+  <title>Quản Lý Tài Xế - Hệ Thống TASAGO-TNT</title>
+  <meta name="description" content="Hệ thống quản lý dữ liệu TSG-TNT" />
 
   <!-- Google Fonts: Plus Jakarta Sans & JetBrains Mono -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -64,9 +64,182 @@
       background: #94a3b8;
     }
     [v-cloak] { display: none; }
+
+    /* Modern Login & UI Keyframes */
+    @keyframes loginCardEnter {
+      0% {
+        opacity: 0;
+        transform: scale(0.92) translateY(16px);
+      }
+      100% {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+      }
+    }
+    .animate-login-card {
+      animation: loginCardEnter 0.45s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+
+    @keyframes shakeError {
+      0%, 100% { transform: translateX(0); }
+      15%, 45%, 75% { transform: translateX(-7px); }
+      30%, 60%, 90% { transform: translateX(7px); }
+    }
+    .animate-shake {
+      animation: shakeError 0.4s cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
+    }
+
+    @keyframes floatOrb1 {
+      0%, 100% { transform: translate(0, 0) scale(1); }
+      50% { transform: translate(25px, -30px) scale(1.08); }
+    }
+    @keyframes floatOrb2 {
+      0%, 100% { transform: translate(0, 0) scale(1); }
+      50% { transform: translate(-30px, 20px) scale(1.12); }
+    }
+    .animate-orb-1 {
+      animation: floatOrb1 9s ease-in-out infinite;
+    }
+    .animate-orb-2 {
+      animation: floatOrb2 11s ease-in-out infinite;
+    }
+
+    .bg-tech-grid {
+      background-size: 36px 36px;
+      background-image: 
+        linear-gradient(to right, rgba(255, 255, 255, 0.04) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(255, 255, 255, 0.04) 1px, transparent 1px);
+    }
   </style>
 </head>
-<body class="min-h-screen flex flex-col antialiased selection:bg-blue-600 selection:text-white">
+<body class="min-h-screen bg-slate-900 selection:bg-blue-600 selection:text-white">
+
+  <!-- ==================== MODERN LOGIN SCREEN ==================== -->
+  <div id="login-screen" class="fixed inset-0 z-50 flex items-center justify-center p-4 min-h-screen bg-[#070d18] overflow-y-auto select-none">
+    <!-- Ambient Background Lighting Orbs & Tech Grid -->
+    <div class="absolute inset-0 bg-tech-grid pointer-events-none opacity-50"></div>
+    <div class="absolute top-1/4 left-1/4 w-96 h-96 bg-blue-600/20 rounded-full blur-3xl animate-orb-1 pointer-events-none"></div>
+    <div class="absolute bottom-1/4 right-1/4 w-96 h-96 bg-indigo-600/20 rounded-full blur-3xl animate-orb-2 pointer-events-none"></div>
+    <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[520px] h-[520px] bg-cyan-500/10 rounded-full blur-3xl pointer-events-none"></div>
+
+    <!-- Login Container Card -->
+    <div id="login-card" class="relative w-full max-w-md bg-slate-900/90 backdrop-blur-2xl border border-slate-700/80 rounded-3xl shadow-[0_25px_70px_rgba(0,0,0,0.65)] p-6 sm:p-9 text-white animate-login-card transition-all duration-300">
+      
+      <!-- Top Branding -->
+      <div class="text-center space-y-2.5 mb-6">
+        <!-- Logo Icon with glowing border -->
+        <div class="inline-flex relative mb-1">
+          <div class="w-16 h-16 rounded-2xl bg-gradient-to-tr from-blue-600 via-indigo-600 to-cyan-500 flex items-center justify-center shadow-lg shadow-blue-500/30 ring-4 ring-blue-500/20">
+            <i data-lucide="truck" class="w-8 h-8 text-white"></i>
+          </div>
+          <span class="absolute -bottom-1 -right-1 flex h-4 w-4">
+            <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+            <span class="relative inline-flex rounded-full h-4 w-4 bg-emerald-500 border-2 border-slate-900"></span>
+          </span>
+        </div>
+
+        <h2 class="text-xl sm:text-2xl font-black tracking-tight text-white">
+          HỆ THỐNG QUẢN LÝ TASAGO-TNT
+        </h2>
+        <p class="text-xs text-slate-400 font-medium max-w-xs mx-auto">
+          Lưu trữ dữ liệu hàng hóa bê tông Tasago
+        </p>
+      </div>
+
+      <!-- Login Form -->
+      <form onsubmit="handleLoginSubmit(event)" class="space-y-4" novalidate>
+        
+        <!-- Error Alert Box -->
+        <div id="login-error-box" class="hidden p-3 rounded-xl bg-red-950/90 border border-red-500/50 text-red-200 text-xs flex items-center gap-2.5 animate-shake">
+          <i data-lucide="alert-circle" class="w-4 h-4 text-red-400 shrink-0"></i>
+          <span id="login-error-text">Tài khoản hoặc mật khẩu không chính xác!</span>
+        </div>
+
+        <!-- Username Input -->
+        <div class="space-y-1.5 text-left">
+          <label for="login-username" class="block text-xs font-bold text-slate-300 tracking-wide uppercase">
+            Tài khoản đăng nhập
+          </label>
+          <div class="relative">
+            <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+              <i data-lucide="user" class="w-4 h-4"></i>
+            </div>
+            <input
+              type="text"
+              id="login-username"
+              required
+              autocomplete="username"
+              placeholder="Nhập tên tài khoản"
+              class="w-full pl-10 pr-4 py-2.5 text-sm bg-slate-800/90 border border-slate-700 rounded-xl text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500/40 focus:border-blue-500 transition-all font-medium"
+            />
+          </div>
+        </div>
+
+        <!-- Password Input with Toggle Eye -->
+        <div class="space-y-1.5 text-left">
+          <label for="login-password" class="block text-xs font-bold text-slate-300 tracking-wide uppercase">
+            Mật khẩu
+          </label>
+          <div class="relative">
+            <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+              <i data-lucide="lock" class="w-4 h-4"></i>
+            </div>
+            <input
+              type="password"
+              id="login-password"
+              required
+              autocomplete="current-password"
+              placeholder="Nhập mật khẩu truy cập"
+              class="w-full pl-10 pr-10 py-2.5 text-sm bg-slate-800/90 border border-slate-700 rounded-xl text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500/40 focus:border-blue-500 transition-all font-medium"
+            />
+            <button
+              type="button"
+              id="btn-toggle-password"
+              onclick="toggleLoginPasswordVisibility()"
+              class="absolute inset-y-0 right-0 pr-3.5 flex items-center text-slate-400 hover:text-slate-200 cursor-pointer transition-colors"
+              title="Hiện/Ẩn mật khẩu"
+            >
+              <i id="password-eye-icon" data-lucide="eye" class="w-4 h-4"></i>
+            </button>
+          </div>
+        </div>
+
+        <!-- Remember Me Checkbox -->
+        <div class="flex items-center justify-between pt-1">
+          <label class="flex items-center gap-2 cursor-pointer text-xs text-slate-300 select-none">
+            <input
+              type="checkbox"
+              id="login-remember-me"
+              checked
+              class="w-4 h-4 rounded text-blue-600 bg-slate-800 border-slate-700 focus:ring-blue-500/30 focus:ring-offset-0 cursor-pointer"
+            />
+            <span>Ghi nhớ đăng nhập</span>
+          </label>
+          <span class="text-[11px] text-cyan-400/90 font-medium">Bảo mật cấp cao</span>
+        </div>
+
+        <!-- Submit Button -->
+        <button
+          type="submit"
+          id="btn-login-submit"
+          class="w-full mt-2 py-3 px-4 rounded-xl text-sm font-bold text-white bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-500 hover:from-blue-500 hover:via-indigo-500 hover:to-blue-400 active:scale-[0.98] shadow-lg shadow-blue-600/35 hover:shadow-blue-600/50 flex items-center justify-center gap-2 transition-all cursor-pointer"
+        >
+          <i data-lucide="log-in" class="w-4 h-4" id="login-btn-icon"></i>
+          <span id="login-btn-text">Đăng Nhập Hệ Thống</span>
+        </button>
+
+      </form>
+
+      <!-- Card Footer Note -->
+      <div class="mt-6 pt-5 border-t border-slate-800 text-center flex items-center justify-center gap-2 text-[11px] text-slate-500">
+        <i data-lucide="shield-check" class="w-3.5 h-3.5 text-emerald-400"></i>
+        <span>Mã hóa SSL 256-bit • Quản Lý Tài Xế Vận Hành 2026</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== MAIN DASHBOARD APP WRAPPER ==================== -->
+  <div id="dashboard-app" class="hidden min-h-screen flex flex-col bg-[#f1f5f9] text-[#0f172a] antialiased selection:bg-blue-600 selection:text-white">
 
   <!-- ==================== HEADER ==================== -->
   <header class="bg-white border-b border-slate-200 sticky top-0 z-30 shadow-xs">
@@ -80,14 +253,14 @@
           <div>
             <div class="flex items-center gap-2.5">
               <h1 class="text-xl font-bold tracking-tight text-slate-900">
-                BÊ TÔNG TASAGO-TNT
+                QUẢN LÝ DỮ LIỆU BÊ TÔNG TSG-TNT
               </h1>
               <span id="header-records-badge" class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-blue-50 text-blue-700 border border-blue-200/60">
                 24 bản ghi
               </span>
             </div>
             <p class="text-xs font-medium text-slate-500 flex items-center gap-2 mt-0.5">
-              <span>Dữ liệu chuyến tài xế TSG-TNT</span>
+              <span>Dữ liệu hàng hóa</span>
               <span class="text-slate-300">•</span>
               <span id="header-updated-time" class="text-slate-400">Thiết kế bởi LVT</span>
             </p>
@@ -177,6 +350,25 @@
               class="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors cursor-pointer"
             >
               <i data-lucide="trash-2" class="w-4 h-4"></i>
+            </button>
+          </div>
+
+          <!-- Logged User & Logout Button -->
+          <div class="flex items-center gap-2 pl-2 border-l border-slate-200">
+            <div class="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-blue-50 border border-blue-200 text-xs">
+              <div class="w-5 h-5 rounded-full bg-blue-700 text-white font-bold flex items-center justify-center text-[10px]">
+                AD
+              </div>
+              <span class="font-bold text-blue-900">Admin</span>
+            </div>
+            <button
+              type="button"
+              onclick="handleAppLogout()"
+              title="Đăng xuất khỏi hệ thống"
+              class="inline-flex items-center gap-1 px-2.5 py-1.5 text-xs font-bold text-red-700 bg-red-50 hover:bg-red-100 active:bg-red-200 border border-red-200 rounded-lg transition-colors cursor-pointer"
+            >
+              <i data-lucide="log-out" class="w-3.5 h-3.5 text-red-600"></i>
+              <span class="hidden lg:inline">Đăng xuất</span>
             </button>
           </div>
         </div>
@@ -464,6 +656,7 @@
       <span class="text-slate-400">Đóng gói chuẩn Single File HTML • Tự động nhận diện Excel tiếng Việt</span>
     </div>
   </footer>
+  </div> <!-- End #dashboard-app -->
 
   <!-- ==================== UPLOAD EXCEL MODAL ==================== -->
   <div id="upload-modal" class="hidden fixed inset-0 z-50 overflow-y-auto bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
@@ -989,8 +1182,39 @@
       fileName: ''
     };
 
-    // INITIALIZATION
-    window.addEventListener('DOMContentLoaded', () => {
+    // ==================== AUTHENTICATION & ACCESS CONTROL ====================
+    const AUTH_CREDENTIALS = {
+      username: 'admin',
+      password: 'Tsg2026@'
+    };
+    const AUTH_STORAGE_KEY = 'FLEET_PORTAL_AUTH_SESSION_2026';
+
+    function isUserAuthenticated() {
+      try {
+        const fromLocal = localStorage.getItem(AUTH_STORAGE_KEY);
+        const fromSession = sessionStorage.getItem(AUTH_STORAGE_KEY);
+        return fromLocal === 'authenticated' || fromSession === 'authenticated';
+      } catch (e) {
+        return false;
+      }
+    }
+
+    function checkAuthAndInit() {
+      const loginScreen = document.getElementById('login-screen');
+      const dashboardApp = document.getElementById('dashboard-app');
+
+      if (isUserAuthenticated()) {
+        loginScreen.classList.add('hidden');
+        dashboardApp.classList.remove('hidden');
+        loadFleetDataAndRender();
+      } else {
+        dashboardApp.classList.add('hidden');
+        loginScreen.classList.remove('hidden');
+      }
+      if (window.lucide) lucide.createIcons();
+    }
+
+    function loadFleetDataAndRender() {
       try {
         const saved = localStorage.getItem('VIETNAMESE_FLEET_DATA_V1');
         if (saved) {
@@ -1009,6 +1233,137 @@
 
       applyFiltersAndRender();
       if (window.lucide) lucide.createIcons();
+    }
+
+    function toggleLoginPasswordVisibility() {
+      const passInp = document.getElementById('login-password');
+      const eyeIcon = document.getElementById('password-eye-icon');
+      if (!passInp) return;
+
+      if (passInp.type === 'password') {
+        passInp.type = 'text';
+        if (eyeIcon) eyeIcon.setAttribute('data-lucide', 'eye-off');
+      } else {
+        passInp.type = 'password';
+        if (eyeIcon) eyeIcon.setAttribute('data-lucide', 'eye');
+      }
+      if (window.lucide) lucide.createIcons();
+    }
+
+    function showLoginError(msg) {
+      const errorBox = document.getElementById('login-error-box');
+      const errorText = document.getElementById('login-error-text');
+      const card = document.getElementById('login-card');
+
+      if (errorBox && errorText) {
+        errorText.textContent = msg;
+        errorBox.classList.remove('hidden');
+      }
+      if (card) {
+        card.classList.remove('animate-shake');
+        void card.offsetWidth; // Reflow
+        card.classList.add('animate-shake');
+      }
+    }
+
+    function hideLoginError() {
+      const errorBox = document.getElementById('login-error-box');
+      if (errorBox) errorBox.classList.add('hidden');
+    }
+
+    function handleLoginSubmit(e) {
+      if (e) e.preventDefault();
+      const userInp = document.getElementById('login-username');
+      const passInp = document.getElementById('login-password');
+      const rememberCb = document.getElementById('login-remember-me');
+      const btn = document.getElementById('btn-login-submit');
+      const btnText = document.getElementById('login-btn-text');
+
+      const userVal = (userInp?.value || '').trim();
+      const passVal = passInp?.value || '';
+
+      if (!userVal) {
+        showLoginError('Vui lòng nhập tên tài khoản đăng nhập!');
+        userInp?.focus();
+        return;
+      }
+
+      if (!passVal) {
+        showLoginError('Vui lòng nhập mật khẩu!');
+        passInp?.focus();
+        return;
+      }
+
+      // Exact credential check: admin / Tsg2026@
+      if (userVal === AUTH_CREDENTIALS.username && passVal === AUTH_CREDENTIALS.password) {
+        hideLoginError();
+
+        if (btn) btn.disabled = true;
+        if (btnText) btnText.textContent = 'Đang xác thực & tải trang...';
+
+        setTimeout(() => {
+          try {
+            if (rememberCb?.checked) {
+              localStorage.setItem(AUTH_STORAGE_KEY, 'authenticated');
+            } else {
+              sessionStorage.setItem(AUTH_STORAGE_KEY, 'authenticated');
+            }
+          } catch (err) {}
+
+          const loginScreen = document.getElementById('login-screen');
+          const dashboardApp = document.getElementById('dashboard-app');
+
+          // Smooth Fade Transition
+          loginScreen.style.opacity = '0';
+          loginScreen.style.transition = 'opacity 0.35s ease';
+
+          setTimeout(() => {
+            loginScreen.classList.add('hidden');
+            loginScreen.style.opacity = '1';
+            dashboardApp.classList.remove('hidden');
+
+            if (btn) btn.disabled = false;
+            if (btnText) btnText.textContent = 'Đăng Nhập Hệ Thống';
+
+            loadFleetDataAndRender();
+            showToast('Chào mừng Quản trị viên (admin) đăng nhập thành công!', 'success');
+          }, 350);
+        }, 400);
+
+      } else {
+        showLoginError('Tài khoản hoặc mật khẩu không chính xác! Vui lòng thử lại.');
+        if (passInp) {
+          passInp.value = '';
+          passInp.focus();
+        }
+      }
+    }
+
+    function handleAppLogout() {
+      openConfirmDialog('Đăng xuất hệ thống?', 'Bạn có chắc chắn muốn đăng xuất khỏi cổng Quản lý Tài xế?', () => {
+        try {
+          localStorage.removeItem(AUTH_STORAGE_KEY);
+          sessionStorage.removeItem(AUTH_STORAGE_KEY);
+        } catch (e) {}
+
+        const loginScreen = document.getElementById('login-screen');
+        const dashboardApp = document.getElementById('dashboard-app');
+        const passInp = document.getElementById('login-password');
+        if (passInp) passInp.value = '';
+
+        dashboardApp.classList.add('hidden');
+        loginScreen.classList.remove('hidden');
+        loginScreen.style.opacity = '1';
+        hideLoginError();
+
+        if (window.lucide) lucide.createIcons();
+        showToast('Đã đăng xuất khỏi hệ thống an toàn!', 'info');
+      });
+    }
+
+    // INITIALIZATION ON LOAD
+    window.addEventListener('DOMContentLoaded', () => {
+      checkAuthAndInit();
     });
 
     // STRING & NUMBER NORMALIZATION

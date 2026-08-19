@@ -446,7 +446,7 @@ export default function App() {
       {/* Footer */}
       <footer className="mt-auto py-4 border-t border-slate-200 bg-white text-center text-xs text-slate-500">
         <div className="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-2">
-          <span>Hệ thống Quản lý và Phân tích Dữ liệu Vận hành Tài xế © 2026</span>
+          <span>Hệ thống Quản lý dữ liệu tài xế Tasago © 2026 by LÊ VIẾT THÀNH</span>
           <span className="text-slate-400">
             Hỗ trợ import Excel chuẩn .xlsx, .xls • Tự động nhận diện cột tiếng Việt
           </span>

@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Quản Lý Tài Xế - Hệ Thống TASAGO-TNT</title>
-  <meta name="description" content="Hệ thống quản lý dữ liệu TSG-TNT" />
+  <title>Quản Lý  - Hệ Thống  TASAGO-TNT</title>
+  <meta name="description" content="Hệ thống quản lý TASAGO-TNT" />
 
   <!-- Google Fonts: Plus Jakarta Sans & JetBrains Mono -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -110,6 +110,19 @@
         linear-gradient(to right, rgba(255, 255, 255, 0.04) 1px, transparent 1px),
         linear-gradient(to bottom, rgba(255, 255, 255, 0.04) 1px, transparent 1px);
     }
+
+    /* Floating Scroll & View Mode Action Dock */
+    .floating-fab {
+      box-shadow: 0 10px 25px -5px rgba(0, 59, 115, 0.25), 0 8px 10px -6px rgba(0, 59, 115, 0.2);
+    }
+    .floating-fab:hover {
+      box-shadow: 0 20px 30px -10px rgba(0, 59, 115, 0.35), 0 10px 15px -5px rgba(0, 59, 115, 0.25);
+    }
+    .scroll-progress-ring {
+      stroke-dasharray: 100;
+      stroke-dashoffset: 100;
+      transition: stroke-dashoffset 0.15s ease-out;
+    }
   </style>
 </head>
 <body class="min-h-screen bg-slate-900 selection:bg-blue-600 selection:text-white">
@@ -139,10 +152,10 @@
         </div>
 
         <h2 class="text-xl sm:text-2xl font-black tracking-tight text-white">
-          HỆ THỐNG QUẢN LÝ TASAGO-TNT
+          HỆ THỐNG QUẢN LÝ DỮ LIỆU TSG-TNT
         </h2>
         <p class="text-xs text-slate-400 font-medium max-w-xs mx-auto">
-          Lưu trữ dữ liệu hàng hóa bê tông Tasago
+          DỮ LIỆU CHUYẾN, KHỐI LƯỢNG
         </p>
       </div>
 
@@ -233,7 +246,7 @@
       <!-- Card Footer Note -->
       <div class="mt-6 pt-5 border-t border-slate-800 text-center flex items-center justify-center gap-2 text-[11px] text-slate-500">
         <i data-lucide="shield-check" class="w-3.5 h-3.5 text-emerald-400"></i>
-        <span>Mã hóa SSL 256-bit • Quản Lý Tài Xế Vận Hành 2026</span>
+        <span>Mã hóa SSL 256-bit • Quản Lý Hệ Thống Bê Tông Tasago @ 2026</span>
       </div>
     </div>
   </div>
@@ -260,9 +273,9 @@
               </span>
             </div>
             <p class="text-xs font-medium text-slate-500 flex items-center gap-2 mt-0.5">
-              <span>Dữ liệu hàng hóa</span>
+              <span>Dữ liệu chuyến khối lượng</span>
               <span class="text-slate-300">•</span>
-              <span id="header-updated-time" class="text-slate-400">Thiết kế bởi LVT</span>
+              <span id="header-updated-time" class="text-slate-400">Cập nhật: 18/08/2026 19:20</span>
             </p>
           </div>
         </div>
@@ -350,6 +363,40 @@
               class="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors cursor-pointer"
             >
               <i data-lucide="trash-2" class="w-4 h-4"></i>
+            </button>
+          </div>
+
+          <!-- View Mode Selector (Auto / PC / Mobile) -->
+          <div class="flex items-center p-1 bg-slate-100/90 border border-slate-200/90 rounded-xl text-xs font-semibold select-none shadow-2xs">
+            <button
+              type="button"
+              id="view-mode-auto-btn"
+              onclick="setViewMode('auto')"
+              class="px-2.5 py-1 rounded-lg flex items-center gap-1.5 transition-all text-slate-600 hover:text-slate-900 cursor-pointer"
+              title="Chế độ Tự động: Tự chuyển Bảng trên PC, Thẻ trên Điện thoại"
+            >
+              <i data-lucide="sparkles" class="w-3.5 h-3.5 text-amber-500"></i>
+              <span class="hidden xl:inline">Tự động</span>
+            </button>
+            <button
+              type="button"
+              id="view-mode-pc-btn"
+              onclick="setViewMode('pc')"
+              class="px-2.5 py-1 rounded-lg flex items-center gap-1.5 transition-all text-slate-600 hover:text-slate-900 cursor-pointer"
+              title="Chế độ PC: Bảng dữ liệu chi tiết đa cột chuẩn ERP"
+            >
+              <i data-lucide="monitor" class="w-3.5 h-3.5 text-blue-600"></i>
+              <span>PC</span>
+            </button>
+            <button
+              type="button"
+              id="view-mode-mobile-btn"
+              onclick="setViewMode('mobile')"
+              class="px-2.5 py-1 rounded-lg flex items-center gap-1.5 transition-all text-slate-600 hover:text-slate-900 cursor-pointer"
+              title="Chế độ Mobile: Thẻ tài xế trực quan tối ưu cho điện thoại"
+            >
+              <i data-lucide="smartphone" class="w-3.5 h-3.5 text-emerald-600"></i>
+              <span>Mobile</span>
             </button>
           </div>
 
@@ -508,9 +555,11 @@
       </div>
     </div>
 
-    <!-- DATA TABLE CONTAINER -->
+    <!-- DATA TABLE & MOBILE CARDS CONTAINER -->
     <div id="table-wrapper" class="space-y-3">
-      <div class="bg-white rounded-xl shadow-xs border border-slate-200/90 overflow-hidden">
+      
+      <!-- 1. DESKTOP ERP TABLE VIEW -->
+      <div id="desktop-table-container" class="bg-white rounded-xl shadow-xs border border-slate-200/90 overflow-hidden transition-all">
         <div class="overflow-x-auto min-h-[380px] custom-scrollbar">
           <table class="w-full text-left border-collapse min-w-[960px]">
             <!-- Table Header -->
@@ -637,6 +686,19 @@
         </div>
       </div>
 
+      <!-- 2. MOBILE DRIVER CARDS VIEW -->
+      <div id="mobile-cards-container" class="space-y-3.5 hidden">
+        <!-- Cards List Grid -->
+        <div id="driver-cards-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5">
+          <!-- Rendered via JS -->
+        </div>
+
+        <!-- Mobile Totals Summary Card -->
+        <div id="driver-cards-totals" class="bg-gradient-to-br from-[#003B73] via-[#004B93] to-[#00529B] text-white rounded-2xl p-4 shadow-md space-y-3 border border-blue-700/50">
+          <!-- Rendered via JS -->
+        </div>
+      </div>
+
       <!-- Pagination -->
       <div id="pagination-bar" class="bg-white rounded-xl border border-slate-200/80 shadow-xs px-4 py-3 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-600">
         <!-- Rendered via JS -->
@@ -652,10 +714,49 @@
   <!-- ==================== FOOTER ==================== -->
   <footer class="mt-auto py-4 border-t border-slate-200 bg-white text-center text-xs text-slate-500">
     <div class="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-2">
-      <span>Hệ thống Quản lý và Phân tích Dữ liệu Công ty Tasago-TNT © 2026</span>
-      <span class="text-slate-400">Sản phẩm được thiết kế bởi LVT - Hotline 0942320923</span>
+      <span>Hệ thống Quản lý và Phân tích Dữ liệu trạm trộn Tasago-TNT © 2026</span>
+      <span class="text-slate-400">Sản phẩm thuộc quyền LVT - Hotline 0942320923</span>
     </div>
   </footer>
+
+  <!-- ==================== FLOATING NAVIGATION & SCROLL DOCK ==================== -->
+  <div id="floating-nav-dock" class="fixed bottom-5 right-4 sm:right-6 z-40 flex flex-col items-center gap-2 select-none">
+    
+    <!-- Button Scroll To Top -->
+    <button
+      id="btn-scroll-top"
+      type="button"
+      onclick="scrollToTop()"
+      class="w-10 h-10 sm:w-11 sm:h-11 rounded-2xl bg-white/95 hover:bg-white text-slate-700 hover:text-blue-600 border border-slate-200 shadow-md floating-fab backdrop-blur-md flex items-center justify-center transition-all duration-200 hover:scale-110 active:scale-95 cursor-pointer group"
+      title="Lên đầu trang"
+    >
+      <i data-lucide="chevron-up" class="w-5 h-5 transition-transform group-hover:-translate-y-0.5 text-slate-600 group-hover:text-blue-600"></i>
+    </button>
+
+    <!-- Floating Quick Mode Switcher -->
+    <button
+      id="btn-floating-view-toggle"
+      type="button"
+      onclick="cycleViewMode()"
+      class="w-10 h-10 sm:w-11 sm:h-11 rounded-2xl bg-gradient-to-br from-[#003B73] to-[#0066CC] hover:from-[#002d59] hover:to-[#00529B] text-white shadow-md floating-fab flex flex-col items-center justify-center transition-all duration-200 hover:scale-110 active:scale-95 cursor-pointer relative group"
+      title="Chuyển chế độ xem PC / Mobile"
+    >
+      <i id="floating-view-icon" data-lucide="monitor" class="w-4 h-4"></i>
+      <span id="floating-view-text" class="text-[9px] font-black uppercase tracking-tighter mt-0.5 leading-none">Auto</span>
+    </button>
+
+    <!-- Button Scroll To Bottom -->
+    <button
+      id="btn-scroll-bottom"
+      type="button"
+      onclick="scrollToBottom()"
+      class="w-10 h-10 sm:w-11 sm:h-11 rounded-2xl bg-white/95 hover:bg-white text-slate-700 hover:text-blue-600 border border-slate-200 shadow-md floating-fab backdrop-blur-md flex items-center justify-center transition-all duration-200 hover:scale-110 active:scale-95 cursor-pointer group"
+      title="Xuống cuối trang"
+    >
+      <i data-lucide="chevron-down" class="w-5 h-5 transition-transform group-hover:translate-y-0.5 text-slate-600 group-hover:text-blue-600"></i>
+    </button>
+  </div>
+
   </div> <!-- End #dashboard-app -->
 
   <!-- ==================== UPLOAD EXCEL MODAL ==================== -->
@@ -1157,6 +1258,11 @@
     let currentPage = 1;
     let pageSize = 25;
     let sortState = { key: null, direction: 'asc' };
+    let currentViewMode = 'auto'; // 'auto' | 'pc' | 'mobile'
+    try {
+      currentViewMode = localStorage.getItem('FLEET_VIEW_MODE_PREF') || 'auto';
+    } catch (e) {}
+
     let filters = {
       searchQuery: '',
       driverName: '',
@@ -1547,11 +1653,11 @@
         </div>
       `).join('');
     }
-
-    // TABLE RENDERER
     function renderTable() {
       const tbody = document.getElementById('driver-tbody');
       const tfoot = document.getElementById('driver-tfoot');
+      const cardsGrid = document.getElementById('driver-cards-grid');
+      const cardsTotals = document.getElementById('driver-cards-totals');
       const tableWrapper = document.getElementById('table-wrapper');
       const emptyState = document.getElementById('empty-state-container');
 
@@ -1595,6 +1701,7 @@
       const start = (currentPage - 1) * pageSize;
       const paginated = filteredRecords.slice(start, start + pageSize);
 
+      // 1. Render Desktop Table Body
       tbody.innerHTML = paginated.map((r, idx) => {
         const sttNum = start + idx + 1;
         const sttDisplay = sttNum < 10 ? `0${sttNum}` : `${sttNum}`;
@@ -1675,7 +1782,89 @@
         `;
       }).join('');
 
-      // Foot totals
+      // 2. Render Mobile Driver Cards Grid
+      if (cardsGrid) {
+        cardsGrid.innerHTML = paginated.map((r, idx) => {
+          const sttNum = start + idx + 1;
+          const sttDisplay = sttNum < 10 ? `0${sttNum}` : `${sttNum}`;
+          const isWarning = r.hasWarning || (r.driverName && r.driverName.endsWith('.'));
+
+          return `
+            <div class="bg-white rounded-2xl border border-slate-200/90 shadow-xs hover:shadow-md transition-all p-4 flex flex-col justify-between space-y-3">
+              <!-- Top Row: STT, Name, Plate & Actions -->
+              <div class="flex items-start justify-between gap-2 border-b border-slate-100 pb-3">
+                <div class="flex items-center gap-2.5 min-w-0">
+                  <span class="inline-flex items-center justify-center w-7 h-7 text-xs font-bold text-white bg-[#0066CC] rounded-lg shrink-0">${sttDisplay}</span>
+                  <div class="min-w-0">
+                    <h4 class="text-sm font-bold text-slate-900 tracking-tight truncate flex items-center gap-1.5">
+                      ${r.driverName || '—'}
+                      ${isWarning ? `<span title="Tên có dấu chấm đuôi" class="text-amber-500 shrink-0"><i data-lucide="alert-circle" class="w-3.5 h-3.5"></i></span>` : ''}
+                    </h4>
+                    <div class="flex items-center gap-1.5 mt-0.5 text-xs text-slate-500 font-mono font-bold">
+                      <i data-lucide="car" class="w-3.5 h-3.5 text-blue-600"></i>
+                      <span>${r.vehicleNumber || '—'}</span>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Action buttons -->
+                <div class="flex items-center gap-1 shrink-0">
+                  <button type="button" onclick="openEditModal('${r.id}')" class="p-1.5 text-slate-500 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors" title="Chỉnh sửa">
+                    <i data-lucide="pencil" class="w-4 h-4"></i>
+                  </button>
+                  <button type="button" onclick="deleteDriverRecord('${r.id}')" class="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors" title="Xóa">
+                    <i data-lucide="trash-2" class="w-4 h-4"></i>
+                  </button>
+                </div>
+              </div>
+
+              <!-- Metrics Matrix (2 columns) -->
+              <div class="grid grid-cols-2 gap-2 text-xs">
+                <!-- KL Trạm TN -->
+                <div class="bg-purple-50/80 border border-purple-100 rounded-xl p-2.5 flex flex-col justify-between">
+                  <span class="text-[10px] font-bold uppercase tracking-wider text-purple-700">KL Trạm TN</span>
+                  <span class="text-base font-black text-purple-900 mt-0.5">${Number(r.stationVolume || 0).toFixed(1)} <span class="text-[10px] font-normal text-purple-600">m³</span></span>
+                </div>
+
+                <!-- Tổng Chuyến -->
+                <div class="bg-rose-50/80 border border-rose-100 rounded-xl p-2.5 flex flex-col justify-between">
+                  <span class="text-[10px] font-bold uppercase tracking-wider text-rose-700">Tổng Chuyến</span>
+                  <span class="text-base font-black text-rose-900 mt-0.5">${r.totalTrips || 0} <span class="text-[10px] font-normal text-rose-600">chuyến</span></span>
+                </div>
+
+                <!-- Chuyến Lớn / Nhỏ -->
+                <div class="bg-amber-50/80 border border-amber-100 rounded-xl p-2.5 flex flex-col justify-between">
+                  <span class="text-[10px] font-bold uppercase tracking-wider text-amber-700">Chuyến Lớn / Nhỏ</span>
+                  <div class="text-xs font-black text-amber-900 mt-0.5 flex items-center gap-1.5">
+                    <span>🚚 ${r.largeTrips || 0}</span>
+                    <span class="text-amber-300">|</span>
+                    <span>🚛 ${r.smallTrips || 0}</span>
+                  </div>
+                </div>
+
+                <!-- Tổng KM -->
+                <div class="bg-emerald-50/80 border border-emerald-100 rounded-xl p-2.5 flex flex-col justify-between">
+                  <span class="text-[10px] font-bold uppercase tracking-wider text-emerald-700">Tổng KM</span>
+                  <span class="text-base font-black text-emerald-900 font-mono mt-0.5">${(Number(r.totalKm) || 0).toLocaleString('vi-VN')} <span class="text-[10px] font-normal text-emerald-600">km</span></span>
+                </div>
+
+                <!-- Xe Nước (Full Width) -->
+                <div class="col-span-2 bg-sky-50/80 border border-sky-100 rounded-xl px-3 py-2 flex items-center justify-between">
+                  <div class="flex items-center gap-1.5 text-sky-800">
+                    <i data-lucide="droplet" class="w-3.5 h-3.5 text-sky-600"></i>
+                    <span class="text-xs font-bold">Hỗ trợ Xe Nước:</span>
+                  </div>
+                  <span class="text-xs font-black px-2.5 py-0.5 rounded-full ${r.waterVehicles > 0 ? 'bg-sky-200 text-sky-900 font-bold' : 'bg-slate-100 text-slate-500'}">
+                    ${r.waterVehicles || 0} chuyến
+                  </span>
+                </div>
+              </div>
+            </div>
+          `;
+        }).join('');
+      }
+
+      // Foot totals calculation
       let sumVol = 0, sumLarge = 0, sumSmall = 0, sumKm = 0, sumTrips = 0, sumWater = 0;
       filteredRecords.forEach(r => {
         sumVol += Number(r.stationVolume) || 0;
@@ -1686,6 +1875,7 @@
         sumWater += Number(r.waterVehicles) || 0;
       });
 
+      // Render Desktop Totals
       tfoot.innerHTML = `
         <tr class="bg-slate-100 border-t-2 border-slate-300 text-xs font-bold text-slate-800">
           <td colspan="3" class="py-3 px-4 text-left border-r border-slate-200 uppercase font-extrabold text-slate-700">
@@ -1694,10 +1884,10 @@
           <td class="py-3 px-3.5 text-center border-r border-slate-200 text-purple-800 font-extrabold">
             ${sumVol.toLocaleString('vi-VN', { minimumFractionDigits: 1, maximumFractionDigits: 1 })}
           </td>
-          <td class="py-3 px-3 text-center border-r border-slate-200 text-amber-700 font-extrabold">
+          <td class="py-3 px-3.5 text-center border-r border-slate-200 text-amber-700 font-extrabold">
             ${sumLarge.toLocaleString('vi-VN')}
           </td>
-          <td class="py-3 px-3 text-center border-r border-slate-200 text-amber-600 font-extrabold">
+          <td class="py-3 px-3.5 text-center border-r border-slate-200 text-amber-600 font-extrabold">
             ${sumSmall.toLocaleString('vi-VN')}
           </td>
           <td class="py-3 px-3.5 text-center border-r border-slate-200 text-emerald-800 font-extrabold font-mono">
@@ -1712,8 +1902,142 @@
           <td></td>
         </tr>
       `;
+
+      // Render Mobile Cards Summary Totals
+      if (cardsTotals) {
+        cardsTotals.innerHTML = `
+          <div class="flex items-center justify-between border-b border-white/20 pb-2.5">
+            <div class="flex items-center gap-2">
+              <i data-lucide="calculator" class="w-4 h-4 text-blue-200"></i>
+              <span class="text-xs font-extrabold uppercase tracking-wider">TỔNG CỘNG (${filteredRecords.length} TÀI XẾ)</span>
+            </div>
+            <span class="text-xs font-semibold text-blue-100">Trang ${currentPage}/${Math.ceil(filteredRecords.length/pageSize)||1}</span>
+          </div>
+          <div class="grid grid-cols-2 gap-2 text-xs">
+            <div class="bg-white/10 rounded-xl p-2.5 border border-white/10">
+              <span class="text-[10px] text-blue-200 uppercase font-semibold block">KL Trạm TN</span>
+              <span class="text-sm font-black text-white">${sumVol.toLocaleString('vi-VN', { minimumFractionDigits: 1, maximumFractionDigits: 1 })} m³</span>
+            </div>
+            <div class="bg-white/10 rounded-xl p-2.5 border border-white/10">
+              <span class="text-[10px] text-blue-200 uppercase font-semibold block">Tổng Chuyến</span>
+              <span class="text-sm font-black text-white">${sumTrips.toLocaleString('vi-VN')} (${sumLarge} lớn / ${sumSmall} nhỏ)</span>
+            </div>
+            <div class="bg-white/10 rounded-xl p-2.5 border border-white/10">
+              <span class="text-[10px] text-blue-200 uppercase font-semibold block">Tổng KM</span>
+              <span class="text-sm font-black text-white font-mono">${sumKm.toLocaleString('vi-VN')} km</span>
+            </div>
+            <div class="bg-white/10 rounded-xl p-2.5 border border-white/10">
+              <span class="text-[10px] text-blue-200 uppercase font-semibold block">Xe Nước Hỗ Trợ</span>
+              <span class="text-sm font-black text-white">${sumWater.toLocaleString('vi-VN')} chuyến</span>
+            </div>
+          </div>
+        `;
+      }
+
+      // Apply view mode classes
+      updateViewModeUI();
     }
 
+    // VIEW MODE (PC / MOBILE / AUTO) CONTROLLERS
+    function setViewMode(mode) {
+      currentViewMode = mode;
+      try {
+        localStorage.setItem('FLEET_VIEW_MODE_PREF', mode);
+      } catch (e) {}
+      updateViewModeUI();
+      
+      const modeNames = {
+        auto: 'Chế độ Tự động (Tự thích ứng theo màn hình)',
+        pc: 'Chế độ Giao diện PC (Bảng dữ liệu chi tiết đa cột)',
+        mobile: 'Chế độ Giao diện Mobile (Danh sách thẻ tài xế trực quan)'
+      };
+      showToast(`Đã chuyển sang: ${modeNames[mode] || mode}`, 'info');
+    }
+
+    function cycleViewMode() {
+      if (currentViewMode === 'auto') {
+        setViewMode('pc');
+      } else if (currentViewMode === 'pc') {
+        setViewMode('mobile');
+      } else {
+        setViewMode('auto');
+      }
+    }
+
+    function updateViewModeUI() {
+      const desktopContainer = document.getElementById('desktop-table-container');
+      const mobileContainer = document.getElementById('mobile-cards-container');
+      const autoBtn = document.getElementById('view-mode-auto-btn');
+      const pcBtn = document.getElementById('view-mode-pc-btn');
+      const mobileBtn = document.getElementById('view-mode-mobile-btn');
+      const floatingIcon = document.getElementById('floating-view-icon');
+      const floatingText = document.getElementById('floating-view-text');
+
+      const defaultBtnClass = "px-2.5 py-1 rounded-lg flex items-center gap-1.5 transition-all text-slate-600 hover:text-slate-900 cursor-pointer";
+      const activeBtnClass = "px-2.5 py-1 rounded-lg flex items-center gap-1.5 transition-all bg-white text-blue-700 font-bold shadow-xs border border-slate-200/80 cursor-pointer";
+
+      [autoBtn, pcBtn, mobileBtn].forEach(btn => {
+        if (btn) btn.className = defaultBtnClass;
+      });
+
+      if (currentViewMode === 'pc') {
+        if (pcBtn) pcBtn.className = activeBtnClass;
+        if (desktopContainer) {
+          desktopContainer.classList.remove('hidden');
+          desktopContainer.classList.remove('md:block');
+          desktopContainer.classList.add('block');
+        }
+        if (mobileContainer) {
+          mobileContainer.classList.add('hidden');
+          mobileContainer.classList.remove('block');
+          mobileContainer.classList.remove('md:hidden');
+        }
+        if (floatingIcon) floatingIcon.setAttribute('data-lucide', 'monitor');
+        if (floatingText) floatingText.textContent = 'PC';
+      } else if (currentViewMode === 'mobile') {
+        if (mobileBtn) mobileBtn.className = activeBtnClass;
+        if (desktopContainer) {
+          desktopContainer.classList.add('hidden');
+          desktopContainer.classList.remove('block');
+          desktopContainer.classList.remove('md:block');
+        }
+        if (mobileContainer) {
+          mobileContainer.classList.remove('hidden');
+          mobileContainer.classList.remove('md:hidden');
+          mobileContainer.classList.add('block');
+        }
+        if (floatingIcon) floatingIcon.setAttribute('data-lucide', 'smartphone');
+        if (floatingText) floatingText.textContent = 'Mobile';
+      } else {
+        // Auto Mode
+        if (autoBtn) autoBtn.className = activeBtnClass;
+        if (desktopContainer) {
+          desktopContainer.className = "bg-white rounded-xl shadow-xs border border-slate-200/90 overflow-hidden transition-all hidden md:block";
+        }
+        if (mobileContainer) {
+          mobileContainer.className = "space-y-3.5 block md:hidden";
+        }
+        if (floatingIcon) floatingIcon.setAttribute('data-lucide', 'sparkles');
+        if (floatingText) floatingText.textContent = 'Auto';
+      }
+
+      if (window.lucide) lucide.createIcons();
+    }
+
+    // SCROLL TO TOP & SCROLL TO BOTTOM HELPERS
+    function scrollToTop() {
+      window.scrollTo({
+        top: 0,
+        behavior: 'smooth'
+      });
+    }
+
+    function scrollToBottom() {
+      window.scrollTo({
+        top: Math.max(document.documentElement.scrollHeight, document.body.scrollHeight),
+        behavior: 'smooth'
+      });
+    }
     // PAGINATION RENDERER
     function renderPagination() {
       const container = document.getElementById('pagination-bar');

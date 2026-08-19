@@ -68,7 +68,7 @@ export const DriverDetailModal: React.FC<DriverDetailModalProps> = ({
       totalKm: Number(formData.totalKm) || 0,
       totalTrips: computedTotalTrips,
       waterVehicles: Number(formData.waterVehicles) || 0,
-      hasWarning: formData.driverName.endsWith('.'),
+      hasWarning: !!formData.driverName?.trim()?.endsWith('.'),
     };
 
     onSave(finalRecord);
@@ -139,7 +139,7 @@ export const DriverDetailModal: React.FC<DriverDetailModalProps> = ({
                 type="number"
                 step="0.1"
                 value={formData.stationVolume ?? 0}
-                onChange={(e) => setFormData({ ...formData, stationVolume: parseFloat(e.target.value) })}
+                onChange={(e) => setFormData({ ...formData, stationVolume: parseFloat(e.target.value) || 0 })}
                 className="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-lg text-purple-700 font-bold focus:ring-2 focus:ring-blue-500/20"
               />
             </div>
@@ -232,4 +232,3 @@ export const DriverDetailModal: React.FC<DriverDetailModalProps> = ({
     </div>
   );
 };
-

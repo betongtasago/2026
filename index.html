@@ -308,7 +308,7 @@
             <button
               type="button"
               onclick="downloadSampleTemplate()"
-              title="Tải file Excel mẫu chuẩn 24 dòng để thử nghiệm"
+              title="Tải file Excel mẫu chuẩn để nhập dữ liệu"
               class="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-medium text-slate-700 bg-slate-100 hover:bg-slate-200 border border-slate-300/80 rounded-lg transition-colors cursor-pointer"
             >
               <i data-lucide="file-spreadsheet" class="w-3.5 h-3.5 text-emerald-600"></i>
@@ -345,15 +345,15 @@
               <span class="hidden sm:inline">Thêm tài xế</span>
             </button>
 
-            <!-- Quick Actions: Reset Demo & Clear -->
+            <!-- Quick Actions: Sync from Server & Clear -->
             <div class="flex items-center gap-1 pl-1 border-l border-slate-200">
               <button
                 type="button"
-                onclick="resetToDemo()"
-                title="Khôi phục lại 24 dòng dữ liệu mẫu ban đầu"
+                onclick="refreshFleetDataFromServer(true)"
+                title="Đồng bộ lại dữ liệu mới nhất từ máy chủ"
                 class="p-2 text-slate-500 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors cursor-pointer"
               >
-                <i data-lucide="rotate-ccw" class="w-4 h-4"></i>
+                <i data-lucide="rotate-cw" class="w-4 h-4"></i>
               </button>
               <button
                 type="button"
@@ -1264,33 +1264,8 @@
 
   <!-- ==================== CORE JAVASCRIPT ENGINE ==================== -->
   <script>
-    // 1. ORIGINAL 24 SAMPLE RECORDS
-    const SAMPLE_RECORDS = [
-      { id: '1', stt: 1, driverName: 'Đặng Kim Thương', vehicleNumber: '51B 33618', stationVolume: 356.5, largeTrips: 50, smallTrips: 0, totalKm: 1683, totalTrips: 50, waterVehicles: 0 },
-      { id: '2', stt: 2, driverName: 'Nguyễn Thanh Phong', vehicleNumber: '51N 04419', stationVolume: 242.0, largeTrips: 26, smallTrips: 2, totalKm: 775, totalTrips: 28, waterVehicles: 1 },
-      { id: '3', stt: 3, driverName: 'Lê Văn Nhành', vehicleNumber: '50CD 00927', stationVolume: 341.8, largeTrips: 47, smallTrips: 4, totalKm: 1622, totalTrips: 51, waterVehicles: 2 },
-      { id: '4', stt: 4, driverName: 'Huỳnh Minh Luận', vehicleNumber: '51L 93030', stationVolume: 265.5, largeTrips: 28, smallTrips: 3, totalKm: 887, totalTrips: 31, waterVehicles: 0 },
-      { id: '5', stt: 5, driverName: 'Phạm Hữu Lực.', vehicleNumber: '51L 93030', stationVolume: 119.5, largeTrips: 14, smallTrips: 3, totalKm: 427, totalTrips: 17, waterVehicles: 1, hasWarning: true },
-      { id: '6', stt: 6, driverName: 'Nguyễn Văn Nghĩa.', vehicleNumber: '51L 73435', stationVolume: 161.6, largeTrips: 23, smallTrips: 1, totalKm: 874, totalTrips: 24, waterVehicles: 0, hasWarning: true },
-      { id: '7', stt: 7, driverName: 'Phan Hoàng Vũ', vehicleNumber: '51M 93245', stationVolume: 357.2, largeTrips: 40, smallTrips: 7, totalKm: 1557, totalTrips: 47, waterVehicles: 3 },
-      { id: '8', stt: 8, driverName: 'Võ Chí Linh', vehicleNumber: '51N 04245', stationVolume: 257.9, largeTrips: 29, smallTrips: 2, totalKm: 980, totalTrips: 31, waterVehicles: 2 },
-      { id: '9', stt: 9, driverName: 'Nguyễn Thanh Phong.', vehicleNumber: '51E 33146', stationVolume: 115.0, largeTrips: 15, smallTrips: 4, totalKm: 626, totalTrips: 19, waterVehicles: 2, hasWarning: true },
-      { id: '10', stt: 10, driverName: 'Nguyễn Thanh Tùng', vehicleNumber: '51E 33146', stationVolume: 216.5, largeTrips: 30, smallTrips: 1, totalKm: 711, totalTrips: 31, waterVehicles: 1 },
-      { id: '11', stt: 11, driverName: 'Nguyễn Hữu Hòa', vehicleNumber: '51L 92546', stationVolume: 240.8, largeTrips: 28, smallTrips: 3, totalKm: 1004, totalTrips: 31, waterVehicles: 1 },
-      { id: '12', stt: 12, driverName: 'Võ Chí Linh.', vehicleNumber: '51L 92546', stationVolume: 98.5, adventurous: true, largeTrips: 11, smallTrips: 2, totalKm: 433, totalTrips: 13, waterVehicles: 0, hasWarning: true },
-      { id: '13', stt: 13, driverName: 'Nguyễn Văn Nghĩa', vehicleNumber: '51N 04357', stationVolume: 273.5, largeTrips: 30, smallTrips: 3, totalKm: 925, totalTrips: 33, waterVehicles: 1 },
-      { id: '14', stt: 14, driverName: 'Nguyễn Đức Giang', vehicleNumber: '51L 73164', stationVolume: 304.8, largeTrips: 43, smallTrips: 1, totalKm: 1414, totalTrips: 44, waterVehicles: 1 },
-      { id: '15', stt: 15, driverName: 'Nguyễn Hoàng Vũ', vehicleNumber: '51N 04264', stationVolume: 225.5, largeTrips: 25, smallTrips: 2, totalKm: 646, totalTrips: 27, waterVehicles: 1 },
-      { id: '16', stt: 16, driverName: 'Phạm Hữu Lực', vehicleNumber: '51N 04265', stationVolume: 310.0, largeTrips: 32, smallTrips: 4, totalKm: 1153, totalTrips: 36, waterVehicles: 0 },
-      { id: '17', stt: 17, driverName: 'Huỳnh Thanh Trọng', vehicleNumber: '51M 51767', stationVolume: 389.5, largeTrips: 42, smallTrips: 3, totalKm: 1367, totalTrips: 45, waterVehicles: 0 },
-      { id: '18', stt: 18, driverName: 'Đỗ Tuấn Vinh', vehicleNumber: '51M 23071', stationVolume: 423.9, largeTrips: 45, smallTrips: 4, totalKm: 1647, totalTrips: 49, waterVehicles: 0 },
-      { id: '19', stt: 19, driverName: 'Bùi Thái Sơn', vehicleNumber: '51M 97571', stationVolume: 334.8, largeTrips: 35, smallTrips: 3, totalKm: 1151, totalTrips: 38, waterVehicles: 0 },
-      { id: '20', stt: 20, driverName: 'Nguyễn Thanh Phú', vehicleNumber: '51M 51884', stationVolume: 401.7, largeTrips: 43, smallTrips: 10, totalKm: 1670, totalTrips: 53, waterVehicles: 1 },
-      { id: '21', stt: 21, driverName: 'Huỳnh Thành Tốt', vehicleNumber: '51L 74085', stationVolume: 102.5, largeTrips: 11, smallTrips: 3, totalKm: 415, totalTrips: 14, waterVehicles: 0 },
-      { id: '22', stt: 22, driverName: 'Nguyễn Đình Linh', vehicleNumber: '51L 74085', stationVolume: 249.0, largeTrips: 26, smallTrips: 3, totalKm: 791, totalTrips: 29, waterVehicles: 0 },
-      { id: '23', stt: 23, driverName: 'Đoàn Công Danh', vehicleNumber: '51M 97691', stationVolume: 409.0, largeTrips: 44, smallTrips: 6, totalKm: 1519, totalTrips: 50, waterVehicles: 1 },
-      { id: '24', stt: 24, driverName: 'Nguyễn Hoàng Phước', vehicleNumber: '51L 60192', stationVolume: 320.8, largeTrips: 45, smallTrips: 2, totalKm: 1406, totalTrips: 47, waterVehicles: 1 }
-    ];
+    // 1. ORIGINAL DATA STORAGE INITIALIZATION (Synchronized via Server API)
+    const SAMPLE_RECORDS = [];
 
     // COLUMN DEFINITIONS FOR EXCEL RECOGNITION
     const COLUMN_DEFINITIONS = [
@@ -1340,6 +1315,11 @@
       fileName: ''
     };
 
+    // SERVER SYNCHRONIZATION STATE
+    let serverDataVersion = 0;
+    let isSyncingToServer = false;
+    let autoSyncInitialized = false;
+
     // AUTHENTICATION
     const AUTH_CREDENTIALS = {
       username: 'admin',
@@ -1365,6 +1345,10 @@
         loginScreen.classList.add('hidden');
         dashboardApp.classList.remove('hidden');
         loadFleetDataAndRender();
+        if (!autoSyncInitialized) {
+          startAutoSyncWithServer();
+          autoSyncInitialized = true;
+        }
       } else {
         dashboardApp.classList.add('hidden');
         loginScreen.classList.remove('hidden');
@@ -1372,25 +1356,125 @@
       if (window.lucide) lucide.createIcons();
     }
 
-    function loadFleetDataAndRender() {
+    async function loadFleetDataAndRender(showToastNotification = false) {
+      try {
+        const res = await fetch('/api/fleet-data');
+        if (res.ok) {
+          const data = await res.json();
+          if (data && data.success && Array.isArray(data.records)) {
+            serverDataVersion = data.version || 0;
+            allRecords = data.records;
+            if (data.lastUpdated) {
+              lastDataActionTimestamp = data.lastUpdated;
+              const timeEl = document.getElementById('header-updated-time');
+              if (timeEl) timeEl.textContent = data.lastUpdated;
+            }
+            try {
+              localStorage.setItem('VIETNAMESE_FLEET_DATA_V1', JSON.stringify(allRecords));
+            } catch (e) {}
+
+            applyFiltersAndRender();
+            if (showToastNotification) {
+              showToast(`Đã đồng bộ ${allRecords.length} dòng dữ liệu mới nhất từ máy chủ!`, 'info');
+            }
+            return;
+          }
+        }
+      } catch (err) {
+        console.warn('Lỗi kết nối máy chủ, đang dùng bộ nhớ đệm cục bộ:', err);
+      }
+
+      // Fallback cache if offline
       try {
         const saved = localStorage.getItem('VIETNAMESE_FLEET_DATA_V1');
         if (saved) {
           const parsed = JSON.parse(saved);
-          if (Array.isArray(parsed) && parsed.length > 0) {
+          if (Array.isArray(parsed)) {
             allRecords = parsed;
           } else {
-            allRecords = [...SAMPLE_RECORDS];
+            allRecords = [];
           }
         } else {
-          allRecords = [...SAMPLE_RECORDS];
+          allRecords = [];
         }
       } catch (e) {
-        allRecords = [...SAMPLE_RECORDS];
+        allRecords = [];
       }
 
       applyFiltersAndRender();
       if (window.lucide) lucide.createIcons();
+    }
+
+    async function syncFleetDataToServer(actionName = 'Cập nhật') {
+      if (isSyncingToServer) return;
+      isSyncingToServer = true;
+      try {
+        const now = new Date();
+        const timeStr = `${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')} - ${now.toLocaleDateString('vi-VN')}`;
+        const updateLabel = `${actionName}: ${timeStr}`;
+        lastDataActionTimestamp = updateLabel;
+        const timeEl = document.getElementById('header-updated-time');
+        if (timeEl) timeEl.textContent = updateLabel;
+
+        const res = await fetch('/api/fleet-data', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            records: allRecords,
+            lastUpdated: updateLabel,
+            actionType: actionName
+          })
+        });
+
+        if (res.ok) {
+          const data = await res.json();
+          if (data && typeof data.version === 'number') {
+            serverDataVersion = data.version;
+          }
+          console.log(`[Sync] Đã lưu ${allRecords.length} bản ghi lên máy chủ`);
+        }
+      } catch (err) {
+        console.error('Lỗi khi đồng bộ dữ liệu lên máy chủ:', err);
+      } finally {
+        isSyncingToServer = false;
+      }
+    }
+
+    function startAutoSyncWithServer() {
+      // Periodic check every 5 seconds to sync data across all clients
+      setInterval(async () => {
+        if (isSyncingToServer) return;
+        try {
+          const res = await fetch('/api/fleet-data');
+          if (res.ok) {
+            const data = await res.json();
+            if (data && data.success && typeof data.version === 'number') {
+              if (data.version > serverDataVersion) {
+                serverDataVersion = data.version;
+                allRecords = data.records || [];
+                if (data.lastUpdated) {
+                  lastDataActionTimestamp = data.lastUpdated;
+                  const timeEl = document.getElementById('header-updated-time');
+                  if (timeEl) timeEl.textContent = data.lastUpdated;
+                }
+                try {
+                  localStorage.setItem('VIETNAMESE_FLEET_DATA_V1', JSON.stringify(allRecords));
+                } catch (e) {}
+                applyFiltersAndRender();
+                showToast(`Máy chủ vừa cập nhật dữ liệu mới (${allRecords.length} bản ghi)`, 'info');
+              }
+            }
+          }
+        } catch (e) {}
+      }, 5000);
+
+      window.addEventListener('focus', () => {
+        if (isUserAuthenticated()) {
+          loadFleetDataAndRender(false);
+        }
+      });
     }
 
     function toggleLoginPasswordVisibility() {
@@ -1713,10 +1797,10 @@
             <i data-lucide="file-spreadsheet" class="w-8 h-8"></i>
           </div>
           <h3 class="text-lg font-bold text-slate-800">Chưa có dữ liệu vận hành</h3>
-          <p class="text-xs text-slate-500 max-w-sm mx-auto">Vui lòng tải file Excel lên hoặc nạp 24 tài xế mẫu.</p>
+          <p class="text-xs text-slate-500 max-w-sm mx-auto">Vui lòng tải file Excel lên, chụp/tải ảnh để AI nhận diện hoặc thêm tài xế mới.</p>
           <div class="flex items-center justify-center gap-3 pt-2">
             <button type="button" onclick="openUploadModal()" class="px-4 py-2 text-xs font-bold text-white bg-blue-600 rounded-lg shadow-sm cursor-pointer">Tải Excel lên</button>
-            <button type="button" onclick="resetToDemo()" class="px-4 py-2 text-xs font-semibold text-slate-700 bg-slate-100 rounded-lg cursor-pointer">Nạp 24 dòng mẫu</button>
+            <button type="button" onclick="openImageOcrModal()" class="px-4 py-2 text-xs font-semibold text-violet-700 bg-violet-50 hover:bg-violet-100 border border-violet-200 rounded-lg cursor-pointer">AI Nhận Diện Ảnh</button>
           </div>
         `;
         return;
@@ -2505,12 +2589,17 @@
       allRecords = [...parsedWorkbookData.previewRecords];
       const now = new Date();
       const timeStr = `${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')} - ${now.toLocaleDateString('vi-VN')}`;
-      document.getElementById('header-updated-time').textContent = `Cập nhật: ${timeStr}`;
+      document.getElementById('header-updated-time').textContent = `Cập nhật từ Excel: ${timeStr}`;
+
+      try {
+        localStorage.setItem('VIETNAMESE_FLEET_DATA_V1', JSON.stringify(allRecords));
+      } catch (e) {}
 
       closeUploadModal();
       currentPage = 1;
       resetAllFilters();
-      showToast(`Đã nhập thành công ${allRecords.length} dòng dữ liệu từ file!`, 'success');
+      syncFleetDataToServer('Nhập từ Excel');
+      showToast(`Đã nhập và đồng bộ thành công ${allRecords.length} dòng dữ liệu từ file lên toàn hệ thống!`, 'success');
     }
 
     // EXPORT
@@ -2564,7 +2653,10 @@
     }
 
     function downloadSampleTemplate() {
-      const templateData = SAMPLE_RECORDS.map((r, i) => ({
+      const templateData = (allRecords.length > 0 ? allRecords.slice(0, 5) : [
+        { stt: 1, driverName: 'Nguyễn Văn A', vehicleNumber: '51C 12345', stationVolume: 350.5, largeTrips: 45, smallTrips: 2, totalKm: 1500, totalTrips: 47, waterVehicles: 1 },
+        { stt: 2, driverName: 'Trần Văn B', vehicleNumber: '51D 67890', stationVolume: 280.0, largeTrips: 30, smallTrips: 5, totalKm: 1100, totalTrips: 35, waterVehicles: 0 }
+      ]).map((r, i) => ({
         'STT': i + 1,
         'TÊN TÀI XẾ': r.driverName,
         'SỐ XE': r.vehicleNumber,
@@ -2576,16 +2668,15 @@
         'XE NƯỚC': r.waterVehicles
       }));
       const ws = XLSX.utils.json_to_sheet(templateData);
+      ws['!cols'] = [{ wch: 6 }, { wch: 24 }, { wch: 14 }, { wch: 18 }, { wch: 14 }, { wch: 14 }, { wch: 14 }, { wch: 14 }, { wch: 12 }];
       const wb = XLSX.utils.book_new();
       XLSX.utils.book_append_sheet(wb, ws, 'Mẫu Báo Cáo Tài Xế');
-      XLSX.writeFile(wb, 'Mau_BaoCao_TaiXe_24Dong.xlsx');
-      showToast('Đã tải xuống file Excel mẫu chuẩn 24 dòng', 'success');
+      XLSX.writeFile(wb, 'Mau_BaoCao_TaiXe_Chuan.xlsx');
+      showToast('Đã tải xuống file Excel mẫu chuẩn để nhập liệu', 'success');
     }
 
-    function resetToDemo() {
-      allRecords = [...SAMPLE_RECORDS];
-      resetAllFilters();
-      showToast('Đã nạp lại 24 dòng dữ liệu mẫu', 'info');
+    async function refreshFleetDataFromServer(manual = false) {
+      await loadFleetDataAndRender(manual);
     }
 
     // EDIT / ADD
@@ -2663,17 +2754,26 @@
         showToast(`Đã thêm mới tài xế ${driver}`, 'success');
       }
 
+      try {
+        localStorage.setItem('VIETNAMESE_FLEET_DATA_V1', JSON.stringify(allRecords));
+      } catch (e) {}
+
       closeEditModal();
       applyFiltersAndRender();
+      syncFleetDataToServer(existingIdx >= 0 ? 'Cập nhật tài xế' : 'Thêm tài xế');
     }
 
     function deleteDriverRecord(recordId) {
       const rec = allRecords.find(r => r.id === recordId);
       if (!rec) return;
-      openConfirmDialog('Xóa tài xế?', `Bạn có chắc chắn muốn xóa bản ghi của tài xế "${rec.driverName}"?`, () => {
+      openConfirmDialog('Xóa tài xế?', `Bạn có chắc chắn muốn xóa bản ghi của tài xế "${rec.driverName}" trên toàn hệ thống?`, () => {
         allRecords = allRecords.filter(r => r.id !== recordId);
+        try {
+          localStorage.setItem('VIETNAMESE_FLEET_DATA_V1', JSON.stringify(allRecords));
+        } catch (e) {}
         applyFiltersAndRender();
-        showToast(`Đã xóa tài xế ${rec.driverName}`, 'warning');
+        syncFleetDataToServer('Xóa tài xế');
+        showToast(`Đã xóa tài xế ${rec.driverName} trên toàn hệ thống`, 'warning');
       });
     }
 
@@ -2691,10 +2791,14 @@
     }
 
     function openClearConfirm() {
-      openConfirmDialog('Xóa toàn bộ dữ liệu?', 'Thao tác này sẽ xóa sạch toàn bộ danh sách tài xế. Bạn có thể nhấn Nạp lại 24 dòng mẫu bất cứ lúc nào.', () => {
+      openConfirmDialog('Xóa toàn bộ dữ liệu?', 'Thao tác này sẽ xóa sạch toàn bộ danh sách tài xế trên máy chủ và toàn bộ người dùng truy cập.', () => {
         allRecords = [];
+        try {
+          localStorage.setItem('VIETNAMESE_FLEET_DATA_V1', JSON.stringify(allRecords));
+        } catch (e) {}
         applyFiltersAndRender();
-        showToast('Đã xóa toàn bộ dữ liệu', 'warning');
+        syncFleetDataToServer('Xóa toàn bộ dữ liệu');
+        showToast('Đã xóa toàn bộ dữ liệu trên toàn hệ thống', 'warning');
       });
     }
 
@@ -3487,8 +3591,8 @@ Hãy trả về duy nhất định dạng JSON thuần túy (không thêm giải
       closeImageOcrModal();
       currentPage = 1;
       resetAllFilters();
-      recordDataUpdateTime('Cập nhật từ ảnh AI');
-      showToast(`Đã cập nhật thành công ${ocrExtractedDrivers.length} dòng dữ liệu từ ảnh vào hệ thống!`, 'success');
+      syncFleetDataToServer('Nhận diện từ ảnh AI');
+      showToast(`Đã cập nhật và đồng bộ ${ocrExtractedDrivers.length} dòng dữ liệu từ ảnh lên toàn hệ thống!`, 'success');
     }
 
     // LIVE CLOCK

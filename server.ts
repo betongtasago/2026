@@ -1,10 +1,63 @@
 import express from "express";
 import path from "path";
+import fs from "fs";
 import { createServer as createViteServer } from "vite";
 import { GoogleGenAI, Type } from "@google/genai";
 import dotenv from "dotenv";
 
 dotenv.config();
+
+// Persistent fleet storage file
+const DATA_DIR = path.join(process.cwd(), "data");
+const DATA_FILE = path.join(DATA_DIR, "fleet_data.json");
+
+interface FleetStoragePayload {
+  records: any[];
+  lastUpdated: string | null;
+  version: number;
+  timestamp: number;
+}
+
+function loadStoredFleetData(): FleetStoragePayload {
+  try {
+    if (!fs.existsSync(DATA_DIR)) {
+      fs.mkdirSync(DATA_DIR, { recursive: true });
+    }
+    if (fs.existsSync(DATA_FILE)) {
+      const raw = fs.readFileSync(DATA_FILE, "utf-8");
+      const parsed = JSON.parse(raw);
+      if (parsed && Array.isArray(parsed.records)) {
+        return {
+          records: parsed.records,
+          lastUpdated: parsed.lastUpdated || null,
+          version: parsed.version || 1,
+          timestamp: parsed.timestamp || Date.now(),
+        };
+      }
+    }
+  } catch (err) {
+    console.error("Error reading fleet data from file:", err);
+  }
+  return {
+    records: [],
+    lastUpdated: null,
+    version: 0,
+    timestamp: Date.now(),
+  };
+}
+
+let currentFleetState: FleetStoragePayload = loadStoredFleetData();
+
+function saveFleetDataToFile(payload: FleetStoragePayload) {
+  try {
+    if (!fs.existsSync(DATA_DIR)) {
+      fs.mkdirSync(DATA_DIR, { recursive: true });
+    }
+    fs.writeFileSync(DATA_FILE, JSON.stringify(payload, null, 2), "utf-8");
+  } catch (err) {
+    console.error("Error writing fleet data to file:", err);
+  }
+}
 
 async function startServer() {
   const app = express();
@@ -16,6 +69,67 @@ async function startServer() {
   // API Routes
   app.get("/api/health", (req, res) => {
     res.json({ status: "ok", timestamp: new Date().toISOString() });
+  });
+
+  // Shared Fleet Data Endpoints (All users see the same updated data)
+  app.get("/api/fleet-data", (req, res) => {
+    res.json({
+      success: true,
+      records: currentFleetState.records,
+      lastUpdated: currentFleetState.lastUpdated,
+      version: currentFleetState.version,
+      timestamp: currentFleetState.timestamp,
+    });
+  });
+
+  app.post("/api/fleet-data", (req, res) => {
+    try {
+      const { records, lastUpdated, actionType } = req.body;
+      if (!Array.isArray(records)) {
+        return res.status(400).json({ error: "Tham số 'records' phải là một mảng dữ liệu." });
+      }
+
+      const now = new Date();
+      const defaultTimeStr = `${String(now.getHours()).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")} - ${now.toLocaleDateString("vi-VN")}`;
+      const finalLastUpdated = lastUpdated || defaultTimeStr;
+
+      currentFleetState = {
+        records,
+        lastUpdated: finalLastUpdated,
+        version: (currentFleetState.version || 0) + 1,
+        timestamp: Date.now(),
+      };
+
+      saveFleetDataToFile(currentFleetState);
+
+      console.log(`[Fleet Sync] Đã lưu ${records.length} bản ghi (Action: ${actionType || 'Update'}, Version: ${currentFleetState.version})`);
+
+      return res.json({
+        success: true,
+        count: records.length,
+        lastUpdated: currentFleetState.lastUpdated,
+        version: currentFleetState.version,
+        timestamp: currentFleetState.timestamp,
+      });
+    } catch (err: any) {
+      console.error("Error saving fleet data:", err);
+      return res.status(500).json({ error: err?.message || "Lỗi khi lưu dữ liệu đội xe." });
+    }
+  });
+
+  app.delete("/api/fleet-data", (req, res) => {
+    try {
+      currentFleetState = {
+        records: [],
+        lastUpdated: null,
+        version: (currentFleetState.version || 0) + 1,
+        timestamp: Date.now(),
+      };
+      saveFleetDataToFile(currentFleetState);
+      return res.json({ success: true, message: "Đã xóa toàn bộ dữ liệu máy chủ." });
+    } catch (err: any) {
+      return res.status(500).json({ error: err?.message || "Lỗi khi xóa dữ liệu." });
+    }
   });
 
   app.post("/api/recognize-image", async (req, res) => {

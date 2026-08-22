@@ -85,7 +85,7 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
               type="button"
               id="btn-download-sample"
               onClick={onDownloadTemplate}
-              title="Tải file Excel mẫu chuẩn 24 dòng để thử nghiệm"
+              title="Tải file Excel mẫu chuẩn để nhập liệu"
               className="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-medium text-slate-700 bg-slate-100 hover:bg-slate-200 border border-slate-300/80 rounded-lg transition-colors cursor-pointer"
             >
               <FileSpreadsheet className="w-3.5 h-3.5 text-emerald-600" />
@@ -135,7 +135,7 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
                 type="button"
                 id="btn-reset-demo"
                 onClick={onResetDemo}
-                title="Khôi phục lại 24 dòng dữ liệu mẫu ban đầu"
+                title="Đồng bộ lại dữ liệu mới nhất từ máy chủ"
                 className="p-2 text-slate-500 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors cursor-pointer"
               >
                 <RotateCcw className="w-4 h-4" />

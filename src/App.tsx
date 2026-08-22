@@ -34,23 +34,11 @@ const INITIAL_FILTERS: FilterState = {
 
 export default function App() {
   // Primary records state
-  const [records, setRecords] = useState<DriverRecord[]>(() => {
-    try {
-      const saved = localStorage.getItem(STORAGE_KEY);
-      if (saved) {
-        const parsed = JSON.parse(saved);
-        if (Array.isArray(parsed) && parsed.length > 0) {
-          return parsed;
-        }
-      }
-    } catch (e) {
-      console.warn('Could not read saved data from localStorage, fallback to demo data');
-    }
-    return SAMPLE_DRIVER_DATA;
-  });
+  const [records, setRecords] = useState<DriverRecord[]>([]);
+  const [serverVersion, setServerVersion] = useState<number>(0);
 
   const [lastUpdated, setLastUpdated] = useState<string | null>(() => {
-    return localStorage.getItem(STORAGE_TIMESTAMP_KEY) || '18/08/2026 19:20';
+    return localStorage.getItem(STORAGE_TIMESTAMP_KEY) || null;
   });
 
   // Filter & Sort State
@@ -82,17 +70,93 @@ export default function App() {
     }, 4500);
   }, []);
 
-  // Save to localStorage whenever records change
-  useEffect(() => {
+  // Fetch initial fleet data from server
+  const fetchFleetDataFromServer = useCallback(async (notify = false) => {
     try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(records));
-      if (lastUpdated) {
-        localStorage.setItem(STORAGE_TIMESTAMP_KEY, lastUpdated);
+      const res = await fetch('/api/fleet-data');
+      if (res.ok) {
+        const data = await res.json();
+        if (data && data.success && Array.isArray(data.records)) {
+          setRecords(data.records);
+          setServerVersion(data.version || 0);
+          if (data.lastUpdated) {
+            setLastUpdated(data.lastUpdated);
+          }
+          if (notify) {
+            showToast(`Đã đồng bộ ${data.records.length} dòng từ máy chủ`, 'info');
+          }
+          return;
+        }
       }
     } catch (e) {
-      console.warn('Storage quota exceeded or error storing data');
+      console.warn('Lỗi kết nối máy chủ:', e);
     }
-  }, [records, lastUpdated]);
+
+    // Fallback to local storage
+    try {
+      const saved = localStorage.getItem(STORAGE_KEY);
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed)) setRecords(parsed);
+      }
+    } catch (e) {}
+  }, [showToast]);
+
+  useEffect(() => {
+    fetchFleetDataFromServer(false);
+
+    // Auto-sync polling every 5 seconds
+    const interval = setInterval(async () => {
+      try {
+        const res = await fetch('/api/fleet-data');
+        if (res.ok) {
+          const data = await res.json();
+          if (data && data.success && typeof data.version === 'number') {
+            setServerVersion((prevVersion) => {
+              if (data.version > prevVersion) {
+                setRecords(data.records || []);
+                if (data.lastUpdated) setLastUpdated(data.lastUpdated);
+                showToast(`Máy chủ vừa cập nhật dữ liệu mới (${(data.records || []).length} bản ghi)`, 'info');
+                return data.version;
+              }
+              return prevVersion;
+            });
+          }
+        }
+      } catch (e) {}
+    }, 5000);
+
+    return () => clearInterval(interval);
+  }, [fetchFleetDataFromServer, showToast]);
+
+  const syncRecordsToServer = async (newRecords: DriverRecord[], actionName = 'Cập nhật') => {
+    const now = new Date();
+    const timeStr = `${actionName}: ${now.getHours().toString().padStart(2, '0')}:${now
+      .getMinutes()
+      .toString()
+      .padStart(2, '0')} - ${now.toLocaleDateString('vi-VN')}`;
+    setLastUpdated(timeStr);
+
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(newRecords));
+      localStorage.setItem(STORAGE_TIMESTAMP_KEY, timeStr);
+      const res = await fetch('/api/fleet-data', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          records: newRecords,
+          lastUpdated: timeStr,
+          actionType: actionName
+        })
+      });
+      if (res.ok) {
+        const data = await res.json();
+        if (data.version) setServerVersion(data.version);
+      }
+    } catch (e) {
+      console.error('Lỗi khi lưu dữ liệu lên máy chủ:', e);
+    }
+  };
 
   // Compute active filter count
   const activeFilterCount = useMemo(() => {
@@ -228,28 +292,25 @@ export default function App() {
     setFilters(INITIAL_FILTERS);
     setCurrentPage(1);
 
-    showToast(`Đã nhập thành công ${newRecords.length} dòng dữ liệu từ file "${filename}"`, 'success');
+    const updated = [...newRecords];
+    setRecords(updated);
+    syncRecordsToServer(updated, 'Nhập từ Excel');
+    showToast(`Đã nhập và đồng bộ thành công ${newRecords.length} dòng dữ liệu từ file "${filename}"`, 'success');
   };
 
-  // Reset to original 24 demo sample records
+  // Refresh data from server
   const handleResetDemo = () => {
-    setRecords(SAMPLE_DRIVER_DATA);
+    fetchFleetDataFromServer(true);
     setFilters(INITIAL_FILTERS);
     setCurrentPage(1);
-    const now = new Date();
-    const timeStr = `${now.getHours().toString().padStart(2, '0')}:${now
-      .getMinutes()
-      .toString()
-      .padStart(2, '0')} - ${now.toLocaleDateString('vi-VN')}`;
-    setLastUpdated(timeStr);
-    showToast('Đã nạp lại bộ dữ liệu 24 tài xế mẫu', 'info');
   };
 
   // Clear all records
   const handleClearAll = () => {
     setRecords([]);
     setIsClearConfirmOpen(false);
-    showToast('Đã xóa toàn bộ dữ liệu trong bảng', 'warning');
+    syncRecordsToServer([], 'Xóa toàn bộ dữ liệu');
+    showToast('Đã xóa toàn bộ dữ liệu trên toàn hệ thống', 'warning');
   };
 
   // Export handlers
@@ -276,25 +337,29 @@ export default function App() {
   };
 
   const handleDownloadSampleTemplate = () => {
-    exportDriversToExcel(SAMPLE_DRIVER_DATA, 'Mau_BaoCaoTaiXe_Chuan.xlsx');
-    showToast('Đã tải xuống file Excel mẫu chuẩn 24 dòng', 'success');
+    const templateSample = records.length > 0 ? records.slice(0, 5) : SAMPLE_DRIVER_DATA;
+    exportDriversToExcel(templateSample, 'Mau_BaoCaoTaiXe_Chuan.xlsx');
+    showToast('Đã tải xuống file Excel mẫu chuẩn', 'success');
   };
 
   // Single row save/edit/delete
   const handleSaveRow = (savedRecord: DriverRecord) => {
     setRecords((prev) => {
       const exists = prev.some((r) => r.id === savedRecord.id);
-      if (exists) {
-        return prev.map((r) => (r.id === savedRecord.id ? savedRecord : r));
-      }
-      return [savedRecord, ...prev];
+      const updated = exists ? prev.map((r) => (r.id === savedRecord.id ? savedRecord : r)) : [savedRecord, ...prev];
+      syncRecordsToServer(updated, exists ? 'Cập nhật tài xế' : 'Thêm tài xế');
+      return updated;
     });
     showToast(`Đã lưu thông tin tài xế ${savedRecord.driverName}`, 'success');
   };
 
   const handleDeleteRow = (recordId: string) => {
     const target = records.find((r) => r.id === recordId);
-    setRecords((prev) => prev.filter((r) => r.id !== recordId));
+    setRecords((prev) => {
+      const updated = prev.filter((r) => r.id !== recordId);
+      syncRecordsToServer(updated, 'Xóa tài xế');
+      return updated;
+    });
     setDeletingId(null);
     showToast(`Đã xóa tài xế ${target?.driverName || ''}`, 'warning');
   };

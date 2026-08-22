@@ -45,7 +45,7 @@ export const EmptyState: React.FC<EmptyStateProps> = ({
             Chưa có dữ liệu vận hành
           </h3>
           <p className="text-xs text-slate-500 max-w-sm mx-auto">
-            Vui lòng tải file Excel (.xlsx / .xls) lên để bắt đầu hoặc nhấn nạp dữ liệu mẫu 24 tài xế để kiểm tra giao diện.
+            Vui lòng tải file Excel (.xlsx / .xls) lên để bắt đầu hoặc làm mới để đồng bộ dữ liệu mới nhất từ máy chủ.
           </p>
           <div className="flex items-center justify-center gap-3 pt-2">
             <button
@@ -62,7 +62,7 @@ export const EmptyState: React.FC<EmptyStateProps> = ({
               className="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200 border border-slate-300 rounded-lg transition-colors cursor-pointer"
             >
               <RotateCcw className="w-3.5 h-3.5 text-blue-600" />
-              <span>Nạp 24 dòng mẫu</span>
+              <span>Đồng bộ từ máy chủ</span>
             </button>
           </div>
         </>

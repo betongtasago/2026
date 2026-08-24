@@ -24,7 +24,8 @@ type ResponseLike = {
 };
 
 export default async function handler(req: RequestLike, res: ResponseLike): Promise<void> {
-  if (!applyApiHeaders(req, res)) return;
+  try {
+    if (!applyApiHeaders(req, res)) return;
   res.setHeader('Cache-Control', 'no-store, max-age=0');
   if (req.method !== 'POST') {
     sendJson(res, 405, { success: false, error: 'Phương thức không được hỗ trợ.' });
@@ -52,9 +53,13 @@ export default async function handler(req: RequestLike, res: ResponseLike): Prom
   clearLoginFailures(ip);
   const sessionToken = await createSession(String(username));
   setSessionCookie(res, sessionToken, req);
-  sendJson(res, 200, {
-    success: true,
-    user: { username: String(username) },
-    ...(shouldExposeClientToken(req) ? { sessionToken } : {}),
-  });
+    sendJson(res, 200, {
+      success: true,
+      user: { username: String(username) },
+      ...(shouldExposeClientToken(req) ? { sessionToken } : {}),
+    });
+  } catch (error) {
+    console.error('Vercel login function error:', error);
+    sendJson(res, 500, { success: false, error: 'Lỗi khởi tạo chức năng đăng nhập trên Vercel.', detail: error instanceof Error ? error.message : String(error) });
+  }
 }

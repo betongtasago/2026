@@ -89,6 +89,28 @@ export function apiFetch(path: string, init: RequestInit = {}): Promise<Response
   return fetch(apiUrl(path), requestOptions(init));
 }
 
+export function formatApiError(value: unknown, fallback: string): string {
+  if (typeof value === 'string' && value.trim()) return value;
+  if (value instanceof Error && value.message) return value.message;
+  if (value && typeof value === 'object') {
+    const candidate = value as Record<string, unknown>;
+    for (const key of ['message', 'error', 'detail', 'details']) {
+      const nested = formatApiError(candidate[key], '');
+      if (nested) return nested;
+    }
+    try {
+      const serialized = JSON.stringify(value);
+      if (serialized && serialized !== '{}') return serialized;
+    } catch {}
+  }
+  return fallback;
+}
+
+export async function readApiError(response: Response, fallback: string): Promise<string> {
+  const payload = await response.json().catch(() => null);
+  return formatApiError(payload && typeof payload === 'object' ? (payload as Record<string, unknown>).error ?? (payload as Record<string, unknown>).message ?? payload : payload, fallback);
+}
+
 export function sameOriginApiFetch(path: string, init: RequestInit = {}): Promise<Response> {
   return fetch(requestUrl(path, ''), requestOptions(init));
 }

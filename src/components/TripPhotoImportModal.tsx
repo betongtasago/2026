@@ -75,6 +75,19 @@ function formatValue(value: number | undefined): string {
   return typeof value === 'number' && Number.isFinite(value) ? value.toLocaleString('vi-VN') : '—';
 }
 
+function readApiErrorFromPayload(payload: unknown, fallback: string): string {
+  if (!payload || typeof payload !== 'object') return fallback;
+  const error = (payload as Record<string, unknown>).error ?? (payload as Record<string, unknown>).message;
+  if (typeof error === 'string' && error.trim()) return error;
+  if (error && typeof error === 'object') {
+    const nested = error as Record<string, unknown>;
+    for (const key of ['message', 'detail', 'error']) {
+      if (typeof nested[key] === 'string' && String(nested[key]).trim()) return String(nested[key]);
+    }
+  }
+  return fallback;
+}
+
 export const TripPhotoImportModal: React.FC<TripPhotoImportModalProps> = ({
   isOpen,
   records,
@@ -133,7 +146,7 @@ export const TripPhotoImportModal: React.FC<TripPhotoImportModalProps> = ({
       });
       const data = await response.json().catch(() => null);
       if (response.status === 401) throw new Error('Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.');
-      if (!response.ok || !data?.success) throw new Error(data?.error || 'Không thể nhận diện danh sách chuyến.');
+      if (!response.ok || !data?.success) throw new Error(readApiErrorFromPayload(data, 'Không thể nhận diện danh sách chuyến.'));
 
       const recognized: OcrTripRow[] = Array.isArray(data.drivers)
         ? data.drivers

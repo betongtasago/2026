@@ -4,6 +4,15 @@ const LOGIN_WINDOW_MS = 15 * 60 * 1000;
 const MAX_LOGIN_ATTEMPTS = 5;
 const attempts = new Map<string, { count: number; resetAt: number }>();
 
+function env(name: string): string {
+  const runtimeProcess = (globalThis as typeof globalThis & { process?: { env?: Record<string, string | undefined> } }).process;
+  return String(runtimeProcess?.env?.[name] || '');
+}
+
+function encodeBase64Url(binary: string): string {
+  return globalThis.btoa(binary).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/g, '');
+}
+
 type RequestLike = {
   headers: Record<string, string | string[] | undefined>;
 };
@@ -18,25 +27,27 @@ function header(req: RequestLike, name: string): string {
 }
 
 function base64UrlEncode(value: string): string {
-  const bytes = new TextEncoder().encode(value);
+  const bytes = new globalThis.TextEncoder().encode(value);
   let binary = '';
   bytes.forEach((byte) => { binary += String.fromCharCode(byte); });
-  return btoa(binary).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/g, '');
+  return encodeBase64Url(binary);
 }
 
 function base64UrlDecode(value: string): string {
   const padded = value.replace(/-/g, '+').replace(/_/g, '/') + '==='.slice((value.length + 3) % 4);
-  const binary = atob(padded);
-  return new TextDecoder().decode(Uint8Array.from(binary, (char) => char.charCodeAt(0)));
+  const binary = globalThis.atob(padded);
+  return new globalThis.TextDecoder().decode(Uint8Array.from(binary, (char) => char.charCodeAt(0)));
 }
 
 async function signature(payload: string): Promise<string> {
-  const secret = String(process.env.AUTH_SECRET || '').trim() || 'unconfigured-auth-secret';
-  const key = await crypto.subtle.importKey('raw', new TextEncoder().encode(secret), { name: 'HMAC', hash: 'SHA-256' }, false, ['sign']);
-  const result = await crypto.subtle.sign('HMAC', key, new TextEncoder().encode(payload));
+  const secret = env('AUTH_SECRET').trim() || 'unconfigured-auth-secret';
+  const webCrypto = globalThis.crypto;
+  if (!webCrypto?.subtle) throw new Error('Web Crypto không khả dụng trên runtime Vercel.');
+  const key = await webCrypto.subtle.importKey('raw', new globalThis.TextEncoder().encode(secret), { name: 'HMAC', hash: 'SHA-256' }, false, ['sign']);
+  const result = await webCrypto.subtle.sign('HMAC', key, new globalThis.TextEncoder().encode(payload));
   let binary = '';
   new Uint8Array(result).forEach((byte) => { binary += String.fromCharCode(byte); });
-  return btoa(binary).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/g, '');
+  return encodeBase64Url(binary);
 }
 
 function parseCookies(value: string): Record<string, string> {
@@ -57,11 +68,11 @@ function crossSite(req: RequestLike): boolean {
 }
 
 export function canAuthenticate(): boolean {
-  return Boolean(String(process.env.ADMIN_USERNAME || '').trim() && String(process.env.ADMIN_PASSWORD || '') && String(process.env.AUTH_SECRET || '').trim());
+  return Boolean(env('ADMIN_USERNAME').trim() && env('ADMIN_PASSWORD') && env('AUTH_SECRET').trim());
 }
 
 export function verifyLogin(username: unknown, password: unknown): boolean {
-  return typeof username === 'string' && typeof password === 'string' && username === String(process.env.ADMIN_USERNAME || '').trim() && password === String(process.env.ADMIN_PASSWORD || '');
+  return typeof username === 'string' && typeof password === 'string' && username === env('ADMIN_USERNAME').trim() && password === env('ADMIN_PASSWORD');
 }
 
 export function isLoginRateLimited(ip: string): boolean {
@@ -100,7 +111,7 @@ export async function getAuthenticatedUser(req: RequestLike): Promise<{ username
   if (!payload || !providedSignature || providedSignature !== await signature(payload)) return null;
   try {
     const data = JSON.parse(base64UrlDecode(payload)) as { sub?: string; exp?: number };
-    const username = String(process.env.ADMIN_USERNAME || '').trim();
+    const username = env('ADMIN_USERNAME').trim();
     if (!data.sub || data.sub !== username || !data.exp || data.exp <= Math.floor(Date.now() / 1000)) return null;
     return { username: data.sub };
   } catch { return null; }
@@ -108,13 +119,13 @@ export async function getAuthenticatedUser(req: RequestLike): Promise<{ username
 
 export function setSessionCookie(res: ResponseLike, token: string, req: RequestLike): void {
   const sameSite = crossSite(req) ? 'None' : 'Lax';
-  const secure = process.env.NODE_ENV === 'production' ? '; Secure' : '';
+  const secure = env('NODE_ENV') === 'production' ? '; Secure' : '';
   res.setHeader('Set-Cookie', `${SESSION_COOKIE}=${encodeURIComponent(token)}; HttpOnly; Path=/; Max-Age=${SESSION_TTL_SECONDS}; SameSite=${sameSite}${secure}`);
 }
 
 export function clearSessionCookie(res: ResponseLike, req: RequestLike): void {
   const sameSite = crossSite(req) ? 'None' : 'Lax';
-  const secure = process.env.NODE_ENV === 'production' ? '; Secure' : '';
+  const secure = env('NODE_ENV') === 'production' ? '; Secure' : '';
   res.setHeader('Set-Cookie', `${SESSION_COOKIE}=; HttpOnly; Path=/; Max-Age=0; SameSite=${sameSite}${secure}`);
 }
 

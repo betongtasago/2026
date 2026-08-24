@@ -22,35 +22,6 @@ dotenv.config();
 // Persistent fleet storage file
 const DATA_DIR = path.resolve(process.env.DATA_DIR || path.join(process.cwd(), "data"));
 const DATA_FILE = path.join(DATA_DIR, "fleet_data.json");
-const MAX_SYNC_IMAGE_DATA_URL_LENGTH = 2_100_000;
-const IMAGE_DATA_URL_PATTERN = /^data:image\/jpeg;base64,[A-Za-z0-9+/=]+$/;
-
-function validateFleetRecords(records: unknown[]): string | null {
-  for (const [index, record] of records.entries()) {
-    if (!record || typeof record !== 'object') return `Bản ghi số ${index + 1} không hợp lệ.`;
-    const candidate = record as Record<string, unknown>;
-    if (candidate.imageDataUrl !== undefined && typeof candidate.imageDataUrl !== 'string') {
-      return `Ảnh trong bản ghi số ${index + 1} không hợp lệ.`;
-    }
-    if (typeof candidate.imageDataUrl === 'string') {
-      if (candidate.imageDataUrl.length > MAX_SYNC_IMAGE_DATA_URL_LENGTH) {
-        return `Ảnh trong bản ghi số ${index + 1} vượt quá giới hạn sau nén.`;
-      }
-      if (!IMAGE_DATA_URL_PATTERN.test(candidate.imageDataUrl)) {
-        return `Ảnh trong bản ghi số ${index + 1} không đúng định dạng JPEG an toàn.`;
-      }
-    }
-    if (candidate.imageMimeType !== undefined && candidate.imageMimeType !== 'image/jpeg') {
-      return `Ảnh trong bản ghi số ${index + 1} phải ở định dạng JPEG sau khi nén.`;
-    }
-    for (const key of ['imageFileName', 'imageUpdatedAt']) {
-      if (candidate[key] !== undefined && typeof candidate[key] !== 'string') {
-        return `Thông tin ảnh trong bản ghi số ${index + 1} không hợp lệ.`;
-      }
-    }
-  }
-  return null;
-}
 
 interface FleetStoragePayload {
   records: any[];
@@ -176,10 +147,6 @@ async function startServer() {
       if (records.length > 100000) {
         return res.status(413).json({ error: "Dữ liệu vượt quá giới hạn 100.000 bản ghi." });
       }
-      const validationError = validateFleetRecords(records);
-      if (validationError) {
-        return res.status(400).json({ error: validationError });
-      }
       const now = new Date();
 
       const defaultTimeStr = `${String(now.getHours()).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")} - ${now.toLocaleDateString("vi-VN")}`;
@@ -263,9 +230,10 @@ async function startServer() {
       if (!normalizedMime.startsWith("image/")) normalizedMime = "image/jpeg";
 
       const systemPrompt = `Bạn là chuyên gia AI Vision OCR bóc tách dữ liệu vận tải và đội xe chuyên nghiệp tại Việt Nam.
-Nhiệm vụ của bạn là nhận diện, bóc tách chính xác toàn bộ bảng danh sách tài xế vận hành từ hình ảnh (hoặc vùng hình ảnh được chọn).`;
+Nhiệm vụ của bạn là đọc bảng kê chuyến từ ảnh và trả về dữ liệu có thể đồng bộ vào danh sách tài xế hiện có.
+Chỉ trích xuất các dòng tài xế có tên và số xe. Các trường số liệu gồm chuyến lớn, chuyến nhỏ, tổng chuyến, tổng km, xe nước và khối lượng trạm nếu có. Nếu một trường không xuất hiện hoặc không đọc rõ, bỏ qua trường đó thay vì đoán. Không tự cộng dồn với dữ liệu cũ.`;
 
-      let userText = "Hãy nhận dạng và trích xuất toàn bộ bảng dữ liệu danh sách tài xế trong hình ảnh này.";
+      let userText = "Hãy nhận dạng bảng danh sách chuyến trong hình ảnh này. Trích xuất tên tài xế, số xe và các số liệu chuyến theo từng dòng. Đặc biệt phân biệt rõ chuyến lớn, chuyến nhỏ và tổng chuyến.";
       if (region && (region.width < 95 || region.height < 95)) {
         userText += ` Hãy tập trung bóc tách dữ liệu trong vùng được khoanh chọn: x=${Math.round(region.x)}%, y=${Math.round(region.y)}%, width=${Math.round(region.width)}%, height=${Math.round(region.height)}%.`;
       }

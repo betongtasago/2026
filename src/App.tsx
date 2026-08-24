@@ -8,6 +8,7 @@ import { DriverTable } from './components/DriverTable';
 import { Pagination } from './components/Pagination';
 import { UploadExcelModal } from './components/UploadExcelModal';
 import { DriverDetailModal } from './components/DriverDetailModal';
+import { TripPhotoImportModal } from './components/TripPhotoImportModal';
 import { ConfirmDialog } from './components/ConfirmDialog';
 import { EmptyState } from './components/EmptyState';
 import { LoginScreen } from './components/LoginScreen';
@@ -55,6 +56,7 @@ export default function App() {
 
   // Modals & Dialogs
   const [isUploadOpen, setIsUploadOpen] = useState<boolean>(false);
+  const [isTripPhotoImportOpen, setIsTripPhotoImportOpen] = useState<boolean>(false);
   const [editingRecord, setEditingRecord] = useState<DriverRecord | null>(null);
   const [isEditOpen, setIsEditOpen] = useState<boolean>(false);
   const [isClearConfirmOpen, setIsClearConfirmOpen] = useState<boolean>(false);
@@ -186,7 +188,7 @@ export default function App() {
     setLastUpdated(timeStr);
 
     try {
-      const cacheRecords = newRecords.map(({ imageDataUrl: _imageDataUrl, ...record }) => record);
+      const cacheRecords = newRecords;
       try {
         localStorage.setItem(STORAGE_KEY, JSON.stringify(cacheRecords));
         localStorage.setItem(STORAGE_TIMESTAMP_KEY, timeStr);
@@ -351,6 +353,13 @@ export default function App() {
     showToast(`Đã nhập và đồng bộ thành công ${newRecords.length} dòng dữ liệu từ file "${filename}"`, 'success');
   };
 
+  const handleApplyTripPhotoImport = async (nextRecords: DriverRecord[], matchedCount: number, totalCount: number) => {
+    setRecords(nextRecords);
+    setCurrentPage(1);
+    await syncRecordsToServer(nextRecords, 'Đồng bộ chuyến từ ảnh');
+    showToast(`Đã đồng bộ ${matchedCount}/${totalCount} dòng chuyến vào danh sách tài xế`, 'success');
+  };
+
   // Refresh data from server
   const handleResetDemo = () => {
     fetchFleetDataFromServer(true);
@@ -464,6 +473,7 @@ export default function App() {
         filteredCount={filteredRecords.length}
         lastUpdated={lastUpdated}
         onOpenUpload={() => setIsUploadOpen(true)}
+        onOpenTripPhotoImport={() => setIsTripPhotoImportOpen(true)}
         onExportExcel={handleExportExcel}
         onExportCSV={handleExportCSV}
         onDownloadTemplate={handleDownloadSampleTemplate}
@@ -540,6 +550,14 @@ export default function App() {
         isOpen={isUploadOpen}
         onClose={() => setIsUploadOpen(false)}
         onConfirmImport={handleConfirmImport}
+      />
+
+      {/* OCR trip photo import modal */}
+      <TripPhotoImportModal
+        isOpen={isTripPhotoImportOpen}
+        records={records}
+        onClose={() => setIsTripPhotoImportOpen(false)}
+        onApply={handleApplyTripPhotoImport}
       />
 
       {/* Edit/Add Row Modal */}

@@ -147,8 +147,10 @@ Sau khi build thành công, kiểm tra thủ công màn hình đăng nhập, th�
 
 Vercel ghi rõ biến môi trường được đọc trong build step hoặc lúc function chạy, và thay đổi biến chỉ áp dụng cho các deployment mới [1]. Tài liệu runtime cũng nêu filesystem của Vercel Functions là read-only, chỉ có `/tmp` writable tạm thời; vì vậy file JSON local không nên được xem là storage bền vững trên Vercel [2].
 
-## Tải ảnh và đồng bộ vào bản ghi
+## Đọc ảnh danh sách chuyến và đồng bộ vào tài xế
 
-Trong bảng dữ liệu, chọn **Chỉnh sửa** ở bản ghi cần cập nhật rồi dùng khu vực **Ảnh hồ sơ / chứng từ** để chọn ảnh JPG, PNG hoặc WebP. Ảnh được xử lý trực tiếp trong trình duyệt, thu nhỏ tối đa 1280 px và chuyển sang JPEG trước khi gửi. Khi bấm **Lưu và đồng bộ**, ảnh được lưu trong trường `imageDataUrl` của chính `DriverRecord`, sau đó đi qua `POST /api/fleet-data` cùng toàn bộ dữ liệu và được hiển thị lại dưới dạng thumbnail trong bảng.
+Bấm **Ảnh chuyến** trên thanh công cụ để tải ảnh chụp bảng kê hoặc danh sách chuyến. Hệ thống nén ảnh tại trình duyệt rồi gửi tới `/api/recognize-image`; Gemini Vision chạy hoàn toàn server-side và trả về tên tài xế, số xe, chuyến lớn, chuyến nhỏ, tổng chuyến, tổng km, xe nước và khối lượng trạm nếu có trong ảnh.
 
-Ảnh gốc tối đa 12 MB; ảnh sau nén tối đa khoảng 1,5 MB cho mỗi bản ghi. API chỉ chấp nhận data URL JPEG hợp lệ và giới hạn kích thước để tránh payload bất thường. Cache `localStorage` của trình duyệt không lưu chuỗi ảnh lớn; ảnh đầy đủ chỉ được gửi và đọc từ dữ liệu server. Nếu backend chạy trên Vercel Functions, cần chuyển ảnh sang object storage hoặc Supabase Storage để có lưu trữ bền vững; file JSON local không phù hợp cho dữ liệu production lâu dài.
+Kết quả OCR luôn hiển thị ở màn hình **Duyệt trước khi đồng bộ**. Hệ thống đối chiếu ưu tiên theo số xe, sau đó theo tên tài xế. Chỉ những dòng khớp với danh sách hiện có mới được chọn mặc định; dòng không khớp không tự động ghi vào dữ liệu. Người dùng có thể bỏ chọn từng dòng rồi bấm **Đồng bộ N dòng** để cập nhật số liệu chuyến vào đúng `DriverRecord` và gửi toàn bộ danh sách lên `POST /api/fleet-data`.
+
+Ảnh gốc được giới hạn 12 MB và nén tối đa 1280 px trước khi gửi. Endpoint OCR yêu cầu đăng nhập, giới hạn payload và không nhận Gemini API key từ trình duyệt. Ảnh chỉ là dữ liệu đầu vào tạm thời cho OCR; hệ thống không lưu ảnh vào bản ghi tài xế, chỉ lưu các số liệu chuyến đã được người dùng duyệt.

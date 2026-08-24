@@ -11,6 +11,7 @@ import {
   LogOut,
   ShieldCheck,
   Activity,
+  ScanLine,
 } from 'lucide-react';
 
 interface DashboardHeaderProps {
@@ -18,6 +19,7 @@ interface DashboardHeaderProps {
   filteredCount: number;
   lastUpdated: string | null;
   onOpenUpload: () => void;
+  onOpenTripPhotoImport: () => void;
   onExportExcel: () => void;
   onExportCSV: () => void;
   onDownloadTemplate: () => void;
@@ -33,6 +35,7 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
   filteredCount,
   lastUpdated,
   onOpenUpload,
+  onOpenTripPhotoImport,
   onExportExcel,
   onExportCSV,
   onDownloadTemplate,
@@ -89,6 +92,17 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
             >
               <Upload className="w-4 h-4" />
               <span>Tải Excel lên</span>
+            </button>
+
+            <button
+              type="button"
+              id="btn-import-trip-photo"
+              onClick={onOpenTripPhotoImport}
+              title="Đọc danh sách chuyến từ ảnh và đồng bộ vào tài xế"
+              className="inline-flex items-center gap-2 rounded-xl border border-cyan-200 bg-cyan-50 px-3.5 py-2 text-sm font-black text-cyan-800 transition hover:bg-cyan-100"
+            >
+              <ScanLine className="h-4 w-4 text-cyan-700" />
+              <span className="hidden sm:inline">Ảnh chuyến</span>
             </button>
 
             {/* Template sample download */}

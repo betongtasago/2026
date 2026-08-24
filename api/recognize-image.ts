@@ -1,5 +1,4 @@
-import { applyApiHeaders, sendJson } from '../vercelHttp';
-import { getAuthenticatedUser } from '../vercelAuth';
+import { webcrypto } from 'node:crypto';
 
 type RequestLike = {
   method?: string;
@@ -10,13 +9,72 @@ type RequestLike = {
 type ResponseLike = {
   setHeader(name: string, value: string | number | string[]): void;
   status(code: number): ResponseLike;
-  end(chunk?: unknown): void;
+  json(payload: unknown): void;
 };
 
 type GeminiResponse = {
   candidates?: Array<{ content?: { parts?: Array<{ text?: string }> } }>;
-  error?: { message?: string; status?: string };
+  error?: { message?: string };
 };
+
+const SESSION_COOKIE = 'tasago_session';
+
+function env(name: string): string {
+  return String(process.env[name] || '');
+}
+
+function header(req: RequestLike, name: string): string {
+  const value = req.headers?.[name] ?? req.headers?.[name.toLowerCase()];
+  return Array.isArray(value) ? String(value[0] || '') : String(value || '');
+}
+
+function send(res: ResponseLike, status: number, payload: unknown): void {
+  res.status(status).json(payload);
+}
+
+function applyCors(req: RequestLike, res: ResponseLike): boolean {
+  const origin = header(req, 'origin');
+  const allowedOrigin = env('FRONTEND_ORIGIN').trim().replace(/\/$/, '');
+  if (origin && (!allowedOrigin || origin.replace(/\/$/, '') === allowedOrigin)) {
+    res.setHeader('Access-Control-Allow-Origin', origin);
+    res.setHeader('Access-Control-Allow-Credentials', 'true');
+    res.setHeader('Vary', 'Origin');
+  }
+  res.setHeader('Access-Control-Allow-Methods', 'GET,POST,DELETE,OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  if (req.method === 'OPTIONS') {
+    res.status(204).json({});
+    return false;
+  }
+  return true;
+}
+
+function parseCookies(value: string): Record<string, string> {
+  return value.split(';').reduce<Record<string, string>>((cookies, part) => {
+    const [key, ...rest] = part.trim().split('=');
+    if (key) {
+      try { cookies[key] = decodeURIComponent(rest.join('=')); } catch {}
+    }
+    return cookies;
+  }, {});
+}
+
+async function isAuthenticated(req: RequestLike): Promise<boolean> {
+  const cookies = parseCookies(header(req, 'cookie'));
+  const authorization = header(req, 'authorization');
+  const bearer = authorization.toLowerCase().startsWith('bearer ') ? authorization.slice(7).trim() : '';
+  const token = cookies[SESSION_COOKIE] || bearer;
+  if (!token || !env('AUTH_SECRET').trim() || !env('ADMIN_USERNAME').trim()) return false;
+  const [payload, provided] = token.split('.');
+  if (!payload || !provided) return false;
+  const key = await webcrypto.subtle.importKey('raw', Buffer.from(env('AUTH_SECRET').trim()), { name: 'HMAC', hash: 'SHA-256' }, false, ['sign']);
+  const expected = Buffer.from(await webcrypto.subtle.sign('HMAC', key, Buffer.from(payload, 'utf8'))).toString('base64url');
+  if (provided !== expected) return false;
+  try {
+    const data = JSON.parse(Buffer.from(payload, 'base64url').toString('utf8')) as { sub?: string; exp?: number };
+    return Boolean(data.sub === env('ADMIN_USERNAME').trim() && data.exp && data.exp > Math.floor(Date.now() / 1000));
+  } catch { return false; }
+}
 
 function cleanResponseText(value: string): string {
   const text = value.trim();
@@ -72,34 +130,33 @@ async function callGemini(model: string, apiKey: string, base64Data: string, mim
 }
 
 export default async function handler(req: RequestLike, res: ResponseLike): Promise<void> {
-  if (!applyApiHeaders(req, res)) return;
-  res.setHeader('Cache-Control', 'no-store, max-age=0');
-  if (req.method !== 'POST') {
-    sendJson(res, 405, { success: false, error: 'Phương thức không được hỗ trợ.' });
-    return;
-  }
-  if (!await getAuthenticatedUser(req)) {
-    sendJson(res, 401, { success: false, error: 'Phiên đăng nhập không hợp lệ hoặc đã hết hạn.' });
-    return;
-  }
-
   try {
+    if (!applyCors(req, res)) return;
+    res.setHeader('Cache-Control', 'no-store, max-age=0');
+    if (req.method !== 'POST') {
+      send(res, 405, { success: false, error: 'Phương thức không được hỗ trợ.' });
+      return;
+    }
+    if (!await isAuthenticated(req)) {
+      send(res, 401, { success: false, error: 'Phiên đăng nhập không hợp lệ hoặc đã hết hạn.' });
+      return;
+    }
+
     const body = req.body && typeof req.body === 'object' ? req.body as Record<string, unknown> : {};
     const image = body.image;
     const mimeType = typeof body.mimeType === 'string' ? body.mimeType : 'image/jpeg';
     const region = body.region && typeof body.region === 'object' ? body.region as Record<string, unknown> : null;
     if (typeof image !== 'string' || !image) {
-      sendJson(res, 400, { error: 'Vui lòng cung cấp dữ liệu hình ảnh (base64).' });
+      send(res, 400, { success: false, error: 'Vui lòng cung cấp dữ liệu hình ảnh (base64).' });
       return;
     }
-
-    const apiKey = String(process.env.GEMINI_API_KEY || '').trim();
+    const apiKey = env('GEMINI_API_KEY').trim();
     if (!apiKey) {
-      sendJson(res, 503, { error: 'GEMINI_API_KEY chưa được cấu hình trên máy chủ.', needsKey: true });
+      send(res, 503, { success: false, error: 'GEMINI_API_KEY chưa được cấu hình trên máy chủ.', needsKey: true });
       return;
     }
     if (image.length > 12_000_000) {
-      sendJson(res, 413, { error: 'Ảnh vượt quá giới hạn 12 MB.' });
+      send(res, 413, { success: false, error: 'Ảnh vượt quá giới hạn 12 MB.' });
       return;
     }
 
@@ -111,7 +168,7 @@ export default async function handler(req: RequestLike, res: ResponseLike): Prom
       userText += ` Tập trung vùng x=${Math.round(Number(region.x) || 0)}%, y=${Math.round(Number(region.y) || 0)}%, width=${Math.round(region.width)}%, height=${Math.round(region.height)}%.`;
     }
 
-    const models = Array.from(new Set([String(process.env.GEMINI_MODEL || '').trim(), 'gemini-3.6-flash', 'gemini-3-flash-preview'].filter(Boolean)));
+    const models = Array.from(new Set([env('GEMINI_MODEL').trim(), 'gemini-3.6-flash', 'gemini-3-flash-preview'].filter(Boolean)));
     let cleanJson = '';
     let lastError: unknown = null;
     for (const model of models) {
@@ -127,15 +184,10 @@ export default async function handler(req: RequestLike, res: ResponseLike): Prom
 
     const parsed = JSON.parse(cleanJson) as { detectedRegionDescription?: string; drivers?: unknown };
     const drivers = Array.isArray(parsed.drivers) ? parsed.drivers : [];
-    sendJson(res, 200, {
-      success: true,
-      detectedRegionDescription: parsed.detectedRegionDescription || 'Đã nhận diện bảng dữ liệu',
-      drivers,
-      count: drivers.length,
-    });
+    send(res, 200, { success: true, detectedRegionDescription: parsed.detectedRegionDescription || 'Đã nhận diện bảng dữ liệu', drivers, count: drivers.length });
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Đã xảy ra lỗi trong quá trình nhận dạng ảnh.';
     console.error('Image recognition error:', error);
-    sendJson(res, 502, { success: false, error: `OCR Gemini: ${message}`, code: 'OCR_UPSTREAM_ERROR' });
+    send(res, 502, { success: false, error: `OCR Gemini: ${message}`, code: 'OCR_UPSTREAM_ERROR' });
   }
 }

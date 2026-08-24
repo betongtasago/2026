@@ -1,7 +1,6 @@
 import { GoogleGenAI, Type } from '@google/genai';
 import { applyApiHeaders, sendJson } from './_http';
 
-export const config = { runtime: 'nodejs22.x', maxDuration: 60 };
 import { getAuthenticatedUser } from '../serverAuth';
 
 type RequestLike = {

@@ -1,6 +1,5 @@
 import { applyApiHeaders, requestIp, sendJson } from '../_http';
 
-export const config = { runtime: 'nodejs22.x' };
 import {
   canAuthenticate,
   clearLoginFailures,

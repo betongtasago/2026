@@ -1,6 +1,5 @@
 import { applyApiHeaders, sendJson } from '../_http';
 
-export const config = { runtime: 'nodejs22.x' };
 import { getAuthenticatedUser } from '../../serverAuth';
 
 type RequestLike = {

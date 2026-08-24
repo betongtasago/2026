@@ -1,4 +1,4 @@
-import crypto from 'crypto';
+import { createHmac, timingSafeEqual } from 'crypto';
 
 const SESSION_COOKIE = 'tasago_session';
 const SESSION_TTL_SECONDS = 8 * 60 * 60;
@@ -24,13 +24,13 @@ function base64Url(value: string): string {
 }
 
 function sign(value: string): string {
-  return crypto.createHmac('sha256', getAuthSecret()).update(value).digest('base64url');
+  return createHmac('sha256', getAuthSecret()).update(value).digest('base64url');
 }
 
 function safeEqual(left: string, right: string): boolean {
   const leftBuffer = Buffer.from(left);
   const rightBuffer = Buffer.from(right);
-  return leftBuffer.length === rightBuffer.length && crypto.timingSafeEqual(leftBuffer, rightBuffer);
+  return leftBuffer.length === rightBuffer.length && timingSafeEqual(leftBuffer, rightBuffer);
 }
 
 function parseCookies(header = ''): Record<string, string> {

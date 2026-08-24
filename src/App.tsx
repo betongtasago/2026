@@ -186,8 +186,13 @@ export default function App() {
     setLastUpdated(timeStr);
 
     try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(newRecords));
-      localStorage.setItem(STORAGE_TIMESTAMP_KEY, timeStr);
+      const cacheRecords = newRecords.map(({ imageDataUrl: _imageDataUrl, ...record }) => record);
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(cacheRecords));
+        localStorage.setItem(STORAGE_TIMESTAMP_KEY, timeStr);
+      } catch (storageError) {
+        console.warn('Không thể cập nhật cache local, vẫn tiếp tục đồng bộ lên máy chủ:', storageError);
+      }
       const res = await apiFetch('/api/fleet-data', {
         method: 'POST',
         body: JSON.stringify({

@@ -22,6 +22,35 @@ dotenv.config();
 // Persistent fleet storage file
 const DATA_DIR = path.resolve(process.env.DATA_DIR || path.join(process.cwd(), "data"));
 const DATA_FILE = path.join(DATA_DIR, "fleet_data.json");
+const MAX_SYNC_IMAGE_DATA_URL_LENGTH = 2_100_000;
+const IMAGE_DATA_URL_PATTERN = /^data:image\/jpeg;base64,[A-Za-z0-9+/=]+$/;
+
+function validateFleetRecords(records: unknown[]): string | null {
+  for (const [index, record] of records.entries()) {
+    if (!record || typeof record !== 'object') return `Bản ghi số ${index + 1} không hợp lệ.`;
+    const candidate = record as Record<string, unknown>;
+    if (candidate.imageDataUrl !== undefined && typeof candidate.imageDataUrl !== 'string') {
+      return `Ảnh trong bản ghi số ${index + 1} không hợp lệ.`;
+    }
+    if (typeof candidate.imageDataUrl === 'string') {
+      if (candidate.imageDataUrl.length > MAX_SYNC_IMAGE_DATA_URL_LENGTH) {
+        return `Ảnh trong bản ghi số ${index + 1} vượt quá giới hạn sau nén.`;
+      }
+      if (!IMAGE_DATA_URL_PATTERN.test(candidate.imageDataUrl)) {
+        return `Ảnh trong bản ghi số ${index + 1} không đúng định dạng JPEG an toàn.`;
+      }
+    }
+    if (candidate.imageMimeType !== undefined && candidate.imageMimeType !== 'image/jpeg') {
+      return `Ảnh trong bản ghi số ${index + 1} phải ở định dạng JPEG sau khi nén.`;
+    }
+    for (const key of ['imageFileName', 'imageUpdatedAt']) {
+      if (candidate[key] !== undefined && typeof candidate[key] !== 'string') {
+        return `Thông tin ảnh trong bản ghi số ${index + 1} không hợp lệ.`;
+      }
+    }
+  }
+  return null;
+}
 
 interface FleetStoragePayload {
   records: any[];
@@ -147,8 +176,12 @@ async function startServer() {
       if (records.length > 100000) {
         return res.status(413).json({ error: "Dữ liệu vượt quá giới hạn 100.000 bản ghi." });
       }
-
+      const validationError = validateFleetRecords(records);
+      if (validationError) {
+        return res.status(400).json({ error: validationError });
+      }
       const now = new Date();
+
       const defaultTimeStr = `${String(now.getHours()).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")} - ${now.toLocaleDateString("vi-VN")}`;
       const finalLastUpdated = lastUpdated || defaultTimeStr;
 

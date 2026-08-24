@@ -12,6 +12,11 @@ export interface DriverRecord {
   hasWarning?: boolean;
   warningNotes?: string[];
   rawRowIndex?: number;
+  imageDataUrl?: string;
+  imageMimeType?: 'image/jpeg';
+  imageFileName?: string;
+  imageUpdatedAt?: string;
+
 }
 
 export type ColumnKey =

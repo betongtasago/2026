@@ -14,6 +14,7 @@ import {
   AlertCircle,
   Pencil,
   Trash2,
+  Image as ImageIcon,
 } from 'lucide-react';
 
 interface DriverTableProps {
@@ -145,7 +146,16 @@ export const DriverTable: React.FC<DriverTableProps> = ({
                 </div>
               </th>
 
+                            {/* ẢNH */}
+              <th rowSpan={2} className="w-20 min-w-[80px] border-r border-blue-600/40 px-3 py-3 text-center">
+                <div className="flex items-center justify-center gap-1.5">
+                  <ImageIcon className="h-4 w-4 text-cyan-200" />
+                  <span>ẢNH</span>
+                </div>
+              </th>
+
               {/* KL TRẠM TN (m³) */}
+
               <th
                 rowSpan={2}
                 onClick={() => onSort('stationVolume')}
@@ -306,7 +316,24 @@ export const DriverTable: React.FC<DriverTableProps> = ({
                     </div>
                   </td>
 
+                                    {/* ẢNH */}
+                  <td className="border-r border-slate-100 px-3 py-2.5 text-center">
+                    {record.imageDataUrl ? (
+                      <img
+                        src={record.imageDataUrl}
+                        alt={`Ảnh ${record.vehicleNumber}`}
+                        title={record.imageFileName || 'Ảnh đã đồng bộ'}
+                        className="mx-auto h-10 w-10 rounded-xl border border-slate-200 object-cover shadow-sm"
+                      />
+                    ) : (
+                      <span className="mx-auto flex h-10 w-10 items-center justify-center rounded-xl border border-dashed border-slate-200 bg-slate-50 text-slate-300" title="Chưa có ảnh">
+                        <ImageIcon className="h-4 w-4" />
+                      </span>
+                    )}
+                  </td>
+
                   {/* KL TRẠM TN (m³): Light purple tint */}
+
                   <td className="py-2.5 px-3.5 text-center border-r border-slate-100 bg-[#FBF7FE]/60">
                     <span className="font-bold text-purple-700 text-sm tracking-tight">
                       {formatVolume(record.stationVolume)}
@@ -387,7 +414,8 @@ export const DriverTable: React.FC<DriverTableProps> = ({
           {/* TFOOT TOTALS ROW */}
           <tfoot>
             <tr className="bg-slate-100 border-t-2 border-slate-300 text-xs font-bold text-slate-800">
-              <td colSpan={3} className="py-3 px-4 text-left border-r border-slate-200">
+                            <td colSpan={4} className="py-3 px-4 text-left border-r border-slate-200">
+
                 <span className="font-extrabold uppercase text-slate-700 tracking-wider">
                   TỔNG CỘNG ({allFilteredRecords.length} TÀI XẾ)
                 </span>

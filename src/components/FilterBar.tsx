@@ -54,7 +54,7 @@ export const FilterBar: React.FC<FilterBarProps> = ({
   };
 
   return (
-    <div className="bg-white rounded-xl border border-slate-200/90 shadow-xs p-3.5 sm:p-4 space-y-3">
+    <div className="space-y-4 rounded-[22px] border border-slate-200/80 bg-white p-4 shadow-[0_12px_28px_rgba(15,23,42,0.05)] sm:p-5">
       {/* Primary Row: Search & Quick Filters */}
       <div className="flex flex-col md:flex-row gap-3 items-stretch md:items-center justify-between">
         {/* Search Box */}
@@ -68,7 +68,7 @@ export const FilterBar: React.FC<FilterBarProps> = ({
             value={filters.searchQuery}
             onChange={(e) => handleTextChange('searchQuery', e.target.value)}
             placeholder="Tìm tài xế hoặc số xe..."
-            className="w-full pl-9 pr-9 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600 transition-colors"
+            className="w-full rounded-2xl border border-slate-200 bg-slate-50 py-3 pl-10 pr-10 text-sm text-slate-900 placeholder:text-slate-400 outline-none transition focus:border-cyan-500 focus:bg-white focus:ring-4 focus:ring-cyan-500/10"
           />
           {filters.searchQuery && (
             <button
@@ -87,7 +87,7 @@ export const FilterBar: React.FC<FilterBarProps> = ({
             id="select-filter-driver"
             value={filters.driverName}
             onChange={(e) => handleTextChange('driverName', e.target.value)}
-            className="w-full py-2 px-3 text-sm bg-slate-50 border border-slate-200 rounded-lg text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600"
+            className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-3 py-3 text-sm text-slate-800 outline-none transition focus:border-cyan-500 focus:bg-white focus:ring-4 focus:ring-cyan-500/10"
           >
             <option value="">Tất cả tài xế ({uniqueDrivers.length})</option>
             {uniqueDrivers.map((driver) => (
@@ -104,7 +104,7 @@ export const FilterBar: React.FC<FilterBarProps> = ({
             id="select-filter-vehicle"
             value={filters.vehicleNumber}
             onChange={(e) => handleTextChange('vehicleNumber', e.target.value)}
-            className="w-full py-2 px-3 text-sm bg-slate-50 border border-slate-200 rounded-lg text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600"
+            className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-3 py-3 text-sm text-slate-800 outline-none transition focus:border-cyan-500 focus:bg-white focus:ring-4 focus:ring-cyan-500/10"
           >
             <option value="">Tất cả số xe ({uniqueVehicles.length})</option>
             {uniqueVehicles.map((v) => (
@@ -124,7 +124,7 @@ export const FilterBar: React.FC<FilterBarProps> = ({
             onClick={() => setShowAdvanced(!showAdvanced)}
             className={`inline-flex items-center gap-1.5 px-3 py-2 text-xs font-semibold rounded-lg border transition-colors cursor-pointer ${
               showAdvanced || activeFilterCount > 0
-                ? 'bg-blue-50 text-blue-700 border-blue-200'
+                ? 'bg-cyan-50 text-cyan-800 border-cyan-200'
                 : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50'
             }`}
           >
@@ -140,7 +140,7 @@ export const FilterBar: React.FC<FilterBarProps> = ({
               id="btn-reset-filters"
               onClick={onResetFilters}
               title="Xóa tất cả các bộ lọc đang áp dụng"
-              className="inline-flex items-center gap-1 px-3 py-2 text-xs font-medium text-red-600 bg-red-50 hover:bg-red-100 border border-red-200 rounded-lg transition-colors cursor-pointer"
+              className="inline-flex items-center gap-1 rounded-xl border border-rose-200 bg-rose-50 px-3 py-2 text-xs font-bold text-rose-700 transition-colors hover:bg-rose-100"
             >
               <RotateCcw className="w-3.5 h-3.5" />
               <span>Xóa bộ lọc</span>

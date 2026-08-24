@@ -4,11 +4,23 @@ import fs from "fs";
 import { createServer as createViteServer } from "vite";
 import { GoogleGenAI, Type } from "@google/genai";
 import dotenv from "dotenv";
+import {
+  canAuthenticate,
+  clearLoginFailures,
+  clearSessionCookie,
+  createSession,
+  getAuthenticatedUser,
+  isLoginRateLimited,
+  recordLoginFailure,
+  requireAuth,
+  setSessionCookie,
+  verifyLogin,
+} from "./serverAuth";
 
 dotenv.config();
 
 // Persistent fleet storage file
-const DATA_DIR = path.join(process.cwd(), "data");
+const DATA_DIR = path.resolve(process.env.DATA_DIR || path.join(process.cwd(), "data"));
 const DATA_FILE = path.join(DATA_DIR, "fleet_data.json");
 
 interface FleetStoragePayload {
@@ -63,16 +75,60 @@ async function startServer() {
   const app = express();
   const PORT = 3000;
 
-  app.use(express.json({ limit: "50mb" }));
-  app.use(express.urlencoded({ extended: true, limit: "50mb" }));
+  app.disable("x-powered-by");
+  app.set("trust proxy", 1);
+  app.use((req, res, next) => {
+    const allowedOrigin = String(process.env.FRONTEND_ORIGIN || '').trim().replace(/\/$/, '');
+    const requestOrigin = String(req.headers.origin || '').replace(/\/$/, '');
+    if (allowedOrigin && requestOrigin === allowedOrigin) {
+      res.setHeader('Access-Control-Allow-Origin', requestOrigin);
+      res.setHeader('Access-Control-Allow-Credentials', 'true');
+      res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+      res.setHeader('Access-Control-Allow-Methods', 'GET,POST,DELETE,OPTIONS');
+      res.setHeader('Vary', 'Origin');
+    }
+    if (req.method === 'OPTIONS') return res.status(204).end();
+    res.setHeader("X-Content-Type-Options", "nosniff");
+    res.setHeader("X-Frame-Options", "DENY");
+    res.setHeader("Referrer-Policy", "same-origin");
+    res.setHeader("Permissions-Policy", "camera=(self), microphone=(), geolocation=()");
+    next();
+  });
+  app.use(express.json({ limit: "12mb" }));
+  app.use(express.urlencoded({ extended: true, limit: "1mb" }));
 
   // API Routes
   app.get("/api/health", (req, res) => {
     res.json({ status: "ok", timestamp: new Date().toISOString() });
   });
 
-  // Shared Fleet Data Endpoints (All users see the same updated data)
-  app.get("/api/fleet-data", (req, res) => {
+  app.get("/api/auth/me", (req, res) => {
+    const user = getAuthenticatedUser(req);
+    if (!user) return res.status(401).json({ success: false, authenticated: false });
+    return res.json({ success: true, authenticated: true, user });
+  });
+
+  app.post("/api/auth/login", (req, res) => {
+    const ip = req.ip || "unknown";
+    if (!canAuthenticate()) return res.status(503).json({ success: false, error: "Chưa cấu hình ADMIN_USERNAME, ADMIN_PASSWORD và AUTH_SECRET trên máy chủ." });
+    if (isLoginRateLimited(ip)) return res.status(429).json({ success: false, error: "Bạn đã thử đăng nhập quá nhiều lần. Vui lòng thử lại sau 15 phút." });
+    const { username, password } = req.body || {};
+    if (!verifyLogin(username, password)) {
+      recordLoginFailure(ip);
+      return res.status(401).json({ success: false, error: "Tên đăng nhập hoặc mật khẩu không đúng." });
+    }
+    clearLoginFailures(ip);
+    setSessionCookie(res, createSession(String(username)));
+    return res.json({ success: true, user: { username: String(username) } });
+  });
+
+  app.post("/api/auth/logout", (req, res) => {
+    clearSessionCookie(res);
+    return res.json({ success: true });
+  });
+
+  // Shared Fleet Data Endpoints (authenticated users only)
+  app.get("/api/fleet-data", requireAuth, (req, res) => {
     res.json({
       success: true,
       records: currentFleetState.records,
@@ -82,11 +138,14 @@ async function startServer() {
     });
   });
 
-  app.post("/api/fleet-data", (req, res) => {
+  app.post("/api/fleet-data", requireAuth, (req, res) => {
     try {
       const { records, lastUpdated, actionType } = req.body;
       if (!Array.isArray(records)) {
         return res.status(400).json({ error: "Tham số 'records' phải là một mảng dữ liệu." });
+      }
+      if (records.length > 100000) {
+        return res.status(413).json({ error: "Dữ liệu vượt quá giới hạn 100.000 bản ghi." });
       }
 
       const now = new Date();
@@ -117,7 +176,7 @@ async function startServer() {
     }
   });
 
-  app.delete("/api/fleet-data", (req, res) => {
+  app.delete("/api/fleet-data", requireAuth, (req, res) => {
     try {
       currentFleetState = {
         records: [],
@@ -132,18 +191,18 @@ async function startServer() {
     }
   });
 
-  app.post("/api/recognize-image", async (req, res) => {
+  app.post("/api/recognize-image", requireAuth, async (req, res) => {
     try {
-      const { image, mimeType = "image/jpeg", region, apiKey: clientApiKey } = req.body;
+      const { image, mimeType = "image/jpeg", region } = req.body;
 
       if (!image) {
         return res.status(400).json({ error: "Vui lòng cung cấp dữ liệu hình ảnh (base64)." });
       }
 
-      const apiKey = clientApiKey || process.env.GEMINI_API_KEY;
+      const apiKey = String(process.env.GEMINI_API_KEY || '').trim();
       if (!apiKey) {
-        return res.status(500).json({
-          error: "GEMINI_API_KEY chưa được cấu hình. Vui lòng thêm vào file .env hoặc cấu hình trong ứng dụng.",
+        return res.status(503).json({
+          error: "GEMINI_API_KEY chưa được cấu hình trên máy chủ.",
           needsKey: true,
         });
       }
@@ -158,6 +217,9 @@ async function startServer() {
       });
 
       let base64Data = image;
+      if (typeof base64Data !== 'string' || base64Data.length > 12_000_000) {
+        return res.status(413).json({ error: "Ảnh vượt quá giới hạn 12 MB." });
+      }
       if (typeof base64Data === "string" && base64Data.includes("base64,")) {
         base64Data = base64Data.split("base64,")[1];
       }

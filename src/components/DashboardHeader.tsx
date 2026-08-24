@@ -8,6 +8,9 @@ import {
   Trash2,
   Truck,
   PlusCircle,
+  LogOut,
+  ShieldCheck,
+  Activity,
 } from 'lucide-react';
 
 interface DashboardHeaderProps {
@@ -21,6 +24,8 @@ interface DashboardHeaderProps {
   onResetDemo: () => void;
   onClearData: () => void;
   onAddNewRow?: () => void;
+  username?: string;
+  onLogout?: () => void;
 }
 
 export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
@@ -34,29 +39,34 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
   onResetDemo,
   onClearData,
   onAddNewRow,
+  username,
+  onLogout,
 }) => {
   return (
-    <header className="bg-white border-b border-slate-200 sticky top-0 z-30 shadow-xs">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3.5">
+    <header className="sticky top-0 z-30 border-b border-slate-200/80 bg-white/90 shadow-[0_10px_30px_rgba(15,23,42,0.05)] backdrop-blur-xl">
+      <div className="mx-auto max-w-[1440px] px-4 py-4 sm:px-6 lg:px-8">
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
           {/* Title & Brand */}
           <div className="flex items-center space-x-3.5">
-            <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-blue-700 via-blue-600 to-indigo-700 flex items-center justify-center text-white shadow-md shadow-blue-500/20">
-              <Truck className="w-6 h-6" />
+            <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-slate-950 via-slate-800 to-cyan-700 text-cyan-200 shadow-lg shadow-slate-900/15">
+              <Truck className="h-6 w-6" />
             </div>
             <div>
-              <div className="flex items-center gap-2.5">
-                <h1 className="text-xl font-bold tracking-tight text-slate-900 font-sans">
-                  QUẢN LÝ TÀI XẾ
-                </h1>
+              <div className="flex flex-wrap items-center gap-2.5">
+                <div>
+                  <p className="text-[10px] font-black uppercase tracking-[0.24em] text-cyan-700">Tasago FleetOps</p>
+                  <h1 className="text-xl font-black tracking-tight text-slate-950 font-sans">
+                    QUẢN LÝ ĐỘI XE
+                  </h1>
+                </div>
                 <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-blue-50 text-blue-700 border border-blue-200/60">
                   {filteredCount === totalRecords
                     ? `${totalRecords} bản ghi`
                     : `${filteredCount} / ${totalRecords} bản ghi`}
                 </span>
               </div>
-              <p className="text-xs font-medium text-slate-500 flex items-center gap-2 mt-0.5">
-                <span>Dữ liệu vận hành đội xe</span>
+              <p className="mt-1 flex items-center gap-2 text-xs font-medium text-slate-500">
+                <span className="inline-flex items-center gap-1.5"><Activity className="h-3.5 w-3.5 text-emerald-500" />Dữ liệu vận hành đội xe</span>
                 {lastUpdated && (
                   <>
                     <span className="text-slate-300">•</span>
@@ -69,6 +79,7 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
 
           {/* Action Buttons */}
           <div className="flex flex-wrap items-center gap-2">
+            <div className="mr-1 hidden items-center gap-2 rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-2 text-[11px] font-bold text-emerald-800 xl:flex"><ShieldCheck className="h-3.5 w-3.5" />{username || 'Đã xác thực'}</div>
             {/* Main Upload Button */}
             <button
               type="button"
@@ -130,7 +141,7 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
             )}
 
             {/* More / Reset dropdown or buttons */}
-            <div className="flex items-center gap-1 pl-1 border-l border-slate-200">
+            <div className="flex items-center gap-1 border-l border-slate-200 pl-1">
               <button
                 type="button"
                 id="btn-reset-demo"
@@ -140,6 +151,7 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
               >
                 <RotateCcw className="w-4 h-4" />
               </button>
+              {onLogout && <button type="button" onClick={onLogout} title="Đăng xuất" className="rounded-lg p-2 text-slate-400 transition-colors hover:bg-rose-50 hover:text-rose-600"><LogOut className="h-4 w-4" /></button>}
               <button
                 type="button"
                 id="btn-clear-data"

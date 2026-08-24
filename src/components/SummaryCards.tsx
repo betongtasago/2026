@@ -121,27 +121,32 @@ export const SummaryCards: React.FC<SummaryCardsProps> = ({ records }) => {
   ];
 
   return (
-    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3.5 sm:gap-4">
+        <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-5">
+
       {cards.map((card) => {
         const IconComponent = card.icon;
         return (
           <div
             key={card.id}
             id={card.id}
-            className="bg-white rounded-xl border border-slate-200/80 p-3.5 sm:p-4 shadow-xs hover:shadow-md hover:border-slate-300 transition-all duration-200 flex flex-col justify-between"
+                        className="group flex flex-col justify-between rounded-[22px] border border-slate-200/80 bg-white p-4 shadow-[0_12px_28px_rgba(15,23,42,0.05)] transition-all duration-200 hover:-translate-y-0.5 hover:border-cyan-200 hover:shadow-[0_18px_35px_rgba(8,145,178,0.12)] sm:p-5"
+
           >
             <div className="flex items-center justify-between gap-2 mb-2">
-              <span className="text-[11px] sm:text-xs font-semibold tracking-wider text-slate-500 uppercase">
+                            <span className="text-[10px] font-black uppercase tracking-[0.16em] text-slate-500">
+
                 {card.label}
               </span>
-              <div className={`p-1.5 rounded-lg ${card.iconBg}`}>
+                            <div className={`rounded-2xl p-2 transition-transform duration-200 group-hover:scale-105 ${card.iconBg}`}>
+
                 <IconComponent className="w-4 h-4" />
               </div>
             </div>
 
             <div className="mt-1">
               <div className="flex items-baseline gap-1.5">
-                <span className={`text-xl sm:text-2xl font-black tracking-tight ${card.valueColor}`}>
+                                <span className={`text-2xl font-black tracking-tight ${card.valueColor} sm:text-[28px]`}>
+
                   {card.value}
                 </span>
                 <span className="text-xs font-medium text-slate-400">

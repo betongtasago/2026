@@ -58,8 +58,18 @@ export const UploadExcelModal: React.FC<UploadExcelModalProps> = ({
   if (!isOpen) return null;
 
   const handleFileProcess = async (selectedFile: File) => {
+    const extension = selectedFile.name.toLowerCase().slice(selectedFile.name.lastIndexOf('.'));
+    if (!['.xlsx', '.xls'].includes(extension)) {
+      setErrorMessage('Chỉ hỗ trợ file .xlsx hoặc .xls.');
+      return;
+    }
+    if (selectedFile.size > 10 * 1024 * 1024) {
+      setErrorMessage('File Excel vượt quá giới hạn 10 MB. Hãy tách nhỏ dữ liệu rồi thử lại.');
+      return;
+    }
     try {
       setFile(selectedFile);
+
       setFileName(selectedFile.name);
       setFileSize((selectedFile.size / 1024).toFixed(1) + ' KB');
       setErrorMessage(null);

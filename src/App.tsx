@@ -10,6 +10,8 @@ import { UploadExcelModal } from './components/UploadExcelModal';
 import { DriverDetailModal } from './components/DriverDetailModal';
 import { ConfirmDialog } from './components/ConfirmDialog';
 import { EmptyState } from './components/EmptyState';
+import { LoginScreen } from './components/LoginScreen';
+import { apiFetch } from './api';
 import { exportDriversToExcel, exportDriversToCSV } from './utils/excelExporter';
 import { normalizeStringForComparison } from './utils/excelParser';
 import { CheckCircle2, AlertCircle, Info, X } from 'lucide-react';
@@ -36,6 +38,8 @@ export default function App() {
   // Primary records state
   const [records, setRecords] = useState<DriverRecord[]>([]);
   const [serverVersion, setServerVersion] = useState<number>(0);
+  const [authState, setAuthState] = useState<'loading' | 'signed_out' | 'signed_in'>('loading');
+  const [currentUser, setCurrentUser] = useState<{ username: string } | null>(null);
 
   const [lastUpdated, setLastUpdated] = useState<string | null>(() => {
     return localStorage.getItem(STORAGE_TIMESTAMP_KEY) || null;
@@ -70,10 +74,52 @@ export default function App() {
     }, 4500);
   }, []);
 
+  const handleLogin = useCallback(async (username: string, password: string): Promise<string | null> => {
+    try {
+      const response = await apiFetch('/api/auth/login', {
+        method: 'POST',
+        body: JSON.stringify({ username, password }),
+      });
+      const data = await response.json().catch(() => null);
+      if (!response.ok || !data?.success) return data?.error || 'Không thể đăng nhập vào hệ thống.';
+      setCurrentUser(data.user || { username });
+      setAuthState('signed_in');
+      return null;
+    } catch {
+      return 'Không thể kết nối máy chủ. Vui lòng kiểm tra deployment và thử lại.';
+    }
+  }, []);
+
+  const handleLogout = useCallback(async () => {
+    try { await apiFetch('/api/auth/logout', { method: 'POST' }); } catch {}
+    setRecords([]);
+    setCurrentUser(null);
+    setAuthState('signed_out');
+  }, []);
+
+  useEffect(() => {
+    let active = true;
+    apiFetch('/api/auth/me')
+      .then(async (response) => {
+        const data = await response.json().catch(() => null);
+        if (!active) return;
+        if (response.ok && data?.authenticated) {
+          setCurrentUser(data.user || null);
+          setAuthState('signed_in');
+        } else {
+          setAuthState('signed_out');
+        }
+      })
+      .catch(() => { if (active) setAuthState('signed_out'); });
+    return () => { active = false; };
+  }, []);
+
   // Fetch initial fleet data from server
   const fetchFleetDataFromServer = useCallback(async (notify = false) => {
+    if (authState !== 'signed_in') return;
     try {
-      const res = await fetch('/api/fleet-data');
+      const res = await apiFetch('/api/fleet-data');
+      if (res.status === 401) { setAuthState('signed_out'); return; }
       if (res.ok) {
         const data = await res.json();
         if (data && data.success && Array.isArray(data.records)) {
@@ -100,15 +146,17 @@ export default function App() {
         if (Array.isArray(parsed)) setRecords(parsed);
       }
     } catch (e) {}
-  }, [showToast]);
+  }, [authState, showToast]);
 
   useEffect(() => {
+    if (authState !== 'signed_in') return;
     fetchFleetDataFromServer(false);
 
     // Auto-sync polling every 5 seconds
     const interval = setInterval(async () => {
       try {
-        const res = await fetch('/api/fleet-data');
+        const res = await apiFetch('/api/fleet-data');
+        if (res.status === 401) { setAuthState('signed_out'); return; }
         if (res.ok) {
           const data = await res.json();
           if (data && data.success && typeof data.version === 'number') {
@@ -127,7 +175,7 @@ export default function App() {
     }, 5000);
 
     return () => clearInterval(interval);
-  }, [fetchFleetDataFromServer, showToast]);
+  }, [authState, fetchFleetDataFromServer, showToast]);
 
   const syncRecordsToServer = async (newRecords: DriverRecord[], actionName = 'Cập nhật') => {
     const now = new Date();
@@ -140,15 +188,15 @@ export default function App() {
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(newRecords));
       localStorage.setItem(STORAGE_TIMESTAMP_KEY, timeStr);
-      const res = await fetch('/api/fleet-data', {
+      const res = await apiFetch('/api/fleet-data', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           records: newRecords,
           lastUpdated: timeStr,
           actionType: actionName
         })
       });
+      if (res.status === 401) { setAuthState('signed_out'); return; }
       if (res.ok) {
         const data = await res.json();
         if (data.version) setServerVersion(data.version);
@@ -364,8 +412,13 @@ export default function App() {
     showToast(`Đã xóa tài xế ${target?.driverName || ''}`, 'warning');
   };
 
+  if (authState === 'loading') {
+    return <div className="flex min-h-screen items-center justify-center bg-[#07111f] text-sm font-semibold text-cyan-200">Đang kiểm tra phiên đăng nhập...</div>;
+  }
+  if (authState === 'signed_out') return <LoginScreen onLogin={handleLogin} />;
+
   return (
-    <div className="min-h-screen bg-slate-100 text-slate-900 flex flex-col font-sans selection:bg-blue-600 selection:text-white">
+    <div className="min-h-screen bg-[#eef4f7] text-slate-900 flex flex-col font-sans selection:bg-cyan-600 selection:text-white">
       {/* Toast Notification */}
       {toast && (
         <div
@@ -411,6 +464,8 @@ export default function App() {
         onDownloadTemplate={handleDownloadSampleTemplate}
         onResetDemo={handleResetDemo}
         onClearData={() => setIsClearConfirmOpen(true)}
+        username={currentUser?.username}
+        onLogout={handleLogout}
         onAddNewRow={() => {
           setEditingRecord(null);
           setIsEditOpen(true);
@@ -418,8 +473,10 @@ export default function App() {
       />
 
       {/* Main Content Dashboard Container */}
-      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-5 space-y-4">
+      <main className="relative flex-1 w-full mx-auto max-w-[1440px] px-4 py-7 sm:px-6 lg:px-8">
         {/* Dynamic Summary Cards */}
+        <div className="mb-6 rounded-[24px] border border-slate-200/80 bg-gradient-to-r from-slate-950 via-slate-900 to-cyan-950 p-6 text-white shadow-xl shadow-slate-900/10"><div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-end"><div><p className="text-[10px] font-black uppercase tracking-[0.24em] text-cyan-300">Bảng điều hành vận hành</p><h2 className="mt-2 text-2xl font-black tracking-tight sm:text-3xl">Tổng quan đội xe hôm nay</h2><p className="mt-2 max-w-2xl text-sm leading-6 text-slate-300">Theo dõi nhanh nguồn lực, khối lượng và hiệu suất từ dữ liệu đã đồng bộ trên máy chủ.</p></div><div className="inline-flex items-center gap-2 self-start rounded-full border border-emerald-300/20 bg-emerald-400/10 px-3 py-2 text-xs font-bold text-emerald-200 sm:self-auto"><span className="h-2 w-2 animate-pulse rounded-full bg-emerald-300" />Đang kết nối dữ liệu</div></div></div>
+
         <SummaryCards records={filteredRecords} />
 
         {/* Search & Filter Toolbar */}
@@ -509,7 +566,7 @@ export default function App() {
       />
 
       {/* Footer */}
-      <footer className="mt-auto py-4 border-t border-slate-200 bg-white text-center text-xs text-slate-500">
+      <footer className="mt-auto border-t border-slate-200/80 bg-white/80 py-5 text-center text-xs text-slate-500 backdrop-blur">
         <div className="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-2">
           <span>Hệ thống Quản lý dữ liệu tài xế Tasago © 2026 by LÊ VIẾT THÀNH</span>
           <span className="text-slate-400">

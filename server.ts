@@ -22,6 +22,7 @@ dotenv.config();
 // Persistent fleet storage file
 const DATA_DIR = path.resolve(process.env.DATA_DIR || path.join(process.cwd(), "data"));
 const DATA_FILE = path.join(DATA_DIR, "fleet_data.json");
+const PORT = 3000;
 
 interface FleetStoragePayload {
   records: any[];
@@ -71,10 +72,9 @@ function saveFleetDataToFile(payload: FleetStoragePayload) {
   }
 }
 
-async function startServer() {
+export async function createApp(options: { serveFrontend?: boolean } = {}) {
   const app = express();
-  const PORT = 3000;
-
+  const serveFrontend = options.serveFrontend !== false;
   app.disable("x-powered-by");
   app.set("trust proxy", 1);
   app.use((req, res, next) => {
@@ -328,24 +328,33 @@ Chỉ trích xuất các dòng tài xế có tên và số xe. Các trường s�
     }
   });
 
-  // Vite middleware for development
-  if (process.env.NODE_ENV !== "production") {
-    const vite = await createViteServer({
-      server: { middlewareMode: true },
-      appType: "spa",
-    });
-    app.use(vite.middlewares);
-  } else {
-    const distPath = path.join(process.cwd(), "dist");
-    app.use(express.static(distPath));
-    app.get("*", (req, res) => {
-      res.sendFile(path.join(distPath, "index.html"));
-    });
+  if (serveFrontend) {
+    // Vite middleware for local development
+    if (process.env.NODE_ENV !== "production") {
+      const vite = await createViteServer({
+        server: { middlewareMode: true },
+        appType: "spa",
+      });
+      app.use(vite.middlewares);
+    } else {
+      const distPath = path.join(process.cwd(), "dist");
+      app.use(express.static(distPath));
+      app.get("*", (req, res) => {
+        res.sendFile(path.join(distPath, "index.html"));
+      });
+    }
   }
 
+  return app;
+}
+
+async function startServer() {
+  const app = await createApp();
   app.listen(PORT, "0.0.0.0", () => {
     console.log(`Server running on http://localhost:${PORT}`);
   });
 }
 
-startServer();
+if (!process.env.VERCEL) {
+  startServer();
+}

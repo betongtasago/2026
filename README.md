@@ -47,9 +47,9 @@ DATA_DIR=./data
 
 `GEMINI_API_KEY` không được đưa vào trình duyệt. Chức năng OCR chỉ lấy key từ biến môi trường server.
 
-## Deploy frontend trên Vercel và API trên máy chủ Node
+## Deploy frontend và API trên Vercel hoặc máy chủ Node
 
-Vercel có thể dùng để build và phân phối frontend. Nếu API Express chạy ở domain khác, hãy cấu hình:
+Repository có Vercel catch-all Function tại `api/[...path].ts` để chuyển các request `/api/*` vào Express. Khi muốn Vercel phục vụ cả frontend và API, hãy để `VITE_API_URL` trống để browser gọi API cùng origin. Nếu API Express chạy ở domain khác, Vercel vẫn có thể chỉ phục vụ frontend và cần cấu hình:
 
 ```env
 VITE_API_URL=https://api.example.com
@@ -67,7 +67,7 @@ DATA_DIR=/var/lib/tasago-fleetops/data
 NODE_ENV=production
 ```
 
-`FRONTEND_ORIGIN` phải khớp chính xác origin của website, không thêm dấu `/` cuối. Backend chỉ cấp CORS credentials cho origin này. Sau khi đổi biến `VITE_API_URL`, cần redeploy frontend Vercel vì đây là biến build-time.
+`FRONTEND_ORIGIN` phải khớp chính xác origin của website, không thêm dấu `/` cuối. Khi dùng Vercel catch-all cùng origin, có thể để trống `FRONTEND_ORIGIN` và `VITE_API_URL`; khi dùng API domain khác, backend phải cấp CORS credentials cho đúng origin Vercel. Sau khi đổi biến `VITE_API_URL`, cần redeploy frontend Vercel vì đây là biến build-time.
 
 ### Build production
 
@@ -77,7 +77,7 @@ npm run build
 npm start
 ```
 
-Nếu frontend và API cùng origin, để trống `VITE_API_URL`. Nếu tách origin, cả hai domain phải dùng HTTPS để cookie `Secure` và `SameSite=None` hoạt động đúng.
+Nếu frontend và API cùng origin trên Vercel, để trống `VITE_API_URL` và cấu hình các biến server-side (`AUTH_SECRET`, `ADMIN_USERNAME`, `ADMIN_PASSWORD`, `GEMINI_API_KEY`, `GEMINI_MODEL`) trong Vercel. Nếu tách origin, cả hai domain phải dùng HTTPS để cookie `Secure` và `SameSite=None` hoạt động đúng. Lưu ý rằng filesystem serverless không phải nơi lưu trữ bền vững; dữ liệu đội xe production nên chuyển sang Supabase/PostgreSQL hoặc storage có persistence.
 
 ## Bảo mật đã xử lý
 

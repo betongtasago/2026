@@ -149,8 +149,10 @@ Vercel ghi rõ biến môi trường được đọc trong build step hoặc lú
 
 ## Đọc ảnh danh sách chuyến và đồng bộ vào tài xế
 
-Bấm **Ảnh chuyến** trên thanh công cụ để tải ảnh chụp bảng kê hoặc danh sách chuyến. Hệ thống nén ảnh tại trình duyệt rồi gửi tới `/api/recognize-image`; Gemini Vision chạy hoàn toàn server-side và trả về tên tài xế, số xe, chuyến lớn, chuyến nhỏ, tổng chuyến, tổng km, xe nước và khối lượng trạm nếu có trong ảnh.
+Bấm **Ảnh chuyến** trên thanh công cụ để tải ảnh chụp bảng kê hoặc danh sách chuyến. Hệ thống nén ảnh tại trình duyệt rồi gửi tới `/api/recognize-image`; Gemini Vision chạy hoàn toàn server-side và trả về tên tài xế, số xe, chuyến lớn, chuyến nhỏ, tổng chuyến, tổng km, xe nước và khối lượng trạm nếu có trong ảnh. Model mặc định là `gemini-3.6-flash`; có thể đổi bằng biến môi trường server `GEMINI_MODEL` khi Google phát hành model mới.
 
 Kết quả OCR luôn hiển thị ở màn hình **Duyệt trước khi đồng bộ**. Hệ thống đối chiếu ưu tiên theo số xe, sau đó theo tên tài xế. Chỉ những dòng khớp với danh sách hiện có mới được chọn mặc định; dòng không khớp không tự động ghi vào dữ liệu. Người dùng có thể bỏ chọn từng dòng rồi bấm **Đồng bộ N dòng** để cập nhật số liệu chuyến vào đúng `DriverRecord` và gửi toàn bộ danh sách lên `POST /api/fleet-data`.
 
 Ảnh gốc được giới hạn 12 MB và nén tối đa 1280 px trước khi gửi. Endpoint OCR yêu cầu đăng nhập, giới hạn payload và không nhận Gemini API key từ trình duyệt. Ảnh chỉ là dữ liệu đầu vào tạm thời cho OCR; hệ thống không lưu ảnh vào bản ghi tài xế, chỉ lưu các số liệu chuyến đã được người dùng duyệt.
+
+[3]: https://ai.google.dev/gemini-api/docs/models/gemini-3.6-flash "Gemini 3.6 Flash model reference"

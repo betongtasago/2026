@@ -238,8 +238,13 @@ Chỉ trích xuất các dòng tài xế có tên và số xe. Các trường s�
         userText += ` Hãy tập trung bóc tách dữ liệu trong vùng được khoanh chọn: x=${Math.round(region.x)}%, y=${Math.round(region.y)}%, width=${Math.round(region.width)}%, height=${Math.round(region.height)}%.`;
       }
 
-      // Danh sách model ưu tiên tự động fallback
-      const candidateModels = ["gemini-2.5-flash", "gemini-1.5-flash", "gemini-2.0-flash"];
+      // Model ổn định cho OCR ảnh; có thể override bằng GEMINI_MODEL trên server.
+      const configuredModel = String(process.env.GEMINI_MODEL || '').trim();
+      const candidateModels = Array.from(new Set([
+        configuredModel,
+        "gemini-3.6-flash",
+        "gemini-3-flash-preview",
+      ].filter(Boolean)));
       let response = null;
       let lastErr = null;
 

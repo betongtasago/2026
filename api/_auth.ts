@@ -61,7 +61,7 @@ function parseCookies(value: string): Record<string, string> {
 }
 
 function crossSite(req: RequestLike): boolean {
-  const configuredOrigin = String(process.env.FRONTEND_ORIGIN || '').trim();
+  const configuredOrigin = env('FRONTEND_ORIGIN').trim();
   const requestHost = header(req, 'host').split(':')[0].toLowerCase();
   if (!configuredOrigin || !requestHost) return Boolean(configuredOrigin);
   try { return new URL(configuredOrigin).hostname.toLowerCase() !== requestHost; } catch { return true; }

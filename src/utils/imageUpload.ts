@@ -1,5 +1,7 @@
 export const MAX_IMAGE_BYTES = 1_500_000;
 export const MAX_IMAGE_DIMENSION = 1280;
+export const MAX_OCR_IMAGE_BYTES = 7_500_000;
+export const MAX_OCR_IMAGE_DIMENSION = 2600;
 const ACCEPTED_IMAGE_TYPES = new Set(['image/jpeg', 'image/png', 'image/webp']);
 
 export interface UploadedImage {
@@ -25,12 +27,12 @@ function loadImage(file: File): Promise<HTMLImageElement> {
   });
 }
 
-export async function compressImage(file: File): Promise<UploadedImage> {
+async function encodeImage(file: File, maxDimension: number, maxBytes: number): Promise<UploadedImage> {
   if (!ACCEPTED_IMAGE_TYPES.has(file.type)) {
     throw new Error('Chỉ hỗ trợ ảnh JPG, PNG hoặc WebP.');
   }
-  if (file.size > 12 * 1024 * 1024) {
-    throw new Error('Ảnh gốc vượt quá giới hạn 12 MB.');
+  if (file.size > 20 * 1024 * 1024) {
+    throw new Error('Ảnh gốc vượt quá giới hạn 20 MB.');
   }
 
   const image = await loadImage(file);
@@ -38,7 +40,7 @@ export async function compressImage(file: File): Promise<UploadedImage> {
     throw new Error('Ảnh không có kích thước hợp lệ.');
   }
 
-  const scale = Math.min(1, MAX_IMAGE_DIMENSION / Math.max(image.naturalWidth, image.naturalHeight));
+  const scale = Math.min(1, maxDimension / Math.max(image.naturalWidth, image.naturalHeight));
   const width = Math.max(1, Math.round(image.naturalWidth * scale));
   const height = Math.max(1, Math.round(image.naturalHeight * scale));
   const canvas = document.createElement('canvas');
@@ -51,16 +53,16 @@ export async function compressImage(file: File): Promise<UploadedImage> {
   context.fillRect(0, 0, width, height);
   context.drawImage(image, 0, 0, width, height);
 
-  let quality = 0.82;
+  let quality = maxDimension > MAX_IMAGE_DIMENSION ? 0.92 : 0.82;
   let dataUrl = canvas.toDataURL('image/jpeg', quality);
-  while (dataUrl.length * 0.75 > MAX_IMAGE_BYTES && quality > 0.45) {
-    quality -= 0.07;
+  while (dataUrl.length * 0.75 > maxBytes && quality > 0.45) {
+    quality -= 0.06;
     dataUrl = canvas.toDataURL('image/jpeg', quality);
   }
 
   const sizeBytes = Math.ceil((dataUrl.length - dataUrl.indexOf(',') - 1) * 0.75);
-  if (sizeBytes > MAX_IMAGE_BYTES) {
-    throw new Error('Ảnh sau khi nén vẫn quá lớn. Hãy chọn ảnh nhỏ hơn.');
+  if (sizeBytes > maxBytes) {
+    throw new Error('Ảnh sau khi xử lý vẫn quá lớn. Hãy chọn ảnh nhỏ hơn hoặc cắt đúng phần bảng chuyến.');
   }
 
   return {
@@ -69,4 +71,12 @@ export async function compressImage(file: File): Promise<UploadedImage> {
     fileName: file.name.replace(/\.[^.]+$/, '') + '.jpg',
     sizeBytes,
   };
+}
+
+export function compressImage(file: File): Promise<UploadedImage> {
+  return encodeImage(file, MAX_IMAGE_DIMENSION, MAX_IMAGE_BYTES);
+}
+
+export function prepareOcrImage(file: File): Promise<UploadedImage> {
+  return encodeImage(file, MAX_OCR_IMAGE_DIMENSION, MAX_OCR_IMAGE_BYTES);
 }

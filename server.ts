@@ -231,9 +231,9 @@ export async function createApp(options: { serveFrontend?: boolean } = {}) {
 
       const systemPrompt = `Bạn là chuyên gia AI Vision OCR bóc tách dữ liệu vận tải và đội xe chuyên nghiệp tại Việt Nam.
 Nhiệm vụ của bạn là đọc bảng kê chuyến từ ảnh và trả về dữ liệu có thể đồng bộ vào danh sách tài xế hiện có.
-Chỉ trích xuất các dòng tài xế có tên và số xe. Các trường số liệu gồm chuyến lớn, chuyến nhỏ, tổng chuyến, tổng km, xe nước và khối lượng trạm nếu có. Nếu một trường không xuất hiện hoặc không đọc rõ, bỏ qua trường đó thay vì đoán. Không tự cộng dồn với dữ liệu cũ.`;
+Chỉ trích xuất các dòng tài xế có tên và số xe. Phải kiểm tra theo chiều ngang từng dòng và đối chiếu với tiêu đề cột; tuyệt đối không chỉ lấy cột tổng chuyến. Mỗi dòng phải trả đủ các trường số liệu: stationVolume, largeTrips, smallTrips, totalKm, totalTrips và waterVehicles. Nếu ô thực sự trống hoặc thể hiện số 0 thì trả 0; nếu ảnh không đủ rõ để đọc, trả 0 và không tự suy đoán. Không tự cộng dồn với dữ liệu cũ.`;
 
-      let userText = "Hãy nhận dạng bảng danh sách chuyến trong hình ảnh này. Trích xuất tên tài xế, số xe và các số liệu chuyến theo từng dòng. Đặc biệt phân biệt rõ chuyến lớn, chuyến nhỏ và tổng chuyến.";
+      let userText = "Hãy nhận dạng toàn bộ bảng danh sách chuyến trong ảnh. Đọc theo từng dòng từ trái sang phải và ghép đúng với tiêu đề cột. Bắt buộc trả đủ: khối lượng trạm, chuyến lớn, chuyến nhỏ, tổng km, tổng chuyến và xe nước; không được bỏ qua các cột chỉ vì cột tổng chuyến đã đọc được.";
       if (region && (region.width < 95 || region.height < 95)) {
         userText += ` Hãy tập trung bóc tách dữ liệu trong vùng được khoanh chọn: x=${Math.round(region.x)}%, y=${Math.round(region.y)}%, width=${Math.round(region.width)}%, height=${Math.round(region.height)}%.`;
       }
@@ -280,14 +280,23 @@ Chỉ trích xuất các dòng tài xế có tên và số xe. Các trường s�
                         stt: { type: Type.INTEGER },
                         driverName: { type: Type.STRING },
                         vehicleNumber: { type: Type.STRING },
-                        stationVolume: { type: Type.NUMBER },
-                        largeTrips: { type: Type.INTEGER },
-                        smallTrips: { type: Type.INTEGER },
-                        totalKm: { type: Type.INTEGER },
-                        totalTrips: { type: Type.INTEGER },
-                        waterVehicles: { type: Type.INTEGER },
+                        stationVolume: { type: Type.NUMBER, description: "Giá trị ở cột KL trạm TN hoặc khối lượng trạm, đơn vị m3." },
+                        largeTrips: { type: Type.INTEGER, description: "Số chuyến lớn của dòng tài xế này, không lấy từ tổng chuyến." },
+                        smallTrips: { type: Type.INTEGER, description: "Số chuyến nhỏ của dòng tài xế này, không lấy từ tổng chuyến." },
+                        totalKm: { type: Type.INTEGER, description: "Giá trị ở cột Tổng KM của dòng này." },
+                        totalTrips: { type: Type.INTEGER, description: "Giá trị ở cột Tổng chuyến của dòng này." },
+                        waterVehicles: { type: Type.INTEGER, description: "Số chuyến hoặc số xe nước ở cột Xe nước của dòng này." },
                       },
-                      required: ["driverName", "vehicleNumber"],
+                      required: [
+                        "driverName",
+                        "vehicleNumber",
+                        "stationVolume",
+                        "largeTrips",
+                        "smallTrips",
+                        "totalKm",
+                        "totalTrips",
+                        "waterVehicles",
+                      ],
                     },
                   },
                 },

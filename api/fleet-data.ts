@@ -2,7 +2,7 @@ import path from 'node:path';
 import fs from 'node:fs';
 import { applyApiHeaders, sendJson } from './_http';
 
-import { getAuthenticatedUser } from '../serverAuth';
+import { getAuthenticatedUser } from './_auth';
 
 type RequestLike = {
   method?: string;
@@ -52,13 +52,13 @@ function persistFleetState(): void {
   }
 }
 
-function isAuthenticated(req: RequestLike): boolean {
-  return Boolean(getAuthenticatedUser(req));
+async function isAuthenticated(req: RequestLike): Promise<boolean> {
+  return Boolean(await getAuthenticatedUser(req));
 }
 
-export default function handler(req: RequestLike, res: ResponseLike): void {
+export default async function handler(req: RequestLike, res: ResponseLike): Promise<void> {
   if (!applyApiHeaders(req, res)) return;
-  if (!isAuthenticated(req)) {
+  if (!await isAuthenticated(req)) {
     sendJson(res, 401, { success: false, error: 'Phiên đăng nhập không hợp lệ hoặc đã hết hạn.' });
     return;
   }

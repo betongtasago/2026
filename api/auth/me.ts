@@ -1,6 +1,6 @@
 import { applyApiHeaders, sendJson } from '../_http';
 
-import { getAuthenticatedUser } from '../../serverAuth';
+import { getAuthenticatedUser } from '../_auth';
 
 type RequestLike = {
   method?: string;
@@ -13,7 +13,7 @@ type ResponseLike = {
   end(chunk?: unknown): void;
 };
 
-export default function handler(req: RequestLike, res: ResponseLike): void {
+export default async function handler(req: RequestLike, res: ResponseLike): Promise<void> {
   if (!applyApiHeaders(req, res)) return;
   res.setHeader('Cache-Control', 'no-store, max-age=0');
   if (req.method !== 'GET') {
@@ -21,7 +21,7 @@ export default function handler(req: RequestLike, res: ResponseLike): void {
     return;
   }
 
-  const user = getAuthenticatedUser(req);
+  const user = await getAuthenticatedUser(req);
   if (!user) {
     sendJson(res, 401, { success: false, authenticated: false });
     return;

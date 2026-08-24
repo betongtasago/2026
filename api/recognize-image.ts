@@ -1,7 +1,7 @@
 import { GoogleGenAI, Type } from '@google/genai';
 import { applyApiHeaders, sendJson } from './_http';
 
-import { getAuthenticatedUser } from '../serverAuth';
+import { getAuthenticatedUser } from './_auth';
 
 type RequestLike = {
   method?: string;
@@ -28,7 +28,7 @@ export default async function handler(req: RequestLike, res: ResponseLike): Prom
     sendJson(res, 405, { success: false, error: 'Phương thức không được hỗ trợ.' });
     return;
   }
-  if (!getAuthenticatedUser(req)) {
+  if (!await getAuthenticatedUser(req)) {
     sendJson(res, 401, { success: false, error: 'Phiên đăng nhập không hợp lệ hoặc đã hết hạn.' });
     return;
   }

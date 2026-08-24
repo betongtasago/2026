@@ -9,7 +9,7 @@ import {
   setSessionCookie,
   shouldExposeClientToken,
   verifyLogin,
-} from '../../serverAuth';
+} from '../_auth';
 
 type RequestLike = {
   method?: string;
@@ -23,7 +23,7 @@ type ResponseLike = {
   end(chunk?: unknown): void;
 };
 
-export default function handler(req: RequestLike, res: ResponseLike): void {
+export default async function handler(req: RequestLike, res: ResponseLike): Promise<void> {
   if (!applyApiHeaders(req, res)) return;
   res.setHeader('Cache-Control', 'no-store, max-age=0');
   if (req.method !== 'POST') {
@@ -50,7 +50,7 @@ export default function handler(req: RequestLike, res: ResponseLike): void {
   }
 
   clearLoginFailures(ip);
-  const sessionToken = createSession(String(username));
+  const sessionToken = await createSession(String(username));
   setSessionCookie(res, sessionToken, req);
   sendJson(res, 200, {
     success: true,

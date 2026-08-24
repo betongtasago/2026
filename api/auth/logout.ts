@@ -1,6 +1,6 @@
 import { applyApiHeaders, sendJson } from '../_http';
 
-import { clearSessionCookie } from '../../serverAuth';
+import { clearSessionCookie } from '../_auth';
 
 type RequestLike = {
   method?: string;

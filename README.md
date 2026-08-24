@@ -49,7 +49,7 @@ DATA_DIR=./data
 
 ## Deploy frontend và API trên Vercel hoặc máy chủ Node
 
-Repository có Vercel catch-all Function tại `api/[...path].ts` để chuyển các request `/api/*` vào Express. Khi muốn Vercel phục vụ cả frontend và API, hãy để `VITE_API_URL` trống để browser gọi API cùng origin. Nếu API Express chạy ở domain khác, Vercel vẫn có thể chỉ phục vụ frontend và cần cấu hình:
+Repository có các Vercel Function trực tiếp tại `api/auth/`, `api/fleet-data.ts`, `api/health.ts` và `api/recognize-image.ts`. Các route login, kiểm tra phiên, dữ liệu đội xe và OCR không còn phụ thuộc vào Express catch-all nested path; `api/[...path].ts` được giữ cho các route tương thích khác. Khi muốn Vercel phục vụ cả frontend và API, hãy để `VITE_API_URL` trống để browser gọi API cùng origin. Nếu API Express chạy ở domain khác, Vercel vẫn có thể chỉ phục vụ frontend và cần cấu hình:
 
 ```env
 VITE_API_URL=https://api.example.com
@@ -101,7 +101,7 @@ Nếu đăng nhập xong bị quay lại màn hình login, hãy kiểm tra websi
 
 ## API cơ bản
 
-`GET /api/health` là endpoint kiểm tra tình trạng server và không yêu cầu đăng nhập.
+`GET /api/health` là endpoint kiểm tra tình trạng server và không yêu cầu đăng nhập. Các endpoint production được triển khai thành Vercel Functions riêng để tránh lỗi route nested trên deployment.
 
 `POST /api/auth/login` nhận JSON `{ "username": "...", "password": "..." }` và trả cookie phiên khi thành công.
 

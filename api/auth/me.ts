@@ -1,6 +1,6 @@
-import { applyApiHeaders, sendJson } from '../_http';
+import { applyApiHeaders, sendJson } from '../../vercelHttp';
 
-import { getAuthenticatedUser } from '../_auth';
+import { getAuthenticatedUser } from '../../vercelAuth';
 
 type RequestLike = {
   method?: string;

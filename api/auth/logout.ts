@@ -1,6 +1,6 @@
-import { applyApiHeaders, sendJson } from '../_http';
+import { applyApiHeaders, sendJson } from '../../vercelHttp';
 
-import { clearSessionCookie } from '../_auth';
+import { clearSessionCookie } from '../../vercelAuth';
 
 type RequestLike = {
   method?: string;

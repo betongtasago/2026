@@ -1,4 +1,4 @@
-import { applyApiHeaders, requestIp, sendJson } from '../_http';
+import { applyApiHeaders, requestIp, sendJson } from '../../vercelHttp';
 
 import {
   canAuthenticate,
@@ -9,7 +9,7 @@ import {
   setSessionCookie,
   shouldExposeClientToken,
   verifyLogin,
-} from '../_auth';
+} from '../../vercelAuth';
 
 type RequestLike = {
   method?: string;

@@ -254,7 +254,8 @@ export const DriverTable: React.FC<DriverTableProps> = ({
           <tbody className="divide-y divide-slate-100 text-sm font-medium">
             {records.map((record, index) => {
               const currentStt = formatStt(startIndex + index);
-              const isWarning = record.hasWarning || record.driverName.endsWith('.');
+              const driverName = String(record.driverName || 'Chưa có tên');
+              const isWarning = Boolean(record.hasWarning) || driverName.endsWith('.');
 
               return (
                 <tr
@@ -281,7 +282,7 @@ export const DriverTable: React.FC<DriverTableProps> = ({
                             isWarning ? 'text-slate-900 font-bold' : 'text-slate-800'
                           }`}
                         >
-                          {record.driverName}
+                          {driverName}
                         </span>
                         {isWarning && (
                           <span

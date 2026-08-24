@@ -195,6 +195,7 @@ export default function App() {
   }, [authState, fetchFleetDataFromServer, showToast]);
 
   const syncRecordsToServer = async (newRecords: DriverRecord[], actionName = 'Cập nhật') => {
+    const safeRecords = sanitizeDriverRecords(newRecords);
     const now = new Date();
     const timeStr = `${actionName}: ${now.getHours().toString().padStart(2, '0')}:${now
       .getMinutes()
@@ -203,7 +204,7 @@ export default function App() {
     setLastUpdated(timeStr);
 
     try {
-      const cacheRecords = newRecords;
+      const cacheRecords = safeRecords;
       try {
         localStorage.setItem(STORAGE_KEY, JSON.stringify(cacheRecords));
         localStorage.setItem(STORAGE_TIMESTAMP_KEY, timeStr);
@@ -213,7 +214,7 @@ export default function App() {
       const res = await apiFetch('/api/fleet-data', {
         method: 'POST',
         body: JSON.stringify({
-          records: newRecords,
+          records: safeRecords,
           lastUpdated: timeStr,
           actionType: actionName
         })
@@ -352,7 +353,8 @@ export default function App() {
 
   // Import Confirmation handler
   const handleConfirmImport = (newRecords: DriverRecord[], filename: string) => {
-    setRecords(newRecords);
+    const safeRecords = sanitizeDriverRecords(newRecords);
+    setRecords(safeRecords);
     const now = new Date();
     const timeStr = `${now.getHours().toString().padStart(2, '0')}:${now
       .getMinutes()
@@ -362,16 +364,15 @@ export default function App() {
     setFilters(INITIAL_FILTERS);
     setCurrentPage(1);
 
-    const updated = [...newRecords];
-    setRecords(updated);
-    syncRecordsToServer(updated, 'Nhập từ Excel');
-    showToast(`Đã nhập và đồng bộ thành công ${newRecords.length} dòng dữ liệu từ file "${filename}"`, 'success');
+    syncRecordsToServer(safeRecords, 'Nhập từ Excel');
+    showToast(`Đã nhập và đồng bộ thành công ${safeRecords.length} dòng dữ liệu từ file "${filename}"`, 'success');
   };
 
   const handleApplyTripPhotoImport = async (nextRecords: DriverRecord[], matchedCount: number, totalCount: number) => {
-    setRecords(nextRecords);
+    const safeRecords = sanitizeDriverRecords(nextRecords);
+    setRecords(safeRecords);
     setCurrentPage(1);
-    await syncRecordsToServer(nextRecords, 'Đồng bộ chuyến từ ảnh');
+    await syncRecordsToServer(safeRecords, 'Đồng bộ chuyến từ ảnh');
     showToast(`Đã đồng bộ ${matchedCount}/${totalCount} dòng chuyến vào danh sách tài xế`, 'success');
   };
 
@@ -422,12 +423,13 @@ export default function App() {
   // Single row save/edit/delete
   const handleSaveRow = (savedRecord: DriverRecord) => {
     setRecords((prev) => {
-      const exists = prev.some((r) => r.id === savedRecord.id);
-      const updated = exists ? prev.map((r) => (r.id === savedRecord.id ? savedRecord : r)) : [savedRecord, ...prev];
+      const safeRecord = sanitizeDriverRecords([savedRecord])[0];
+      const exists = prev.some((r) => r.id === safeRecord.id);
+      const updated = exists ? prev.map((r) => (r.id === safeRecord.id ? safeRecord : r)) : [safeRecord, ...prev];
       syncRecordsToServer(updated, exists ? 'Cập nhật tài xế' : 'Thêm tài xế');
       return updated;
     });
-    showToast(`Đã lưu thông tin tài xế ${savedRecord.driverName}`, 'success');
+    showToast(`Đã lưu thông tin tài xế ${String(savedRecord.driverName || '')}`, 'success');
   };
 
   const handleDeleteRow = (recordId: string) => {

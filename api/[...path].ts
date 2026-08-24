@@ -1,5 +1,7 @@
 import { createApp } from '../server';
 
+export const config = { runtime: 'nodejs22.x' };
+
 type VercelRequest = {
   method?: string;
   url?: string;

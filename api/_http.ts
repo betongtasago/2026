@@ -15,7 +15,7 @@ function firstHeader(value: string | string[] | undefined): string {
 }
 
 export function applyApiHeaders(req: RequestLike, res: ResponseLike): boolean {
-  const allowedOrigin = String(process.env.FRONTEND_ORIGIN || '').trim().replace(/\/$/, '');
+  const allowedOrigin = String(typeof process !== 'undefined' ? process.env.FRONTEND_ORIGIN || '' : '').trim().replace(/\/$/, '');
   const requestOrigin = firstHeader(req.headers.origin).replace(/\/$/, '');
 
   if (allowedOrigin && requestOrigin === allowedOrigin) {

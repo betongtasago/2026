@@ -1,5 +1,7 @@
 import { applyApiHeaders, sendJson } from './_http';
 
+export const config = { runtime: 'nodejs22.x' };
+
 type RequestLike = {
   method?: string;
   headers: Record<string, string | string[] | undefined>;

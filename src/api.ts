@@ -7,8 +7,10 @@ export function apiUrl(path: string): string {
 export function apiFetch(path: string, init: RequestInit = {}): Promise<Response> {
   return fetch(apiUrl(path), {
     ...init,
+    cache: init.cache || 'no-store',
     credentials: 'include',
     headers: {
+      Accept: 'application/json',
       ...(init.body ? { 'Content-Type': 'application/json' } : {}),
       ...(init.headers || {}),
     },

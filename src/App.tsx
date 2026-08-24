@@ -84,7 +84,13 @@ export default function App() {
       });
       const data = await response.json().catch(() => null);
       if (!response.ok || !data?.success) return data?.error || 'Không thể đăng nhập vào hệ thống.';
-      setCurrentUser(data.user || { username });
+
+      const sessionResponse = await apiFetch('/api/auth/me');
+      const sessionData = await sessionResponse.json().catch(() => null);
+      if (!sessionResponse.ok || !sessionData?.authenticated) {
+        return 'Đăng nhập đã nhận nhưng thiết bị chưa giữ được phiên. Hãy kiểm tra HTTPS và tên miền API rồi thử lại.';
+      }
+      setCurrentUser(sessionData.user || data.user || { username });
       setAuthState('signed_in');
       return null;
     } catch {

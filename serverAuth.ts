@@ -105,18 +105,28 @@ export function getAuthenticatedUser(req: any): { username: string } | null {
   }
 }
 
-function cookieFlags(): string {
-  const crossOrigin = Boolean(String(process.env.FRONTEND_ORIGIN || '').trim());
-  return `HttpOnly; Path=/; Max-Age=${SESSION_TTL_SECONDS}; SameSite=${crossOrigin ? 'None' : 'Lax'}${process.env.NODE_ENV === 'production' ? '; Secure' : ''}`;
+function usesCrossSiteCookie(req?: any): boolean {
+  const configuredOrigin = String(process.env.FRONTEND_ORIGIN || '').trim();
+  const requestHost = String(req?.headers?.host || '').split(':')[0].toLowerCase();
+  if (!configuredOrigin || !requestHost) return Boolean(configuredOrigin);
+  try {
+    return new URL(configuredOrigin).hostname.toLowerCase() !== requestHost;
+  } catch {
+    return true;
+  }
 }
 
-export function setSessionCookie(res: any, token: string): void {
-  res.setHeader('Set-Cookie', `${SESSION_COOKIE}=${encodeURIComponent(token)}; ${cookieFlags()}`);
+function cookieFlags(req?: any, maxAge = SESSION_TTL_SECONDS): string {
+  const sameSite = usesCrossSiteCookie(req) ? 'None' : 'Lax';
+  return `HttpOnly; Path=/; Max-Age=${maxAge}; SameSite=${sameSite}${process.env.NODE_ENV === 'production' ? '; Secure' : ''}`;
 }
 
-export function clearSessionCookie(res: any): void {
-  const crossOrigin = Boolean(String(process.env.FRONTEND_ORIGIN || '').trim());
-  res.setHeader('Set-Cookie', `${SESSION_COOKIE}=; HttpOnly; Path=/; Max-Age=0; SameSite=${crossOrigin ? 'None' : 'Lax'}${process.env.NODE_ENV === 'production' ? '; Secure' : ''}`);
+export function setSessionCookie(res: any, token: string, req?: any): void {
+  res.setHeader('Set-Cookie', `${SESSION_COOKIE}=${encodeURIComponent(token)}; ${cookieFlags(req)}`);
+}
+
+export function clearSessionCookie(res: any, req?: any): void {
+  res.setHeader('Set-Cookie', `${SESSION_COOKIE}=; ${cookieFlags(req, 0)}`);
 }
 
 export function requireAuth(req: any, res: any, next: any): void {

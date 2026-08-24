@@ -103,12 +103,14 @@ export async function createApp(options: { serveFrontend?: boolean } = {}) {
   });
 
   app.get("/api/auth/me", (req, res) => {
+    res.setHeader('Cache-Control', 'no-store, max-age=0');
     const user = getAuthenticatedUser(req);
     if (!user) return res.status(401).json({ success: false, authenticated: false });
     return res.json({ success: true, authenticated: true, user });
   });
 
   app.post("/api/auth/login", (req, res) => {
+    res.setHeader('Cache-Control', 'no-store, max-age=0');
     const ip = req.ip || "unknown";
     if (!canAuthenticate()) return res.status(503).json({ success: false, error: "Chưa cấu hình ADMIN_USERNAME, ADMIN_PASSWORD và AUTH_SECRET trên máy chủ." });
     if (isLoginRateLimited(ip)) return res.status(429).json({ success: false, error: "Bạn đã thử đăng nhập quá nhiều lần. Vui lòng thử lại sau 15 phút." });
@@ -118,12 +120,13 @@ export async function createApp(options: { serveFrontend?: boolean } = {}) {
       return res.status(401).json({ success: false, error: "Tên đăng nhập hoặc mật khẩu không đúng." });
     }
     clearLoginFailures(ip);
-    setSessionCookie(res, createSession(String(username)));
+    setSessionCookie(res, createSession(String(username)), req);
     return res.json({ success: true, user: { username: String(username) } });
   });
 
   app.post("/api/auth/logout", (req, res) => {
-    clearSessionCookie(res);
+    res.setHeader('Cache-Control', 'no-store, max-age=0');
+    clearSessionCookie(res, req);
     return res.json({ success: true });
   });
 

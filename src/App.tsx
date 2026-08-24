@@ -13,12 +13,21 @@ import { ConfirmDialog } from './components/ConfirmDialog';
 import { EmptyState } from './components/EmptyState';
 import { LoginScreen } from './components/LoginScreen';
 import { apiFetch } from './api';
+import { sanitizeDriverRecords } from './utils/recordSanitizer';
 import { exportDriversToExcel, exportDriversToCSV } from './utils/excelExporter';
 import { normalizeStringForComparison } from './utils/excelParser';
 import { CheckCircle2, AlertCircle, Info, X } from 'lucide-react';
 
 const STORAGE_KEY = 'VIETNAMESE_FLEET_MANAGEMENT_DATA_V1';
 const STORAGE_TIMESTAMP_KEY = 'VIETNAMESE_FLEET_LAST_UPDATED';
+
+function readLocalStorage(key: string): string | null {
+  try {
+    return localStorage.getItem(key);
+  } catch {
+    return null;
+  }
+}
 
 const INITIAL_FILTERS: FilterState = {
   searchQuery: '',
@@ -43,7 +52,7 @@ export default function App() {
   const [currentUser, setCurrentUser] = useState<{ username: string } | null>(null);
 
   const [lastUpdated, setLastUpdated] = useState<string | null>(() => {
-    return localStorage.getItem(STORAGE_TIMESTAMP_KEY) || null;
+    return readLocalStorage(STORAGE_TIMESTAMP_KEY);
   });
 
   // Filter & Sort State
@@ -131,7 +140,7 @@ export default function App() {
       if (res.ok) {
         const data = await res.json();
         if (data && data.success && Array.isArray(data.records)) {
-          setRecords(data.records);
+          setRecords(sanitizeDriverRecords(data.records));
           setServerVersion(data.version || 0);
           if (data.lastUpdated) {
             setLastUpdated(data.lastUpdated);
@@ -151,7 +160,7 @@ export default function App() {
       const saved = localStorage.getItem(STORAGE_KEY);
       if (saved) {
         const parsed = JSON.parse(saved);
-        if (Array.isArray(parsed)) setRecords(parsed);
+        if (Array.isArray(parsed)) setRecords(sanitizeDriverRecords(parsed));
       }
     } catch (e) {}
   }, [authState, showToast]);
@@ -170,7 +179,7 @@ export default function App() {
           if (data && data.success && typeof data.version === 'number') {
             setServerVersion((prevVersion) => {
               if (data.version > prevVersion) {
-                setRecords(data.records || []);
+                setRecords(sanitizeDriverRecords(data.records || []));
                 if (data.lastUpdated) setLastUpdated(data.lastUpdated);
                 showToast(`Máy chủ vừa cập nhật dữ liệu mới (${(data.records || []).length} bản ghi)`, 'info');
                 return data.version;

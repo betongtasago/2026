@@ -14,6 +14,7 @@ import {
   recordLoginFailure,
   requireAuth,
   setSessionCookie,
+  shouldExposeClientToken,
   verifyLogin,
 } from "./serverAuth";
 
@@ -83,7 +84,7 @@ export async function createApp(options: { serveFrontend?: boolean } = {}) {
     if (allowedOrigin && requestOrigin === allowedOrigin) {
       res.setHeader('Access-Control-Allow-Origin', requestOrigin);
       res.setHeader('Access-Control-Allow-Credentials', 'true');
-      res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+      res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
       res.setHeader('Access-Control-Allow-Methods', 'GET,POST,DELETE,OPTIONS');
       res.setHeader('Vary', 'Origin');
     }
@@ -120,8 +121,13 @@ export async function createApp(options: { serveFrontend?: boolean } = {}) {
       return res.status(401).json({ success: false, error: "Tên đăng nhập hoặc mật khẩu không đúng." });
     }
     clearLoginFailures(ip);
-    setSessionCookie(res, createSession(String(username)), req);
-    return res.json({ success: true, user: { username: String(username) } });
+    const sessionToken = createSession(String(username));
+    setSessionCookie(res, sessionToken, req);
+    return res.json({
+      success: true,
+      user: { username: String(username) },
+      ...(shouldExposeClientToken(req) ? { sessionToken } : {}),
+    });
   });
 
   app.post("/api/auth/logout", (req, res) => {

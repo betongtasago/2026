@@ -67,7 +67,7 @@ DATA_DIR=/var/lib/tasago-fleetops/data
 NODE_ENV=production
 ```
 
-`FRONTEND_ORIGIN` phải khớp chính xác origin của website, không thêm dấu `/` cuối. Khi dùng Vercel catch-all cùng origin, có thể để trống `FRONTEND_ORIGIN` và `VITE_API_URL`; khi dùng API domain khác, backend phải cấp CORS credentials cho đúng origin Vercel. Sau khi đổi biến `VITE_API_URL`, cần redeploy frontend Vercel vì đây là biến build-time. Cả website và API phải dùng HTTPS trên điện thoại production; không trộn domain preview với domain production khi kiểm tra cookie phiên.
+`FRONTEND_ORIGIN` phải khớp chính xác origin của website, không thêm dấu `/` cuối. Khi dùng Vercel catch-all cùng origin, có thể để trống `FRONTEND_ORIGIN` và `VITE_API_URL`; khi dùng API domain khác, backend phải cấp CORS credentials cho đúng origin Vercel. Sau khi đổi biến `VITE_API_URL`, cần redeploy frontend Vercel vì đây là biến build-time. Frontend hiện tự kiểm tra `/api/health` cùng origin trước; nếu catch-all hoạt động, nó ưu tiên API Vercel để tránh lỗi cookie cross-site trên điện thoại. Cả website và API phải dùng HTTPS trên điện thoại production; không trộn domain preview với domain production khi kiểm tra cookie phiên.
 
 ### Build production
 
@@ -81,7 +81,7 @@ Nếu frontend và API cùng origin trên Vercel, để trống `VITE_API_URL` v
 
 ### Xử lý sự cố đăng nhập trên điện thoại
 
-Nếu đăng nhập xong bị quay lại màn hình login, hãy kiểm tra website và API đang dùng đúng domain production, `VITE_API_URL` đã được build lại, và `FRONTEND_ORIGIN` khớp origin đang mở trên điện thoại. Không dùng URL `/dev`, domain preview hoặc HTTP cho production. Luồng login hiện xác nhận lại `/api/auth/me` sau khi nhận cookie; nếu thiết bị không giữ cookie, ứng dụng hiển thị lỗi cấu hình thay vì render trang trắng.
+Nếu đăng nhập xong bị quay lại màn hình login, hãy kiểm tra website và API đang dùng đúng domain production, `VITE_API_URL` đã được build lại, và `FRONTEND_ORIGIN` khớp origin đang mở trên điện thoại. Không dùng URL `/dev`, domain preview hoặc HTTP cho production. Frontend sẽ ưu tiên `/api` cùng origin nếu health check thành công; nếu không có catch-all thì mới dùng API ngoài đã cấu hình. Luồng login xác nhận lại `/api/auth/me` sau khi nhận cookie; nếu thiết bị không giữ cookie, ứng dụng hiển thị lỗi cấu hình thay vì render trang trắng.
 
 ## Bảo mật đã xử lý
 

@@ -12,7 +12,7 @@ import { TripPhotoImportModal } from './components/TripPhotoImportModal';
 import { ConfirmDialog } from './components/ConfirmDialog';
 import { EmptyState } from './components/EmptyState';
 import { LoginScreen } from './components/LoginScreen';
-import { apiFetch } from './api';
+import { apiFetch, canUseSameOriginApi, clearClientSessionToken, hasExternalApiBase, resolveApiBase, setClientSessionToken, useSameOriginApi } from './api';
 import { sanitizeDriverRecords } from './utils/recordSanitizer';
 import { exportDriversToExcel, exportDriversToCSV } from './utils/excelExporter';
 import { normalizeStringForComparison } from './utils/excelParser';
@@ -85,30 +85,101 @@ export default function App() {
     }, 4500);
   }, []);
 
-  const handleLogin = useCallback(async (username: string, password: string): Promise<string | null> => {
+  const verifySession = useCallback(async () => {
+    const check = async () => {
+      const response = await apiFetch('/api/auth/me');
+      const data = await response.json().catch(() => null);
+      return { response, data };
+    };
+
     try {
+      const result = await check();
+      if (result.response.ok && result.data?.authenticated) return result.data;
+      if (!hasExternalApiBase()) return null;
+    } catch {
+      if (!hasExternalApiBase()) return null;
+    }
+
+    // A cross-site API can accept login but lose its cookie on mobile browsers.
+    // Retry against the Vercel same-origin catch-all when it exists.
+          if (!canUseSameOriginApi()) return null;
+      useSameOriginApi();
+    try {
+      const result = await check();
+
+      return result.response.ok && result.data?.authenticated ? result.data : null;
+    } catch {
+      return null;
+    }
+  }, []);
+
+  const handleLogin = useCallback(async (username: string, password: string): Promise<string | null> => {
+    const login = async () => {
       const response = await apiFetch('/api/auth/login', {
         method: 'POST',
         body: JSON.stringify({ username, password }),
       });
       const data = await response.json().catch(() => null);
-      if (!response.ok || !data?.success) return data?.error || 'Không thể đăng nhập vào hệ thống.';
+      return { response, data };
+    };
 
-      const sessionResponse = await apiFetch('/api/auth/me');
-      const sessionData = await sessionResponse.json().catch(() => null);
-      if (!sessionResponse.ok || !sessionData?.authenticated) {
-        return 'Đăng nhập đã nhận nhưng thiết bị chưa giữ được phiên. Hãy kiểm tra HTTPS và tên miền API rồi thử lại.';
+    try {
+      await resolveApiBase();
+      let result = await login();
+      if (!result.response.ok || !result.data?.success) {
+        // If VITE_API_URL points to an unavailable/legacy API, retry once on same origin.
+        if (hasExternalApiBase() && canUseSameOriginApi() && [404, 405, 500, 502, 503].includes(result.response.status)) {
+          useSameOriginApi();
+          result = await login();
+        }
       }
-      setCurrentUser(sessionData.user || data.user || { username });
+      if (!result.response.ok || !result.data?.success) {
+        return result.data?.error || 'Không thể đăng nhập vào hệ thống.';
+      }
+      setClientSessionToken(result.data.sessionToken);
+
+      let sessionData = await verifySession();
+      if (!sessionData?.authenticated && hasExternalApiBase() && canUseSameOriginApi()) {
+        // The external API may have accepted credentials while the browser blocked
+        // its cross-site cookie. Retry login through the same-origin Vercel API.
+        useSameOriginApi();
+        const localResult = await login();
+        if (localResult.response.ok && localResult.data?.success) {
+          sessionData = await verifySession();
+          result = localResult;
+          setClientSessionToken(localResult.data.sessionToken);
+        }
+      }
+      if (!sessionData?.authenticated) {
+        clearClientSessionToken();
+        return 'Máy chủ đã nhận đăng nhập nhưng chưa giữ được phiên. Hãy mở đúng URL production HTTPS và thử lại.';
+      }
+      setCurrentUser(sessionData.user || result.data.user || { username });
       setAuthState('signed_in');
       return null;
     } catch {
-      return 'Không thể kết nối máy chủ. Vui lòng kiểm tra deployment và thử lại.';
+      if (hasExternalApiBase() && canUseSameOriginApi()) {
+        useSameOriginApi();
+        try {
+          const result = await login();
+          if (result.response.ok && result.data?.success) {
+            const sessionData = await verifySession();
+            if (sessionData?.authenticated) {
+              setClientSessionToken(result.data.sessionToken);
+              setCurrentUser(sessionData.user || result.data.user || { username });
+              setAuthState('signed_in');
+              return null;
+            }
+          }
+        } catch {}
+      }
+      return 'Không thể kết nối máy chủ. Ứng dụng đã thử cả API cấu hình và API cùng tên miền nhưng chưa thành công.';
     }
-  }, []);
+  }, [verifySession]);
 
   const handleLogout = useCallback(async () => {
     try { await apiFetch('/api/auth/logout', { method: 'POST' }); } catch {}
+    clearClientSessionToken();
     setRecords([]);
     setCurrentUser(null);
     setAuthState('signed_out');
@@ -116,20 +187,17 @@ export default function App() {
 
   useEffect(() => {
     let active = true;
-    apiFetch('/api/auth/me')
-      .then(async (response) => {
-        const data = await response.json().catch(() => null);
-        if (!active) return;
-        if (response.ok && data?.authenticated) {
-          setCurrentUser(data.user || null);
-          setAuthState('signed_in');
-        } else {
-          setAuthState('signed_out');
-        }
-      })
-      .catch(() => { if (active) setAuthState('signed_out'); });
+    resolveApiBase().then(() => verifySession()).then((data) => {
+      if (!active) return;
+      if (data?.authenticated) {
+        setCurrentUser(data.user || null);
+        setAuthState('signed_in');
+      } else {
+        setAuthState('signed_out');
+      }
+    });
     return () => { active = false; };
-  }, []);
+  }, [verifySession]);
 
   // Fetch initial fleet data from server
   const fetchFleetDataFromServer = useCallback(async (notify = false) => {

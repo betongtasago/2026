@@ -89,9 +89,12 @@ export function createSession(username: string): string {
   return `${payload}.${sign(payload)}`;
 }
 
-export function getAuthenticatedUser(req: any): { username: string } | null {
-  const cookies = parseCookies(req.headers?.cookie || '');
-  const token = cookies[SESSION_COOKIE];
+function getBearerToken(req: any): string | null {
+  const header = String(req?.headers?.authorization || '');
+  return header.toLowerCase().startsWith('bearer ') ? header.slice(7).trim() : null;
+}
+
+function verifySessionToken(token: string | null): { username: string } | null {
   if (!token) return null;
   const [payload, signature] = token.split('.');
   if (!payload || !signature || !safeEqual(signature, sign(payload))) return null;
@@ -103,6 +106,15 @@ export function getAuthenticatedUser(req: any): { username: string } | null {
   } catch {
     return null;
   }
+}
+
+export function getAuthenticatedUser(req: any): { username: string } | null {
+  const cookies = parseCookies(req.headers?.cookie || '');
+  return verifySessionToken(cookies[SESSION_COOKIE]) || verifySessionToken(getBearerToken(req));
+}
+
+export function shouldExposeClientToken(req?: any): boolean {
+  return usesCrossSiteCookie(req);
 }
 
 function usesCrossSiteCookie(req?: any): boolean {

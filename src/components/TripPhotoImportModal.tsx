@@ -39,12 +39,8 @@ function normalizeVehicleNumber(value: string): string {
 
 function findMatchingRecord(row: OcrTripRow, records: DriverRecord[]): DriverRecord | undefined {
   const vehicle = normalizeVehicleNumber(row.vehicleNumber);
-  const driver = normalizeStringForComparison(row.driverName);
-  return records.find((record) => {
-    const sameVehicle = vehicle && normalizeVehicleNumber(record.vehicleNumber) === vehicle;
-    const sameDriver = driver && normalizeStringForComparison(record.driverName) === driver;
-    return Boolean(sameVehicle || sameDriver);
-  });
+  if (!vehicle) return undefined;
+  return records.find((record) => normalizeVehicleNumber(record.vehicleNumber) === vehicle);
 }
 
 function mergeOcrRow(record: DriverRecord, row: OcrTripRow): DriverRecord {
@@ -97,8 +93,8 @@ export const TripPhotoImportModal: React.FC<TripPhotoImportModalProps> = ({
   const matches = useMemo(() => rows.map((row) => findMatchingRecord(row, records)), [rows, records]);
   const matchedCount = matches.filter(Boolean).length;
   const selectedCount = selectedIndexes.size;
-  const selectedMatchedCount = Array.from(selectedIndexes).filter((index) => Boolean(matches[index])).length;
-  const selectedNewCount = selectedCount - selectedMatchedCount;
+  const selectedExistingCount = Array.from(selectedIndexes).filter((index) => Boolean(matches[index])).length;
+  const selectedNewCount = selectedCount - selectedExistingCount;
   const allRowsSelected = rows.length > 0 && selectedCount === rows.length;
 
   if (!isOpen) return null;
@@ -233,7 +229,7 @@ export const TripPhotoImportModal: React.FC<TripPhotoImportModalProps> = ({
             <div className="mb-4 flex flex-wrap items-end justify-between gap-3"><div><p className="text-[10px] font-black uppercase tracking-[0.18em] text-cyan-700">Kết quả nhận diện</p><h4 className="mt-1 text-lg font-black tracking-tight text-slate-950 sm:text-xl">Duyệt trước khi đồng bộ</h4></div>{rows.length > 0 && <div className="rounded-full bg-emerald-50 px-3 py-2 text-xs font-black text-emerald-700"><CheckCircle2 className="mr-1 inline h-4 w-4" />{matchedCount}/{rows.length} khớp · {selectedCount} đã chọn</div>}</div>
             {error && <div className="mb-4 rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm font-semibold text-rose-700">{error}</div>}
             {rows.length > 0 && !isReading && <div className="mb-3 flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-cyan-100 bg-cyan-50/70 px-4 py-3"><p className="flex items-center gap-2 text-xs font-semibold text-cyan-900"><ListChecks className="h-4 w-4" />Chọn dòng muốn đưa vào danh sách dữ liệu.</p><button type="button" onClick={toggleAllRows} className="rounded-xl border border-cyan-200 bg-white px-3 py-2 text-xs font-black text-cyan-800 transition hover:bg-cyan-100">{allRowsSelected ? 'Bỏ chọn tất cả' : 'Chọn tất cả dữ liệu'}</button></div>}
-            {!rows.length && !isReading && !error && <div className="flex flex-1 flex-col items-center justify-center rounded-2xl border border-dashed border-slate-200 bg-slate-50/70 p-8 text-center"><FileImage className="h-10 w-10 text-cyan-600" /><p className="mt-4 text-sm font-black text-slate-800">Chưa có ảnh để nhận diện</p><p className="mt-1 max-w-sm text-xs leading-5 text-slate-500">Nên chụp rõ tiêu đề và các cột tài xế, số xe, khối lượng, lớn, nhỏ, tổng chuyến, tổng km, xe nước.</p></div>}
+            {!rows.length && !isReading && !error && <div className="flex flex-1 flex-col items-center justify-center rounded-2xl border border-dashed border-slate-200 bg-slate-50/70 p-8 text-center"><FileImage className="h-10 w-10 text-cyan-600" /><p className="mt-4 text-sm font-black text-slate-800">Chưa có ảnh để nhận diện</p><p className="mt-1 max-w-sm text-xs leading-5 text-slate-500">Nên chụp rõ tiêu đề và các cột tài xế, số xe, khối lượng, lớn, nhỏ, tổng chuyến, tổng km, xe nước. Một tài xế có thể xuất hiện ở nhiều dòng nếu chạy nhiều xe.</p></div>}
             {isReading && <div className="flex flex-1 flex-col items-center justify-center rounded-2xl border border-cyan-100 bg-cyan-50/50 p-8 text-center"><Loader2 className="h-10 w-10 animate-spin text-cyan-700" /><p className="mt-4 text-sm font-black text-slate-800">AI đang phân tích bảng chuyến...</p><p className="mt-1 text-xs text-slate-500">Quá trình này có thể mất vài giây.</p></div>}
 
             {rows.length > 0 && !isReading && <>

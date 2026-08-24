@@ -1,4 +1,4 @@
-import crypto from 'node:crypto';
+import crypto from 'crypto';
 
 const SESSION_COOKIE = 'tasago_session';
 const SESSION_TTL_SECONDS = 8 * 60 * 60;

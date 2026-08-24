@@ -593,7 +593,7 @@ export default function App() {
         <div className="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-2">
           <span>Hệ thống Quản lý dữ liệu tài xế Tasago © 2026 by LÊ VIẾT THÀNH</span>
           <span className="text-slate-400">
-            Hỗ trợ import Excel chuẩn .xlsx, .xls • Tự động nhận diện cột tiếng Việt
+            Bê tông Xanh Sài Gòn - Bê tông của mọi công trình
           </span>
         </div>
       </footer>

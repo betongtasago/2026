@@ -7,6 +7,7 @@ type ResponseLike = {
   setHeader(name: string, value: string | number | string[]): void;
   status(code: number): ResponseLike;
   end(chunk?: unknown): void;
+  json?(payload: unknown): void;
 };
 
 function firstHeader(value: string | string[] | undefined): string {
@@ -38,6 +39,10 @@ export function applyApiHeaders(req: RequestLike, res: ResponseLike): boolean {
 }
 
 export function sendJson(res: ResponseLike, status: number, payload: unknown): void {
+  if (typeof res.json === 'function') {
+    res.status(status).json(payload);
+    return;
+  }
   res.status(status).setHeader('Content-Type', 'application/json; charset=utf-8');
   res.end(JSON.stringify(payload));
 }

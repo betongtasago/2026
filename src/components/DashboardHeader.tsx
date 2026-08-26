@@ -12,6 +12,7 @@ import {
   ShieldCheck,
   Activity,
   ScanLine,
+  Camera,
 } from 'lucide-react';
 
 interface DashboardHeaderProps {
@@ -22,6 +23,8 @@ interface DashboardHeaderProps {
   onOpenTripPhotoImport: () => void;
   onExportExcel: () => void;
   onExportCSV: () => void;
+  onCaptureTable: () => void;
+  isCapturingTable: boolean;
   onDownloadTemplate: () => void;
   onResetDemo: () => void;
   onClearData: () => void;
@@ -38,6 +41,8 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
   onOpenTripPhotoImport,
   onExportExcel,
   onExportCSV,
+  onCaptureTable,
+  isCapturingTable,
   onDownloadTemplate,
   onResetDemo,
   onClearData,
@@ -139,6 +144,19 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
             >
               <FileText className="w-3.5 h-3.5 text-slate-500" />
               <span>Xuất CSV</span>
+            </button>
+
+            {/* Capture table as PNG */}
+            <button
+              type="button"
+              id="btn-capture-table"
+              onClick={onCaptureTable}
+              disabled={filteredCount === 0 || isCapturingTable}
+              title="Chụp ảnh bảng dữ liệu đang hiển thị"
+              className="inline-flex items-center gap-1.5 rounded-lg border border-violet-200 bg-violet-50 px-3 py-2 text-xs font-medium text-violet-800 transition-colors hover:bg-violet-100 disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              <Camera className="h-3.5 w-3.5 text-violet-600" />
+              <span>{isCapturingTable ? 'Đang tạo ảnh...' : 'Chụp bảng'}</span>
             </button>
 
             {/* Add Record (Bonus) */}

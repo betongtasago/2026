@@ -1,5 +1,8 @@
 import * as XLSX from 'xlsx';
 import { ColumnDefinition, ColumnKey, ColumnMappingItem, DriverRecord, ImportErrorItem, ParsedSheetData } from '../types';
+import { parseVietnameseNumber } from './numberParser';
+
+export { parseVietnameseNumber } from './numberParser';
 
 export const COLUMN_DEFINITIONS: ColumnDefinition[] = [
   {
@@ -174,67 +177,7 @@ export function normalizeStringForComparison(str: any): string {
     .trim();
 }
 
-/**
- * Safe numeric conversion supporting Vietnamese formatted numbers:
- * 356.5, 356,5, 1,683, 1.683, etc.
- */
-export function parseVietnameseNumber(val: any): number {
-  if (val === null || val === undefined || val === '') return 0;
-  if (typeof val === 'number') return isNaN(val) ? 0 : val;
 
-  let str = String(val).trim();
-  if (str === '' || str === '-' || str === '—' || str === 'N/A' || str === 'null') {
-    return 0;
-  }
-
-  // Handle negative sign
-  const isNegative = str.startsWith('-');
-  if (isNegative) str = str.substring(1).trim();
-
-  // Pattern cases:
-  // Case 1: "1,683" (thousands comma) vs "356,5" (decimal comma)
-  // If comma is followed by exactly 1 or 2 digits at the end -> likely decimal comma (e.g. 356,5 or 12,50)
-  // If comma is followed by exactly 3 digits and no other dot/comma -> could be 1,683 (thousands separator)
-  if (str.includes(',') && str.includes('.')) {
-    // Both exist: usually 1,234.56 or 1.234,56
-    const firstComma = str.indexOf(',');
-    const firstDot = str.indexOf('.');
-    if (firstComma < firstDot) {
-      // 1,234.56 -> remove commas
-      str = str.replace(/,/g, '');
-    } else {
-      // 1.234,56 -> remove dots, change comma to dot
-      str = str.replace(/\./g, '').replace(',', '.');
-    }
-  } else if (str.includes(',')) {
-    const parts = str.split(',');
-    if (parts.length === 2 && (parts[1].length === 1 || parts[1].length === 2)) {
-      // Decimal comma: "356,5" -> "356.5"
-      str = parts[0] + '.' + parts[1];
-    } else if (parts.length > 1 && parts.slice(1).every((p) => p.length === 3)) {
-      // Thousands comma: "1,683" or "12,000,000"
-      str = str.replace(/,/g, '');
-    } else {
-      // General single comma fallback
-      str = str.replace(',', '.');
-    }
-  } else if (str.includes('.')) {
-    // E.g. "1.683" as thousands or "356.5" as decimal
-    const parts = str.split('.');
-    if (parts.length > 2) {
-      // Multiple dots -> thousands separators: "1.000.000"
-      str = str.replace(/\./g, '');
-    } else if (parts.length === 2 && parts[1].length === 3 && parts[0].length >= 1 && Number(parts[0]) >= 1) {
-      // Ambiguous: Could be 1.683 km (meaning 1683) or a 3-decimal float like 1.683
-      // We will parse standard float, but if totalKm typically > 100, we leave standard float unless context specifies
-      // Standard JavaScript parseFloat handles "356.5" and "1.683"
-    }
-  }
-
-  const num = parseFloat(str);
-  if (isNaN(num)) return 0;
-  return isNegative ? -num : num;
-}
 
 /**
  * Match a raw Excel header string against our standard column definitions

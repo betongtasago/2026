@@ -4,6 +4,8 @@ import fs from "fs";
 import { createServer as createViteServer } from "vite";
 import { GoogleGenAI, Type } from "@google/genai";
 import dotenv from "dotenv";
+import { normalizeOcrRows } from "./src/utils/ocrNormalization";
+import { sanitizeDriverRecords } from "./src/utils/recordSanitizer";
 import {
   canAuthenticate,
   clearLoginFailures,
@@ -42,7 +44,7 @@ function loadStoredFleetData(): FleetStoragePayload {
       const parsed = JSON.parse(raw);
       if (parsed && Array.isArray(parsed.records)) {
         return {
-          records: parsed.records,
+          records: sanitizeDriverRecords(parsed.records),
           lastUpdated: parsed.lastUpdated || null,
           version: parsed.version || 1,
           timestamp: parsed.timestamp || Date.now(),
@@ -161,8 +163,9 @@ export async function createApp(options: { serveFrontend?: boolean } = {}) {
       const defaultTimeStr = `${String(now.getHours()).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")} - ${now.toLocaleDateString("vi-VN")}`;
       const finalLastUpdated = lastUpdated || defaultTimeStr;
 
+      const safeRecords = sanitizeDriverRecords(records);
       currentFleetState = {
-        records,
+        records: safeRecords,
         lastUpdated: finalLastUpdated,
         version: (currentFleetState.version || 0) + 1,
         timestamp: Date.now(),
@@ -170,11 +173,11 @@ export async function createApp(options: { serveFrontend?: boolean } = {}) {
 
       saveFleetDataToFile(currentFleetState);
 
-      console.log(`[Fleet Sync] Đã lưu ${records.length} bản ghi (Action: ${actionType || 'Update'}, Version: ${currentFleetState.version})`);
+      console.log(`[Fleet Sync] Đã lưu ${safeRecords.length} bản ghi (Action: ${actionType || 'Update'}, Version: ${currentFleetState.version})`);
 
       return res.json({
         success: true,
-        count: records.length,
+        count: safeRecords.length,
         lastUpdated: currentFleetState.lastUpdated,
         version: currentFleetState.version,
         timestamp: currentFleetState.timestamp,
@@ -202,7 +205,7 @@ export async function createApp(options: { serveFrontend?: boolean } = {}) {
 
   app.post("/api/recognize-image", requireAuth, async (req, res) => {
     try {
-      const { image, mimeType = "image/jpeg", region } = req.body;
+      const { image, mimeType = "image/jpeg", region, segment } = req.body;
 
       if (!image) {
         return res.status(400).json({ error: "Vui lòng cung cấp dữ liệu hình ảnh (base64)." });
@@ -240,9 +243,12 @@ export async function createApp(options: { serveFrontend?: boolean } = {}) {
 
       const systemPrompt = `Bạn là chuyên gia AI Vision OCR bóc tách dữ liệu vận tải và đội xe chuyên nghiệp tại Việt Nam.
 Nhiệm vụ của bạn là đọc bảng kê chuyến từ ảnh và trả về dữ liệu có thể đồng bộ vào danh sách tài xế hiện có.
-Chỉ trích xuất các dòng tài xế có tên và số xe. Mỗi dòng trong bảng là một bản ghi độc lập; không được loại bỏ, gộp hoặc cộng dồn các dòng có cùng tên tài xế. Một tài xế có thể chạy nhiều xe, vì vậy phải giữ riêng từng số xe và từng bộ số liệu tương ứng. Phải kiểm tra theo chiều ngang từng dòng và đối chiếu với tiêu đề cột; tuyệt đối không chỉ lấy cột tổng chuyến. Mỗi dòng phải trả đủ các trường số liệu: stationVolume, largeTrips, smallTrips, totalKm, totalTrips và waterVehicles. Nếu ô thực sự trống hoặc thể hiện số 0 thì trả 0; nếu ảnh không đủ rõ để đọc, trả 0 và không tự suy đoán. Không tự cộng dồn với dữ liệu cũ.`;
+Mỗi dòng nhìn thấy trong bảng là một bản ghi độc lập; không được loại bỏ, gộp hoặc cộng dồn các dòng có cùng tên tài xế. Một tài xế có thể chạy nhiều xe, vì vậy phải giữ riêng từng số xe và từng bộ số liệu tương ứng. Phải kiểm tra theo chiều ngang từng dòng và đối chiếu với tiêu đề cột; tuyệt đối không chỉ lấy cột tổng chuyến. Nếu tên hoặc số xe bị mờ, vẫn trả về dòng đó với chuỗi rỗng để giao diện đưa vào danh sách cần kiểm tra. Mỗi dòng phải trả đủ các trường số liệu: stationVolume, largeTrips, smallTrips, totalKm, totalTrips và waterVehicles. Nếu ô thực sự trống hoặc thể hiện số 0 thì trả 0; nếu ảnh không đủ rõ để đọc số, trả 0 và không tự suy đoán. Không tự cộng dồn với dữ liệu cũ.`;
 
-      let userText = "Hãy nhận dạng toàn bộ bảng danh sách chuyến trong ảnh. Đọc theo từng dòng từ trái sang phải và ghép đúng với tiêu đề cột. Không khử trùng lặp theo tên tài xế; nếu tên giống nhau nhưng số xe khác nhau, phải trả về nhiều object riêng biệt. Bắt buộc trả đủ: khối lượng trạm, chuyến lớn, chuyến nhỏ, tổng km, tổng chuyến và xe nước; không được bỏ qua các cột chỉ vì cột tổng chuyến đã đọc được.";
+      let userText = "Hãy nhận dạng toàn bộ bảng danh sách chuyến trong ảnh. Đọc theo từng dòng từ trái sang phải và ghép đúng với tiêu đề cột. Không khử trùng lặp theo tên tài xế; nếu tên giống nhau nhưng số xe khác nhau, phải trả về nhiều object riêng biệt. Bắt buộc trả đủ: khối lượng trạm, chuyến lớn, chuyến nhỏ, tổng km, tổng chuyến và xe nước; không được bỏ qua các cột chỉ vì cột tổng chuyến đã đọc được. Không bỏ qua dòng cuối, dòng có số 0, dòng trùng tên hoặc dòng nằm sát mép ảnh.";
+      if (segment && Number(segment.index) > 0 && Number(segment.total) > 1) {
+        userText += ` Đây là phần ${Math.round(Number(segment.index))}/${Math.round(Number(segment.total))} của ảnh bảng dài; hãy đọc tất cả dòng nhìn thấy trong phần này, kể cả dòng bị lặp ở mép vùng chồng lấn.`;
+      }
       if (region && (region.width < 95 || region.height < 95)) {
         userText += ` Hãy tập trung bóc tách dữ liệu trong vùng được khoanh chọn: x=${Math.round(region.x)}%, y=${Math.round(region.y)}%, width=${Math.round(region.width)}%, height=${Math.round(region.height)}%.`;
       }
@@ -332,11 +338,12 @@ Chỉ trích xuất các dòng tài xế có tên và số xe. Mỗi dòng trong
       }
 
       const parsedData = JSON.parse(cleanJson);
+      const drivers = normalizeOcrRows(parsedData.drivers);
       return res.json({
         success: true,
         detectedRegionDescription: parsedData.detectedRegionDescription || "Đã nhận diện bảng dữ liệu",
-        drivers: parsedData.drivers || [],
-        count: (parsedData.drivers || []).length,
+        drivers,
+        count: drivers.length,
       });
     } catch (err: any) {
       console.error("Image recognition error:", err);

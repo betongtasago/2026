@@ -1,5 +1,7 @@
 import { webcrypto } from 'node:crypto';
 
+import { normalizeOcrRows } from '../src/utils/ocrNormalization';
+
 type RequestLike = {
   method?: string;
   headers: Record<string, string | string[] | undefined>;
@@ -146,6 +148,7 @@ export default async function handler(req: RequestLike, res: ResponseLike): Prom
     const image = body.image;
     const mimeType = typeof body.mimeType === 'string' ? body.mimeType : 'image/jpeg';
     const region = body.region && typeof body.region === 'object' ? body.region as Record<string, unknown> : null;
+    const segment = body.segment && typeof body.segment === 'object' ? body.segment as Record<string, unknown> : null;
     if (typeof image !== 'string' || !image) {
       send(res, 400, { success: false, error: 'Vui lòng cung cấp dữ liệu hình ảnh (base64).' });
       return;
@@ -162,8 +165,11 @@ export default async function handler(req: RequestLike, res: ResponseLike): Prom
 
     const base64Data = image.includes('base64,') ? image.split('base64,')[1].replace(/[\r\n\s]/g, '') : image.replace(/[\r\n\s]/g, '');
     const normalizedMime = mimeType === 'image/jpg' || !mimeType.startsWith('image/') ? 'image/jpeg' : mimeType;
-    const systemInstruction = 'Bạn là chuyên gia AI Vision OCR dữ liệu vận tải tại Việt Nam. Đọc toàn bộ bảng kê chuyến từ ảnh và trả về từng dòng độc lập. Không được gộp hoặc loại bỏ các dòng trùng tên; cùng một tài xế có thể chạy nhiều xe nên phải giữ riêng từng số xe. Đọc theo chiều ngang và đối chiếu đúng tiêu đề cột. Mỗi dòng phải có driverName, vehicleNumber, stationVolume, largeTrips, smallTrips, totalKm, totalTrips và waterVehicles. Ô trống hoặc số 0 trả 0; không tự suy đoán và không tự cộng với dữ liệu cũ.';
-    let userText = 'Hãy nhận dạng toàn bộ bảng danh sách chuyến trong ảnh. Đọc từng dòng từ trái sang phải, trả về đủ các cột khối lượng trạm, chuyến lớn, chuyến nhỏ, tổng km, tổng chuyến và xe nước.';
+    const systemInstruction = 'Bạn là chuyên gia AI Vision OCR dữ liệu vận tải tại Việt Nam. Đọc toàn bộ bảng kê chuyến từ ảnh và trả về từng dòng độc lập. Không được gộp hoặc loại bỏ các dòng trùng tên; cùng một tài xế có thể chạy nhiều xe nên phải giữ riêng từng số xe. Đọc theo chiều ngang và đối chiếu đúng tiêu đề cột. Mỗi dòng nhìn thấy phải được trả về, kể cả khi một ô tên hoặc số xe bị mờ; khi không đọc được định danh thì trả chuỗi rỗng để giao diện đưa vào danh sách cần kiểm tra. Mỗi dòng phải có driverName, vehicleNumber, stationVolume, largeTrips, smallTrips, totalKm, totalTrips và waterVehicles. Ô trống hoặc số 0 trả 0; không tự suy đoán và không tự cộng với dữ liệu cũ.';
+    let userText = 'Hãy nhận dạng toàn bộ bảng danh sách chuyến trong ảnh. Đọc từng dòng từ trái sang phải, trả về đủ các cột khối lượng trạm, chuyến lớn, chuyến nhỏ, tổng km, tổng chuyến và xe nước. Không bỏ qua dòng cuối, dòng có số 0, dòng trùng tên hoặc dòng nằm sát mép ảnh.';
+    if (segment && Number(segment.index) > 0 && Number(segment.total) > 1) {
+      userText += ` Đây là phần ${Math.round(Number(segment.index))}/${Math.round(Number(segment.total))} của ảnh bảng dài; hãy đọc tất cả dòng nhìn thấy trong phần này, kể cả dòng bị lặp ở mép vùng chồng lấn.`;
+    }
     if (region && typeof region.width === 'number' && typeof region.height === 'number' && (region.width < 95 || region.height < 95)) {
       userText += ` Tập trung vùng x=${Math.round(Number(region.x) || 0)}%, y=${Math.round(Number(region.y) || 0)}%, width=${Math.round(region.width)}%, height=${Math.round(region.height)}%.`;
     }
@@ -183,7 +189,7 @@ export default async function handler(req: RequestLike, res: ResponseLike): Prom
     if (!cleanJson) throw lastError instanceof Error ? lastError : new Error('Không nhận được phản hồi từ AI.');
 
     const parsed = JSON.parse(cleanJson) as { detectedRegionDescription?: string; drivers?: unknown };
-    const drivers = Array.isArray(parsed.drivers) ? parsed.drivers : [];
+    const drivers = normalizeOcrRows(parsed.drivers);
     send(res, 200, { success: true, detectedRegionDescription: parsed.detectedRegionDescription || 'Đã nhận diện bảng dữ liệu', drivers, count: drivers.length });
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Đã xảy ra lỗi trong quá trình nhận dạng ảnh.';

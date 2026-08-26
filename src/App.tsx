@@ -15,6 +15,7 @@ import { LoginScreen } from './components/LoginScreen';
 import { apiFetch, canUseSameOriginApi, clearClientSessionToken, hasExternalApiBase, resolveApiBase, setClientSessionToken, useSameOriginApi } from './api';
 import { sanitizeDriverRecords } from './utils/recordSanitizer';
 import { exportDriversToExcel, exportDriversToCSV } from './utils/excelExporter';
+import { downloadTableScreenshot } from './utils/tableScreenshot';
 import { normalizeStringForComparison } from './utils/excelParser';
 import { CheckCircle2, AlertCircle, Info, X } from 'lucide-react';
 
@@ -69,6 +70,7 @@ export default function App() {
   const [editingRecord, setEditingRecord] = useState<DriverRecord | null>(null);
   const [isEditOpen, setIsEditOpen] = useState<boolean>(false);
   const [isClearConfirmOpen, setIsClearConfirmOpen] = useState<boolean>(false);
+  const [isCapturingTable, setIsCapturingTable] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
 
   // Notifications / Toast
@@ -471,6 +473,27 @@ export default function App() {
     showToast(`Đã xuất ${filteredRecords.length} dòng ra file Excel`, 'success');
   };
 
+  const handleCaptureTable = async () => {
+    const tableElement = document.querySelector<HTMLElement>('[data-table-capture]');
+    if (!tableElement || isCapturingTable) return;
+
+    setIsCapturingTable(true);
+    try {
+      const now = new Date();
+      const dateTag = `${now.getFullYear()}${(now.getMonth() + 1).toString().padStart(2, '0')}${now
+        .getDate()
+        .toString()
+        .padStart(2, '0')}_${now.getHours().toString().padStart(2, '0')}${now.getMinutes().toString().padStart(2, '0')}`;
+      await downloadTableScreenshot(tableElement, `BangDuLieuTaiXe_${dateTag}.png`);
+      showToast('Đã tải ảnh PNG của bảng dữ liệu đang hiển thị', 'success');
+    } catch (captureError) {
+      console.error('Lỗi chụp ảnh bảng:', captureError);
+      showToast('Không thể chụp bảng. Hãy thử lại sau khi bảng đã hiển thị đầy đủ.', 'warning');
+    } finally {
+      setIsCapturingTable(false);
+    }
+  };
+
   const handleExportCSV = () => {
     if (filteredRecords.length === 0) return;
     const now = new Date();
@@ -561,6 +584,8 @@ export default function App() {
         onOpenTripPhotoImport={() => setIsTripPhotoImportOpen(true)}
         onExportExcel={handleExportExcel}
         onExportCSV={handleExportCSV}
+        onCaptureTable={handleCaptureTable}
+        isCapturingTable={isCapturingTable}
         onDownloadTemplate={handleDownloadSampleTemplate}
         onResetDemo={handleResetDemo}
         onClearData={() => setIsClearConfirmOpen(true)}

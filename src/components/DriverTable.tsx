@@ -93,8 +93,8 @@ export const DriverTable: React.FC<DriverTableProps> = ({
   };
 
   return (
-    <div className="bg-white rounded-xl shadow-xs border border-slate-200/90 overflow-hidden">
-      <div className="overflow-x-auto min-h-[400px]">
+    <div id="driver-data-table" data-table-capture className="bg-white rounded-xl shadow-xs border border-slate-200/90 overflow-hidden">
+      <div data-table-scroll className="overflow-x-auto min-h-[400px]">
         <table className="w-full text-left border-collapse min-w-[960px]">
           {/* THEAD with Deep Blue Theme matching screenshot */}
           <thead>

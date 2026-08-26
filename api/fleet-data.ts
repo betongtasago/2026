@@ -3,6 +3,7 @@ import fs from 'node:fs';
 import { applyApiHeaders, sendJson } from '../vercelHttp';
 
 import { getAuthenticatedUser } from '../vercelAuth';
+import { sanitizeDriverRecords } from '../src/utils/recordSanitizer';
 
 type RequestLike = {
   method?: string;
@@ -33,7 +34,7 @@ function loadFleetState(): FleetPayload {
     const parsed = JSON.parse(raw);
     if (parsed && Array.isArray(parsed.records)) {
       return {
-        records: parsed.records,
+        records: sanitizeDriverRecords(parsed.records),
         lastUpdated: parsed.lastUpdated || null,
         version: Number(parsed.version) || 1,
         timestamp: Number(parsed.timestamp) || Date.now(),
@@ -88,14 +89,15 @@ export default async function handler(req: RequestLike, res: ResponseLike): Prom
     }
     const now = new Date();
     const fallbackTime = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')} - ${now.toLocaleDateString('vi-VN')}`;
+    const safeRecords = sanitizeDriverRecords(records);
     fleetState = {
-      records,
+      records: safeRecords,
       lastUpdated: typeof body.lastUpdated === 'string' ? body.lastUpdated : fallbackTime,
       version: fleetState.version + 1,
       timestamp: Date.now(),
     };
     persistFleetState();
-    sendJson(res, 200, { success: true, count: records.length, ...fleetState });
+    sendJson(res, 200, { success: true, count: safeRecords.length, ...fleetState });
     return;
   }
 

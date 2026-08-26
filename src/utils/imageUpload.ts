@@ -1,5 +1,7 @@
 export const MAX_IMAGE_DIMENSION = 1280;
-export const MAX_OCR_IMAGE_BYTES = 7_500_000;
+// Vercel Functions accept at most 4.5 MB for the whole JSON request body.
+// Base64 expands binary data by roughly 4/3, so leave headroom for JSON metadata.
+export const MAX_OCR_IMAGE_BYTES = 2_800_000;
 export const MAX_OCR_IMAGE_DIMENSION = 3200;
 export const MAX_OCR_CHUNK_HEIGHT = 2200;
 export const OCR_CHUNK_OVERLAP = 140;

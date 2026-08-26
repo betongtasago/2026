@@ -148,6 +148,7 @@ export const TripPhotoImportModal: React.FC<TripPhotoImportModalProps> = ({
         });
         const data = await response.json().catch(() => null);
         if (response.status === 401) throw new Error('Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.');
+        if (response.status === 413) throw new Error('Ảnh OCR vượt giới hạn request của máy chủ. Hệ thống đã tự nén/chia ảnh; hãy thử ảnh nhỏ hơn hoặc cắt sát bảng.');
         if (!response.ok || !data?.success) throw new Error(readApiErrorFromPayload(data, 'Không thể nhận diện danh sách chuyến.'));
         if (Array.isArray(data.drivers)) rawDrivers.push(...data.drivers);
       }

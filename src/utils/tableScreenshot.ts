@@ -112,7 +112,16 @@ async function renderTableWithCanvas(element: HTMLElement): Promise<Blob> {
   return canvasBlob(canvas);
 }
 
-export async function downloadTableScreenshot(element: HTMLElement, fileName: string): Promise<void> {
+function blobToDataUrl(blob: Blob): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(String(reader.result));
+    reader.onerror = () => reject(new Error('Không thể tạo bản xem trước ảnh.'));
+    reader.readAsDataURL(blob);
+  });
+}
+
+export async function captureElementAsDataUrl(element: HTMLElement): Promise<string> {
   const scrollContainer = element.querySelector<HTMLElement>('[data-table-scroll]');
   const table = element.querySelector<HTMLElement>('table');
   const width = Math.max(element.clientWidth, scrollContainer?.scrollWidth || 0, table?.scrollWidth || 0);
@@ -143,9 +152,19 @@ export async function downloadTableScreenshot(element: HTMLElement, fileName: st
         }
       },
     });
-    downloadBlob(await canvasBlob(canvas), fileName);
+    return canvas.toDataURL('image/png');
   } catch (html2CanvasError) {
-    console.warn('html2canvas không thể chụp bảng, chuyển sang Canvas fallback:', html2CanvasError);
-    downloadBlob(await renderTableWithCanvas(element), fileName);
+    console.warn('html2canvas không thể chụp vùng báo cáo, chuyển sang Canvas fallback:', html2CanvasError);
+    return blobToDataUrl(await renderTableWithCanvas(element));
   }
+}
+
+export async function downloadTableScreenshot(element: HTMLElement, fileName: string): Promise<void> {
+  const dataUrl = await captureElementAsDataUrl(element);
+  const link = document.createElement('a');
+  link.href = dataUrl;
+  link.download = fileName;
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
 }

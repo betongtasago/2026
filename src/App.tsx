@@ -16,7 +16,7 @@ import { apiFetch, canUseSameOriginApi, clearClientSessionToken, hasExternalApiB
 import { sanitizeDriverRecords } from './utils/recordSanitizer';
 import { exportDriversToExcel, exportDriversToCSV } from './utils/excelExporter';
 import { FleetReportPreview } from './components/FleetReportPreview';
-import { ProductionReportModal } from './components/ProductionReportModal';
+import { ProductionReportPage } from './components/ProductionReportPage';
 import { normalizeStringForComparison } from './utils/excelParser';
 import { CheckCircle2, AlertCircle, Info, X } from 'lucide-react';
 
@@ -663,7 +663,7 @@ export default function App() {
         onClose={() => setIsReportPreviewOpen(false)}
       />
 
-      <ProductionReportModal
+      <ProductionReportPage
         isOpen={isProductionReportOpen}
         records={filteredRecords}
         onClose={() => setIsProductionReportOpen(false)}

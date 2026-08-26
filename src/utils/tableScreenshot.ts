@@ -197,7 +197,7 @@ export async function captureElementAsDataUrl(element: HTMLElement): Promise<str
   } catch (html2CanvasError) {
     console.warn('html2canvas không thể chụp vùng báo cáo, chuyển sang fallback đầy đủ:', html2CanvasError);
     if (element.matches('[data-report-capture]')) {
-      try { return blobToDataUrl(await renderFullReportWithSvg(element, width, height)); } catch (svgError) { console.warn('SVG fallback không thành công, chuyển sang fallback bảng:', svgError); }
+      return blobToDataUrl(await renderFullReportWithSvg(element, width, height));
     }
     return blobToDataUrl(await renderTableWithCanvas(element));
   }

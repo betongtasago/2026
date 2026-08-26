@@ -136,7 +136,7 @@ export async function captureElementAsDataUrl(element: HTMLElement): Promise<str
       windowWidth: width,
       windowHeight: Math.max(window.innerHeight, height),
       onclone: (clonedDocument) => {
-        const clonedElement = clonedDocument.querySelector<HTMLElement>('[data-table-capture]');
+        const clonedElement = clonedDocument.querySelector<HTMLElement>('[data-table-capture], [data-report-capture]');
         const clonedScrollContainer = clonedElement?.querySelector<HTMLElement>('[data-table-scroll]');
         if (clonedElement) {
           clonedElement.style.width = `${width}px`;

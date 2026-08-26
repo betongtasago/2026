@@ -3,8 +3,11 @@ export const MAX_IMAGE_DIMENSION = 1280;
 // Base64 expands binary data by roughly 4/3, so leave headroom for JSON metadata.
 export const MAX_OCR_IMAGE_BYTES = 2_800_000;
 export const MAX_OCR_IMAGE_DIMENSION = 3200;
-export const MAX_OCR_CHUNK_HEIGHT = 2200;
-export const OCR_CHUNK_OVERLAP = 140;
+export const MAX_OCR_CHUNK_HEIGHT = 1700;
+export const OCR_CHUNK_OVERLAP = 160;
+export const OCR_HEADER_REFERENCE_HEIGHT = 220;
+const OCR_UPSCALE_THRESHOLD = 1800;
+const OCR_UPSCALE_FACTOR = 1.8;
 
 const ACCEPTED_IMAGE_TYPES = new Set(['image/jpeg', 'image/png', 'image/webp']);
 
@@ -61,8 +64,13 @@ function encodeCanvas(canvas: HTMLCanvasElement, maxBytes: number, initialQualit
   return { dataUrl, mimeType: 'image/jpeg', fileName: '', sizeBytes };
 }
 
-function scaledDimensions(image: HTMLImageElement, maxDimension: number): { width: number; height: number; scale: number } {
-  const scale = Math.min(1, maxDimension / Math.max(image.naturalWidth, image.naturalHeight));
+function scaledDimensions(image: HTMLImageElement, maxDimension: number, upscaleSmallImage = false): { width: number; height: number; scale: number } {
+  const longestSide = Math.max(image.naturalWidth, image.naturalHeight);
+  const downscale = Math.min(1, maxDimension / longestSide);
+  const upscale = upscaleSmallImage && longestSide < OCR_UPSCALE_THRESHOLD
+    ? Math.min(OCR_UPSCALE_FACTOR, OCR_UPSCALE_THRESHOLD / longestSide)
+    : 1;
+  const scale = downscale * upscale;
   return {
     scale,
     width: Math.max(1, Math.round(image.naturalWidth * scale)),
@@ -110,21 +118,27 @@ export async function prepareOcrImages(file: File): Promise<UploadedImage[]> {
     throw new Error('Ảnh không có kích thước hợp lệ.');
   }
 
-  const { width, height, scale } = scaledDimensions(image, MAX_OCR_IMAGE_DIMENSION);
+  const { width, height, scale } = scaledDimensions(image, MAX_OCR_IMAGE_DIMENSION, true);
   const chunked = height > MAX_OCR_CHUNK_HEIGHT;
   const step = chunked ? MAX_OCR_CHUNK_HEIGHT - OCR_CHUNK_OVERLAP : height;
   const chunks: UploadedImage[] = [];
 
   for (let y = 0; y < height; y += step) {
     const chunkHeight = Math.min(MAX_OCR_CHUNK_HEIGHT, height - y);
+    const headerHeight = y > 0 ? Math.min(OCR_HEADER_REFERENCE_HEIGHT, height) : 0;
     const canvas = document.createElement('canvas');
     canvas.width = width;
-    canvas.height = chunkHeight;
+    canvas.height = headerHeight + chunkHeight;
     const context = canvas.getContext('2d');
     if (!context) throw new Error('Trình duyệt không hỗ trợ xử lý ảnh.');
 
     context.fillStyle = '#ffffff';
-    context.fillRect(0, 0, width, chunkHeight);
+    context.fillRect(0, 0, width, headerHeight + chunkHeight);
+    if (headerHeight > 0) {
+      // Repeat the column header in every later slice so the model can map
+      // numeric cells to the correct columns instead of guessing from context.
+      context.drawImage(image, 0, 0, image.naturalWidth, headerHeight / scale, 0, 0, width, headerHeight);
+    }
     context.drawImage(
       image,
       0,
@@ -132,7 +146,7 @@ export async function prepareOcrImages(file: File): Promise<UploadedImage[]> {
       image.naturalWidth,
       chunkHeight / scale,
       0,
-      0,
+      headerHeight,
       width,
       chunkHeight,
     );

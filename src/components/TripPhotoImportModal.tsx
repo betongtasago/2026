@@ -30,8 +30,15 @@ function normalizeVehicleNumber(value: string): string {
 
 function findMatchingRecord(row: OcrTripRow, records: DriverRecord[]): DriverRecord | undefined {
   const vehicle = normalizeVehicleNumber(row.vehicleNumber);
-  if (!vehicle) return undefined;
-  return records.find((record) => normalizeVehicleNumber(record.vehicleNumber) === vehicle);
+  const driver = normalizeStringForComparison(row.driverName);
+  if (!vehicle || !driver) return undefined;
+
+  // Một xe có thể xuất hiện ở nhiều dòng với các tài xế khác nhau.
+  // Khóa ghép tên tài xế + số xe mới xác định đúng bản ghi cần cập nhật.
+  return records.find((record) => (
+    normalizeVehicleNumber(record.vehicleNumber) === vehicle
+      && normalizeStringForComparison(record.driverName) === driver
+  ));
 }
 
 function mergeOcrRow(record: DriverRecord, row: OcrTripRow): DriverRecord {
@@ -171,16 +178,21 @@ export const TripPhotoImportModal: React.FC<TripPhotoImportModalProps> = ({
           row.totalTrips,
           row.waterVehicles,
         ].join('|');
-        return all.findIndex((candidate) => [
-          candidate.driverName,
-          candidate.vehicleNumber,
-          candidate.stationVolume,
-          candidate.largeTrips,
-          candidate.smallTrips,
-          candidate.totalKm,
-          candidate.totalTrips,
-          candidate.waterVehicles,
-        ].join('|') === signature) === index;
+        // Không khử trùng lặp các dòng thiếu định danh: nhiều object rỗng có thể
+        // đại diện cho các dòng khác nhau mà OCR chưa đọc rõ.
+        if (!row.driverName || !row.vehicleNumber) return true;
+        return all.findIndex((candidate) => (
+          candidate.driverName && candidate.vehicleNumber && [
+            candidate.driverName,
+            candidate.vehicleNumber,
+            candidate.stationVolume,
+            candidate.largeTrips,
+            candidate.smallTrips,
+            candidate.totalKm,
+            candidate.totalTrips,
+            candidate.waterVehicles,
+          ].join('|') === signature
+        )) === index;
       });
       setRows(recognized);
       const selectableIndexes = recognized

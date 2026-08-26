@@ -1,14 +1,13 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Camera, Clipboard, Download, X } from 'lucide-react';
 import { DriverRecord } from '../types';
-import { captureElementAsDataUrl, downloadTableScreenshot } from '../utils/tableScreenshot';
+import { captureElementAsBlob, downloadTableScreenshot } from '../utils/tableScreenshot';
 import '../styles/reportCapture.css';
 
 interface FleetReportPreviewProps { isOpen: boolean; records: DriverRecord[]; onClose: () => void; }
 function number(value: number): string { return Number(value || 0).toLocaleString('vi-VN'); }
 function volume(value: number): string { return Number(value || 0).toLocaleString('vi-VN', { minimumFractionDigits: 1, maximumFractionDigits: 1 }); }
 function reportDate(date: Date): string { return date.toLocaleString('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit' }); }
-function dataUrlToBlob(dataUrl: string): Blob { const [header, encoded] = dataUrl.split(','); const mime = header.match(/data:(.*?);/)?.[1] || 'image/png'; const bytes = Uint8Array.from(atob(encoded), (character) => character.charCodeAt(0)); return new Blob([bytes], { type: mime }); }
 
 export const FleetReportPreview: React.FC<FleetReportPreviewProps> = ({ isOpen, records, onClose }) => {
   const reportRef = useRef<HTMLDivElement>(null);
@@ -25,7 +24,7 @@ export const FleetReportPreview: React.FC<FleetReportPreviewProps> = ({ isOpen, 
   if (!isOpen) return null;
 
   const handleDownload = async () => { if (!reportRef.current || isDownloading || isCopying) return; setIsDownloading(true); setError(null); try { const dateTag = `${capturedAt.getFullYear()}${String(capturedAt.getMonth() + 1).padStart(2, '0')}${String(capturedAt.getDate()).padStart(2, '0')}_${String(capturedAt.getHours()).padStart(2, '0')}${String(capturedAt.getMinutes()).padStart(2, '0')}`; await downloadTableScreenshot(reportRef.current, `BaoCaoVanHanhTaiXe_${dateTag}.png`); } catch (downloadError) { setError(downloadError instanceof Error ? downloadError.message : 'Không thể tạo ảnh báo cáo.'); } finally { setIsDownloading(false); } };
-  const handleCopy = async () => { if (!reportRef.current || isCopying || isDownloading) return; setIsCopying(true); setError(null); setCopied(false); try { if (!window.isSecureContext || !navigator.clipboard?.write || typeof ClipboardItem === 'undefined') throw new Error('Copy ảnh cần mở ứng dụng bằng HTTPS hoặc localhost trên trình duyệt hỗ trợ clipboard.'); const dataUrl = await captureElementAsDataUrl(reportRef.current); await navigator.clipboard.write([new ClipboardItem({ 'image/png': dataUrlToBlob(dataUrl) })]); setCopied(true); window.setTimeout(() => setCopied(false), 3000); } catch (copyError) { setError(copyError instanceof Error ? copyError.message : 'Không thể copy ảnh vào clipboard.'); } finally { setIsCopying(false); } };
+  const handleCopy = async () => { if (!reportRef.current || isCopying || isDownloading) return; setIsCopying(true); setError(null); setCopied(false); try { if (!window.isSecureContext || !navigator.clipboard?.write || typeof ClipboardItem === 'undefined') throw new Error('Copy ảnh cần mở ứng dụng bằng HTTPS hoặc localhost trên trình duyệt hỗ trợ clipboard.'); const blob = await captureElementAsBlob(reportRef.current); await navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })]); setCopied(true); window.setTimeout(() => setCopied(false), 3000); } catch (copyError) { setError(copyError instanceof Error ? copyError.message : 'Không thể copy ảnh vào clipboard.'); } finally { setIsCopying(false); } };
 
   const cards = [
     { label: 'TỔNG TÀI XẾ', value: number(records.length), unit: 'xe', sub: `${uniqueDrivers} cá nhân · ${uniqueVehicles} xe`, color: 'blue' },

@@ -1,5 +1,14 @@
 import html2canvas from 'html2canvas';
 
+const REPORT_CAPTURE_MAX_PIXELS = 36_000_000;
+
+function captureScale(element: HTMLElement, width: number, height: number): number {
+  const deviceScale = Math.max(1, window.devicePixelRatio || 1);
+  const preferred = element.matches('[data-report-capture]') ? Math.max(3, Math.min(4, deviceScale * 2)) : Math.min(2, deviceScale);
+  const safeScale = Math.sqrt(REPORT_CAPTURE_MAX_PIXELS / Math.max(1, width * height));
+  return Math.max(1, Math.min(preferred, safeScale));
+}
+
 function downloadBlob(blob: Blob, fileName: string): void {
   const url = URL.createObjectURL(blob);
   const link = document.createElement('a');
@@ -77,7 +86,7 @@ async function renderTableWithCanvas(element: HTMLElement): Promise<Blob> {
   const tableRect = table.getBoundingClientRect();
   const width = Math.max(1, Math.ceil(table.scrollWidth || tableRect.width));
   const height = Math.max(1, Math.ceil(table.scrollHeight || tableRect.height));
-  const scale = Math.min(2, Math.max(1, window.devicePixelRatio || 1));
+  const scale = captureScale(element, width, height);
   const canvas = document.createElement('canvas');
   canvas.width = Math.ceil(width * scale);
   canvas.height = Math.ceil(height * scale);
@@ -140,7 +149,7 @@ async function renderFullReportWithSvg(element: HTMLElement, width: number, heig
   image.decoding = 'async';
   image.src = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`;
   await new Promise<void>((resolve, reject) => { image.onload = () => resolve(); image.onerror = () => reject(new Error('Không thể dựng ảnh báo cáo đầy đủ.')); });
-  const scale = Math.min(2, Math.max(1, window.devicePixelRatio || 1));
+  const scale = captureScale(element, width, height);
   const canvas = document.createElement('canvas');
   canvas.width = Math.ceil(width * scale);
   canvas.height = Math.ceil(height * scale);
@@ -162,7 +171,7 @@ function blobToDataUrl(blob: Blob): Promise<string> {
   });
 }
 
-export async function captureElementAsDataUrl(element: HTMLElement): Promise<string> {
+export async function captureElementAsBlob(element: HTMLElement): Promise<Blob> {
   const scrollContainer = element.querySelector<HTMLElement>('[data-table-scroll]');
   const table = element.querySelector<HTMLElement>('table');
   const width = Math.max(element.clientWidth, scrollContainer?.scrollWidth || 0, table?.scrollWidth || 0);
@@ -171,11 +180,14 @@ export async function captureElementAsDataUrl(element: HTMLElement): Promise<str
   try {
     const canvas = await html2canvas(element, {
       backgroundColor: '#ffffff',
-      scale: Math.min(2, Math.max(1, window.devicePixelRatio || 1)),
+      scale: captureScale(element, width, height),
       width,
       height,
       windowWidth: width,
       windowHeight: Math.max(window.innerHeight, height),
+      useCORS: true,
+      imageTimeout: 0,
+      logging: false,
       onclone: (clonedDocument) => {
         const clonedElement = clonedDocument.querySelector<HTMLElement>('[data-table-capture], [data-report-capture]');
         const clonedScrollContainer = clonedElement?.querySelector<HTMLElement>('[data-table-scroll]');
@@ -193,14 +205,18 @@ export async function captureElementAsDataUrl(element: HTMLElement): Promise<str
         }
       },
     });
-    return canvas.toDataURL('image/png');
+    return canvasBlob(canvas);
   } catch (html2CanvasError) {
     console.warn('html2canvas không thể chụp vùng báo cáo, chuyển sang fallback đầy đủ:', html2CanvasError);
     if (element.matches('[data-report-capture]')) {
-      return blobToDataUrl(await renderFullReportWithSvg(element, width, height));
+      return renderFullReportWithSvg(element, width, height);
     }
-    return blobToDataUrl(await renderTableWithCanvas(element));
+    return renderTableWithCanvas(element);
   }
+}
+
+export async function captureElementAsDataUrl(element: HTMLElement): Promise<string> {
+  return blobToDataUrl(await captureElementAsBlob(element));
 }
 
 export async function downloadTableScreenshot(element: HTMLElement, fileName: string): Promise<void> {

@@ -12,6 +12,15 @@
 .bcsx-production-header { min-height: 276px; padding: 42px 48px 28px; background: linear-gradient(102deg, #fff 0%, #fff 55%, #f1f8f3 100%); border-bottom: 2px solid #075b3e; }
 .bcsx-production-brand { display: flex; align-items: center; gap: 42px; }
 .bcsx-logo { width: 180px !important; height: 180px !important; border: 0 !important; border-radius: 0 !important; background: transparent !important; color: #0a6c42 !important; font-size: 31px !important; line-height: 1.05 !important; padding: 0 !important; }
+.bcsx-logo-image { object-fit: contain; object-position: center; display: block; }
+.bcsx-header-vehicle { display: block; width: 370px; height: 150px; object-fit: contain; object-position: center; }
+.bcsx-header-vehicle-wrap { width: 390px; }
+.bcsx-production-brand .bcsx-logo-image { flex: 0 0 180px; }
+.bcsx-production-company { min-width: 810px; }
+.bcsx-production-company > input { display: block; }
+.bcsx-production-company > div input { width: 760px !important; }
+.bcsx-production-company > div { max-width: 790px; }
+
 .bcsx-production-company { border-left: 2px solid #b6c4ba; padding-left: 38px; }
 .bcsx-production-company input { width: 720px !important; font-size: 32px !important; line-height: 1.12 !important; letter-spacing: .015em; color: #07563c !important; }
 .bcsx-production-company input:last-child { width: 840px !important; margin-top: 15px; font-size: 17px !important; color: #617068 !important; }
@@ -46,8 +55,11 @@
 .bcsx-production-report .relative.flex.h-12 > span { left: -8px !important; top: -8px !important; width: 31px !important; height: 31px !important; background: #087c42 !important; }
 
 .bcsx-equipment-report { width: 1618px; min-height: 972px; border: 1px solid #b5c8bc; border-radius: 20px; background: #fff; overflow: hidden; }
-.bcsx-equipment-header { min-height: 170px; padding: 24px 38px 20px !important; background: linear-gradient(102deg, #fff 0%, #fff 65%, #f1f8f3 100%); }
-.bcsx-equipment-header > div:first-child { gap: 28px !important; }
+.bcsx-equipment-header { min-height: 170px; padding: 24px 38px 20px !important; background: linear-gradient(102deg, #fff 0%, #fff 65%, #f1f8f3 100%); display: grid !important; grid-template-columns: minmax(640px, 1fr) 500px 270px; align-items: center; column-gap: 18px; }
+.bcsx-equipment-header > div:first-child { gap: 28px !important; min-width: 0; }
+.bcsx-equipment-header > div:first-child > div { min-width: 0; }
+.bcsx-equipment-vehicle { width: 500px; height: 135px; }
+
 .bcsx-equipment-header .bcsx-logo { width: 120px !important; height: 120px !important; font-size: 24px !important; }
 .bcsx-equipment-header input { color: #07563c !important; }
 .bcsx-equipment-header input[aria-label="Tên công ty thiết bị"] { width: 750px !important; font-size: 31px !important; }

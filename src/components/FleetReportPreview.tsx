@@ -1,0 +1,121 @@
+import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { Camera, Download, Truck, X } from 'lucide-react';
+import { DriverRecord } from '../types';
+import { downloadTableScreenshot } from '../utils/tableScreenshot';
+
+interface FleetReportPreviewProps {
+  isOpen: boolean;
+  records: DriverRecord[];
+  onClose: () => void;
+}
+
+function number(value: number): string {
+  return Number(value || 0).toLocaleString('vi-VN');
+}
+
+function volume(value: number): string {
+  return Number(value || 0).toLocaleString('vi-VN', { minimumFractionDigits: 1, maximumFractionDigits: 1 });
+}
+
+function reportDate(date: Date): string {
+  return date.toLocaleString('vi-VN', {
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+  });
+}
+
+export const FleetReportPreview: React.FC<FleetReportPreviewProps> = ({ isOpen, records, onClose }) => {
+  const reportRef = useRef<HTMLDivElement>(null);
+  const [isDownloading, setIsDownloading] = useState(false);
+  const [capturedAt, setCapturedAt] = useState(() => new Date());
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (isOpen) {
+      setCapturedAt(new Date());
+      setError(null);
+    }
+  }, [isOpen]);
+
+  const totals = useMemo(() => records.reduce((sum, record) => ({
+    stationVolume: sum.stationVolume + (Number(record.stationVolume) || 0),
+    largeTrips: sum.largeTrips + (Number(record.largeTrips) || 0),
+    smallTrips: sum.smallTrips + (Number(record.smallTrips) || 0),
+    totalKm: sum.totalKm + (Number(record.totalKm) || 0),
+    totalTrips: sum.totalTrips + (Number(record.totalTrips) || 0),
+    waterVehicles: sum.waterVehicles + (Number(record.waterVehicles) || 0),
+  }), {
+    stationVolume: 0,
+    largeTrips: 0,
+    smallTrips: 0,
+    totalKm: 0,
+    totalTrips: 0,
+    waterVehicles: 0,
+  }), [records]);
+
+  const uniqueVehicles = useMemo(() => new Set(records.map((record) => String(record.vehicleNumber || '').trim().toLowerCase()).filter(Boolean)).size, [records]);
+  const uniqueDrivers = useMemo(() => new Set(records.map((record) => String(record.driverName || '').trim().toLowerCase()).filter(Boolean)).size, [records]);
+
+  if (!isOpen) return null;
+
+  const handleDownload = async () => {
+    if (!reportRef.current || isDownloading) return;
+    setIsDownloading(true);
+    setError(null);
+    try {
+      const dateTag = `${capturedAt.getFullYear()}${String(capturedAt.getMonth() + 1).padStart(2, '0')}${String(capturedAt.getDate()).padStart(2, '0')}_${String(capturedAt.getHours()).padStart(2, '0')}${String(capturedAt.getMinutes()).padStart(2, '0')}`;
+      await downloadTableScreenshot(reportRef.current, `BaoCaoVanHanhTaiXe_${dateTag}.png`);
+    } catch (downloadError) {
+      console.error('Lỗi tải ảnh báo cáo:', downloadError);
+      setError(downloadError instanceof Error ? downloadError.message : 'Không thể tạo ảnh báo cáo.');
+    } finally {
+      setIsDownloading(false);
+    }
+  };
+
+  const cards = [
+    { label: 'TỔNG TÀI XẾ', value: number(records.length), unit: 'dòng', sub: `${uniqueDrivers} cá nhân · ${uniqueVehicles} xe`, color: 'border-blue-100 bg-blue-50/50 text-blue-900' },
+    { label: 'TỔNG KL TRẠM TN', value: volume(totals.stationVolume), unit: 'm³', sub: 'Khối lượng trạm', color: 'border-purple-100 bg-purple-50/60 text-purple-900' },
+    { label: 'TỔNG CHUYẾN', value: number(totals.totalTrips), unit: 'lượt', sub: `${number(totals.largeTrips)} lớn / ${number(totals.smallTrips)} nhỏ`, color: 'border-amber-100 bg-amber-50/70 text-amber-900' },
+    { label: 'TỔNG KM', value: number(totals.totalKm), unit: 'km', sub: 'Quãng đường vận hành', color: 'border-emerald-100 bg-emerald-50/70 text-emerald-900' },
+    { label: 'XE NƯỚC HỖ TRỢ', value: number(totals.waterVehicles), unit: 'chuyến', sub: 'Tiếp nước', color: 'border-sky-100 bg-sky-50/70 text-sky-900' },
+  ];
+
+  return (
+    <div className="fixed inset-0 z-[60] flex flex-col bg-slate-950/75 p-2 backdrop-blur-sm sm:p-4">
+      <div className="mx-auto flex min-h-0 w-full max-w-[1400px] flex-1 flex-col overflow-hidden rounded-2xl bg-slate-100 shadow-2xl sm:rounded-[26px]">
+        <div className="flex shrink-0 items-center justify-between border-b border-slate-200 bg-white px-4 py-3 sm:px-6">
+          <div className="flex items-center gap-3"><div className="rounded-xl bg-violet-100 p-2 text-violet-700"><Camera className="h-5 w-5" /></div><div><p className="text-[10px] font-black uppercase tracking-[0.18em] text-violet-700">Xem trước ảnh báo cáo</p><h3 className="text-base font-black text-slate-950 sm:text-lg">Bảng báo cáo vận hành đầy đủ</h3></div></div>
+          <button type="button" onClick={onClose} className="rounded-xl p-2 text-slate-400 transition hover:bg-slate-100 hover:text-slate-800" aria-label="Đóng xem trước"><X className="h-5 w-5" /></button>
+        </div>
+
+        <div className="min-h-0 flex-1 overflow-auto p-3 sm:p-6">
+          <div ref={reportRef} data-report-capture className="mx-auto w-[1120px] bg-white px-8 py-7 font-sans text-slate-800 shadow-sm">
+            <div className="flex items-center justify-between border-b-[3px] border-[#075985] pb-4">
+              <div className="flex items-center gap-4"><div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-[#075985] to-[#0369a1] text-white"><Truck className="h-8 w-8" /></div><div><h1 className="text-[25px] font-black tracking-tight text-[#0c4a6e]">BẢNG BÁO CÁO VẬN HÀNH CHUYẾN &amp; KHỐI LƯỢNG TÀI XẾ</h1><p className="mt-1 text-[13px] font-semibold tracking-wide text-slate-500">HỆ THỐNG QUẢN LÝ BÊ TÔNG TASAGO–TNT</p></div></div>
+              <div className="text-right"><span className="inline-flex rounded-xl border border-sky-200 bg-sky-50 px-3 py-2 text-[13px] font-black text-sky-800">Toàn bộ {records.length} dòng</span><p className="mt-3 text-[12px] text-slate-500">Thời gian chụp: <strong className="text-slate-700">{reportDate(capturedAt)}</strong></p></div>
+            </div>
+
+            <div className="my-5 grid grid-cols-5 gap-3">
+              {cards.map((card) => <div key={card.label} className={`rounded-xl border px-4 py-3 text-center ${card.color}`}><p className="text-[11px] font-black tracking-wide">{card.label}</p><p className="mt-2 text-[24px] font-black leading-none">{card.value} <span className="text-[13px] font-bold">{card.unit}</span></p><p className="mt-2 text-[11px] font-semibold opacity-70">{card.sub}</p></div>)}
+            </div>
+
+            <table className="w-full border-collapse text-[12px]">
+              <thead><tr className="bg-gradient-to-r from-[#075985] to-[#0369a1] text-white"><th className="w-12 border border-[#075985] px-2 py-3">STT</th><th className="border border-[#075985] px-3 py-3 text-left">TÊN TÀI XẾ</th><th className="w-[130px] border border-[#075985] px-2 py-3 text-left">SỐ XE</th><th className="w-[120px] border border-[#075985] px-2 py-3">KL TRẠM TN (M³)</th><th className="w-[92px] border border-[#075985] px-2 py-3">CHUYẾN LỚN</th><th className="w-[92px] border border-[#075985] px-2 py-3">CHUYẾN NHỎ</th><th className="w-[105px] border border-[#075985] px-2 py-3">TỔNG KM</th><th className="w-[110px] border border-[#075985] px-2 py-3">TỔNG CHUYẾN</th><th className="w-[88px] border border-[#075985] px-2 py-3">XE NƯỚC</th></tr></thead>
+              <tbody>{records.map((record, index) => <tr key={`${record.id}-${index}`} className={index % 2 ? 'bg-slate-50/70' : 'bg-white'}><td className="border border-slate-200 px-2 py-2 text-center font-black text-sky-800">{String(index + 1).padStart(2, '0')}</td><td className="border border-slate-200 px-3 py-2 font-bold text-slate-800">{record.driverName || 'Chưa có tên'}{record.hasWarning && <span className="ml-1 text-amber-500">▲</span>}</td><td className="border border-slate-200 px-2 py-2 font-mono font-bold text-slate-700">{record.vehicleNumber || '—'}</td><td className="border border-slate-200 bg-purple-50/60 px-2 py-2 text-center font-black text-purple-800">{volume(record.stationVolume)}</td><td className="border border-slate-200 bg-amber-50/70 px-2 py-2 text-center font-black text-amber-700">{number(record.largeTrips)}</td><td className="border border-slate-200 bg-yellow-50/70 px-2 py-2 text-center font-black text-amber-700">{number(record.smallTrips)}</td><td className="border border-slate-200 bg-emerald-50/70 px-2 py-2 text-center font-mono font-black text-emerald-800">{number(record.totalKm)}</td><td className="border border-slate-200 bg-rose-50/70 px-2 py-2 text-center font-black text-rose-800">{number(record.totalTrips)}</td><td className="border border-slate-200 bg-sky-50/70 px-2 py-2 text-center font-black text-sky-800">{number(record.waterVehicles)}</td></tr>)}</tbody>
+              <tfoot><tr className="border-t-2 border-[#075985] bg-slate-100 font-black"><td colSpan={3} className="border border-slate-200 px-3 py-3 text-left uppercase">TỔNG CỘNG ({records.length} DÒNG)</td><td className="border border-slate-200 px-2 py-3 text-center text-purple-800">{volume(totals.stationVolume)}</td><td className="border border-slate-200 px-2 py-3 text-center text-amber-700">{number(totals.largeTrips)}</td><td className="border border-slate-200 px-2 py-3 text-center text-amber-700">{number(totals.smallTrips)}</td><td className="border border-slate-200 px-2 py-3 text-center text-emerald-800">{number(totals.totalKm)}</td><td className="border border-slate-200 px-2 py-3 text-center text-rose-800">{number(totals.totalTrips)}</td><td className="border border-slate-200 px-2 py-3 text-center text-sky-800">{number(totals.waterVehicles)}</td></tr></tfoot>
+            </table>
+            <div className="mt-5 flex items-center justify-between border-t border-slate-200 pt-3 text-[11px] text-slate-400"><span>Hệ thống Quản lý và Phân tích Dữ liệu trạm trộn Tasago–TNT © 2026</span><span>Ảnh báo cáo tạo từ dữ liệu đang hiển thị</span></div>
+          </div>
+        </div>
+
+        {error && <div className="mx-4 mb-2 rounded-xl border border-rose-200 bg-rose-50 px-4 py-2 text-sm font-semibold text-rose-700 sm:mx-6">{error}</div>}
+        <div className="flex shrink-0 flex-col-reverse gap-2 border-t border-slate-200 bg-white px-4 py-3 sm:flex-row sm:items-center sm:justify-between sm:px-6"><p className="text-xs text-slate-500">Đây là bản xem trước. Chỉ tải xuống khi nội dung đã đúng.</p><div className="flex gap-2"><button type="button" onClick={onClose} className="rounded-xl px-4 py-2.5 text-sm font-bold text-slate-600 transition hover:bg-slate-100">Đóng</button><button type="button" onClick={handleDownload} disabled={isDownloading || !records.length} className="inline-flex items-center justify-center gap-2 rounded-xl bg-violet-700 px-5 py-2.5 text-sm font-black text-white shadow-lg shadow-violet-700/20 transition hover:bg-violet-800 disabled:cursor-wait disabled:opacity-60"><Download className="h-4 w-4" />{isDownloading ? 'Đang tạo PNG...' : 'Tải ảnh PNG'}</button></div></div>
+      </div>
+    </div>
+  );
+};

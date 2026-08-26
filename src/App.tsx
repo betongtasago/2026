@@ -16,6 +16,7 @@ import { apiFetch, canUseSameOriginApi, clearClientSessionToken, hasExternalApiB
 import { sanitizeDriverRecords } from './utils/recordSanitizer';
 import { exportDriversToExcel, exportDriversToCSV } from './utils/excelExporter';
 import { FleetReportPreview } from './components/FleetReportPreview';
+import { ProductionReportModal } from './components/ProductionReportModal';
 import { normalizeStringForComparison } from './utils/excelParser';
 import { CheckCircle2, AlertCircle, Info, X } from 'lucide-react';
 
@@ -71,6 +72,7 @@ export default function App() {
   const [isEditOpen, setIsEditOpen] = useState<boolean>(false);
   const [isClearConfirmOpen, setIsClearConfirmOpen] = useState<boolean>(false);
   const [isReportPreviewOpen, setIsReportPreviewOpen] = useState(false);
+  const [isProductionReportOpen, setIsProductionReportOpen] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
 
   // Notifications / Toast
@@ -570,6 +572,7 @@ export default function App() {
         onExportCSV={handleExportCSV}
         onCaptureTable={handleCaptureTable}
         isCapturingTable={isReportPreviewOpen}
+        onOpenProductionReport={() => setIsProductionReportOpen(true)}
         onDownloadTemplate={handleDownloadSampleTemplate}
         onResetDemo={handleResetDemo}
         onClearData={() => setIsClearConfirmOpen(true)}
@@ -658,6 +661,12 @@ export default function App() {
         isOpen={isReportPreviewOpen}
         records={filteredRecords}
         onClose={() => setIsReportPreviewOpen(false)}
+      />
+
+      <ProductionReportModal
+        isOpen={isProductionReportOpen}
+        records={filteredRecords}
+        onClose={() => setIsProductionReportOpen(false)}
       />
 
       {/* Edit/Add Row Modal */}

@@ -1,6 +1,5 @@
 import { webcrypto } from 'node:crypto';
 
-import { normalizeOcrRows } from '../src/utils/ocrNormalization';
 
 type RequestLike = {
   method?: string;
@@ -83,6 +82,68 @@ function cleanResponseText(value: string): string {
   if (text.startsWith('```json')) return text.replace(/^```json\s*/i, '').replace(/```$/, '').trim();
   if (text.startsWith('```')) return text.replace(/^```\s*/i, '').replace(/```$/, '').trim();
   return text;
+}
+
+function parseOcrNumber(value: unknown): number {
+  if (value === null || value === undefined || value === '') return 0;
+  if (typeof value === 'number') return Number.isFinite(value) ? value : 0;
+  let text = String(value).trim();
+  if (!text || text === '-' || text === '—' || text.toLowerCase() === 'null') return 0;
+  const negative = text.startsWith('-');
+  if (negative) text = text.slice(1).trim();
+  text = text.replace(/[^0-9,.]/g, '');
+  if (!text) return 0;
+  if (text.includes(',') && text.includes('.')) {
+    text = text.indexOf(',') < text.indexOf('.')
+      ? text.replace(/,/g, '')
+      : text.replace(/\./g, '').replace(',', '.');
+  } else if (text.includes(',')) {
+    const parts = text.split(',');
+    text = parts.length === 2 && (parts[1].length === 1 || parts[1].length === 2)
+      ? `${parts[0]}.${parts[1]}`
+      : parts.slice(1).every((part) => part.length === 3) ? text.replace(/,/g, '') : text.replace(/,/g, '.');
+  } else if (text.split('.').length > 2) {
+    text = text.replace(/\./g, '');
+  }
+  const parsed = Number.parseFloat(text);
+  return Number.isFinite(parsed) ? (negative ? -parsed : parsed) : 0;
+}
+
+function parseOcrInteger(value: unknown): number {
+  if (typeof value === 'string' && /^-?\d{1,3}\.\d{3}$/.test(value.trim())) {
+    const negative = value.trim().startsWith('-');
+    const grouped = Number(value.trim().replace(/[^0-9]/g, ''));
+    return Number.isFinite(grouped) ? (negative ? -grouped : grouped) : 0;
+  }
+  return Math.round(parseOcrNumber(value));
+}
+
+function normalizeOcrRows(value: unknown): Array<Record<string, unknown>> {
+  if (!Array.isArray(value)) return [];
+  return value
+    .filter((item): item is Record<string, unknown> => Boolean(item && typeof item === 'object'))
+    .map((item, index) => {
+      const driverName = String(item.driverName ?? item.driver ?? item.driver_name ?? '').trim();
+      const vehicleNumber = String(item.vehicleNumber ?? item.vehicle ?? item.licensePlate ?? item.license_plate ?? '').trim();
+      const largeTrips = parseOcrInteger(item.largeTrips ?? item.large ?? item.large_trip);
+      const smallTrips = parseOcrInteger(item.smallTrips ?? item.small ?? item.small_trip);
+      const explicitTotalTrips = parseOcrInteger(item.totalTrips ?? item.total ?? item.trips);
+      const totalTrips = largeTrips + smallTrips > 0 ? largeTrips + smallTrips : explicitTotalTrips;
+      const rawRowIndex = parseOcrInteger(item.rawRowIndex ?? item.rowIndex ?? item.stt) || index + 1;
+      return {
+        stt: rawRowIndex,
+        driverName,
+        vehicleNumber,
+        stationVolume: parseOcrNumber(item.stationVolume ?? item.station_volume ?? item.volume),
+        largeTrips,
+        smallTrips,
+        totalKm: parseOcrInteger(item.totalKm ?? item.total_km ?? item.km),
+        totalTrips,
+        waterVehicles: parseOcrInteger(item.waterVehicles ?? item.water ?? item.water_trips),
+        rawRowIndex,
+        needsReview: !driverName || !vehicleNumber,
+      };
+    });
 }
 
 function responseSchema() {

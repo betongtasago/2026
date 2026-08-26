@@ -146,11 +146,18 @@ export const TripPhotoImportModal: React.FC<TripPhotoImportModalProps> = ({
             segment: { index: partIndex + 1, total: uploadedParts.length },
           }),
         });
-        const data = await response.json().catch(() => null);
+        const responseText = await response.text();
+        let data: unknown = null;
+        try {
+          data = responseText ? JSON.parse(responseText) : null;
+        } catch {
+          data = responseText ? { error: responseText.slice(0, 500) } : null;
+        }
         if (response.status === 401) throw new Error('Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.');
         if (response.status === 413) throw new Error('Ảnh OCR vượt giới hạn request của máy chủ. Hệ thống đã tự nén/chia ảnh; hãy thử ảnh nhỏ hơn hoặc cắt sát bảng.');
-        if (!response.ok || !data?.success) throw new Error(readApiErrorFromPayload(data, 'Không thể nhận diện danh sách chuyến.'));
-        if (Array.isArray(data.drivers)) rawDrivers.push(...data.drivers);
+        if (!response.ok || !(data as { success?: boolean } | null)?.success) throw new Error(readApiErrorFromPayload(data, 'Không thể nhận diện danh sách chuyến.'));
+        const responseDrivers = (data as { drivers?: unknown[] } | null)?.drivers;
+        if (Array.isArray(responseDrivers)) rawDrivers.push(...responseDrivers);
       }
 
       const recognized: OcrTripRow[] = normalizeOcrRows(rawDrivers).filter((row, index, all) => {

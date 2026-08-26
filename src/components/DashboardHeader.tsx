@@ -11,7 +11,6 @@ import {
   LogOut,
   ShieldCheck,
   Activity,
-  Factory,
   ScanLine,
   Camera,
 } from 'lucide-react';
@@ -26,7 +25,6 @@ interface DashboardHeaderProps {
   onExportCSV: () => void;
   onCaptureTable: () => void;
   isCapturingTable: boolean;
-  onOpenProductionReport: () => void;
   onDownloadTemplate: () => void;
   onResetDemo: () => void;
   onClearData: () => void;
@@ -45,7 +43,6 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
   onExportCSV,
   onCaptureTable,
   isCapturingTable,
-  onOpenProductionReport,
   onDownloadTemplate,
   onResetDemo,
   onClearData,
@@ -162,17 +159,6 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
               <span>{isCapturingTable ? 'Đang tạo ảnh...' : 'Chụp bảng'}</span>
             </button>
 
-            <button
-              type="button"
-              id="btn-production-report"
-              onClick={onOpenProductionReport}
-              disabled={filteredCount === 0}
-              title="Mở báo cáo sản xuất và tình trạng thiết bị"
-              className="inline-flex items-center gap-1.5 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-xs font-medium text-emerald-800 transition-colors hover:bg-emerald-100 disabled:cursor-not-allowed disabled:opacity-50"
-            >
-              <Factory className="h-3.5 w-3.5 text-emerald-600" />
-              <span>BCSX</span>
-            </button>
 
             {/* Add Record (Bonus) */}
             {onAddNewRow && (

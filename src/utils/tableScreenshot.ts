@@ -112,6 +112,47 @@ async function renderTableWithCanvas(element: HTMLElement): Promise<Blob> {
   return canvasBlob(canvas);
 }
 
+async function renderFullReportWithSvg(element: HTMLElement, width: number, height: number): Promise<Blob> {
+  const cloned = element.cloneNode(true) as HTMLElement;
+  cloned.style.width = `${width}px`;
+  cloned.style.maxWidth = 'none';
+  cloned.style.height = `${height}px`;
+  cloned.style.overflow = 'visible';
+  cloned.querySelectorAll<HTMLElement>('[data-table-scroll]').forEach((node) => {
+    node.style.width = `${width}px`;
+    node.style.maxWidth = 'none';
+    node.style.height = 'auto';
+    node.style.maxHeight = 'none';
+    node.style.overflow = 'visible';
+  });
+
+  const cssText = Array.from(document.styleSheets).map((sheet) => {
+    try { return Array.from(sheet.cssRules).map((rule) => rule.cssText).join('\\n'); } catch { return ''; }
+  }).join('\\n');
+  const wrapper = document.createElement('div');
+  wrapper.setAttribute('xmlns', 'http://www.w3.org/1999/xhtml');
+  const style = document.createElement('style');
+  style.textContent = cssText;
+  wrapper.append(style, cloned);
+  const serialized = new XMLSerializer().serializeToString(wrapper);
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" xmlns:xhtml="http://www.w3.org/1999/xhtml" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}"><foreignObject width="100%" height="100%">${serialized}</foreignObject></svg>`;
+  const image = new Image();
+  image.decoding = 'async';
+  image.src = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`;
+  await new Promise<void>((resolve, reject) => { image.onload = () => resolve(); image.onerror = () => reject(new Error('Không thể dựng ảnh báo cáo đầy đủ.')); });
+  const scale = Math.min(2, Math.max(1, window.devicePixelRatio || 1));
+  const canvas = document.createElement('canvas');
+  canvas.width = Math.ceil(width * scale);
+  canvas.height = Math.ceil(height * scale);
+  const context = canvas.getContext('2d');
+  if (!context) throw new Error('Trình duyệt không hỗ trợ tạo ảnh báo cáo.');
+  context.scale(scale, scale);
+  context.fillStyle = '#ffffff';
+  context.fillRect(0, 0, width, height);
+  context.drawImage(image, 0, 0, width, height);
+  return canvasBlob(canvas);
+}
+
 function blobToDataUrl(blob: Blob): Promise<string> {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
@@ -154,7 +195,10 @@ export async function captureElementAsDataUrl(element: HTMLElement): Promise<str
     });
     return canvas.toDataURL('image/png');
   } catch (html2CanvasError) {
-    console.warn('html2canvas không thể chụp vùng báo cáo, chuyển sang Canvas fallback:', html2CanvasError);
+    console.warn('html2canvas không thể chụp vùng báo cáo, chuyển sang fallback đầy đủ:', html2CanvasError);
+    if (element.matches('[data-report-capture]')) {
+      try { return blobToDataUrl(await renderFullReportWithSvg(element, width, height)); } catch (svgError) { console.warn('SVG fallback không thành công, chuyển sang fallback bảng:', svgError); }
+    }
     return blobToDataUrl(await renderTableWithCanvas(element));
   }
 }
